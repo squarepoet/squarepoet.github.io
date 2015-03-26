@@ -135,7 +135,6 @@ function drawWhiteKeys(c) {
     
     c.fillStyle = '#FCC';
     c.fillRect(23*20, 0, 20, 120);
-    
 }
 
 function drawBlackKeys(c) {

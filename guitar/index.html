@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8' />
+    <link rel="stylesheet" href="/s/css/author.css" type="text/css" media="screen">
+    <script type="text/javascript" src="/s/js/jquery.min.js"></script>
+    <script type="text/javascript" src="/s/js/lodash.min.js"></script>
+    <script type="text/javascript" src="/s/js/musical.min.js"></script>
+    <script type="text/javascript" src="/s/js/author/guitar.js"></script>
+    <title>Guitar Author</title>
+</head>
+<body>
+<div style="float:right">
+    shift + esc &rarr; clear &nbsp;&nbsp;&nbsp;&nbsp; cmd + c &rarr; copy<br/>
+    up/down/left/right &rarr; adjust &nbsp;&nbsp;&nbsp;&nbsp; tab &rarr; combine
+</div>
+<div style="float:right; margin-right:20px;">
+    sharps: <input id="sharps_textarea"></input>
+    flats: <input id="flats_textarea"></input>
+</div>
+<div id="click">
+    <div id="clickText">Copy</div>
+    <div id="clickOverlay"></div>
+</div>
+<br/>
+<div id="content" style="width:100%; text-align:center;">
+    <textarea id="textarea" rows="3" cols="80" style="width:1040px;"></textarea>
+    <canvas id="guitarCanvas" width="1040" height="280" style="border: 1px solid rgba(0,0,0,0.2);"></canvas>
+</div>
+<script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-29472319-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+</script>
+</body>
+</html>
