@@ -53,7 +53,8 @@ var keyCodeToPianoKey = {
     74:45, // j => F
     75:47, // k => G
     76:49, // l => A
-    186:51,// ; => B
+    186:51,// ; => B in Chrome
+    59:51, // ; => B in Firefox
     222:52,// ' => C5
     //
     81:47, // q => G

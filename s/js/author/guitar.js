@@ -56,7 +56,8 @@ var keyCodeToFret = {
     74:6, // j => F
     75:7, // k => G
     76:8, // l => A
-    186:9,// ; => B
+    186:9,// ; => B Chrome
+    59:9, // ; => B Firefox
     222:10,// ' => C5
     //
     81:0, // q => G
@@ -87,6 +88,7 @@ var keyCodeToFret = {
     187:11  // = => D
 };
 
+// Maps a key to the guitar string
 var keyCodeToString = {
     90:4, // z
     88:4, // x
@@ -108,7 +110,8 @@ var keyCodeToString = {
     74:3, // j => F
     75:3, // k => G
     76:3, // l => A
-    186:3,// ; => B
+    186:3,// ; => B in Chrome
+    59:3, // ; => B in Firefox
     222:3,// ' => C5
     //
     81:2, // q => G
