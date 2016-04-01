@@ -187,6 +187,25 @@ function splitNoteGroup(noteGroup) {
     return result;
 }
 
+function mergeGroupIntoArray(g, arr) {
+    console.log(g + " " + arr);
+    if (g.length == 6) { //
+        var items = g.toUpperCase().split("");
+        for (var i=0; i<6; i++) {
+            if (items[i] != "X") {
+                arr[i] = items[i];
+            }
+        }
+    } else { // e.g., 3_2
+        var string_fret = g.split("_");
+        var s = string_fret[0];
+        var f = parseInt(string_fret[1]);
+        if (f > 9) { // Hex!
+            f = (f).toString(16).toUpperCase();
+        }
+        arr[6 - s] = f;
+    }
+}
 
 // 2_3 1_2 => XXXX32
 // 4_0 XXX232 => XX0232
@@ -201,21 +220,6 @@ function mergeLastTwoGroups() {
 
     var mergedNoteGroup = ['X','X','X','X','X','X'];
 
-    function mergeGroupIntoArray(g, arr) {
-        if (g.length == 6) { //
-            var items = g.toUpperCase().split("");
-            for (var i=0; i<6; i++) {
-                if (items[i] != "X") {
-                    arr[i] = items[i];
-                }
-            }
-        } else { // e.g., 3_2
-            var string_fret = g.split("_");
-            var s = string_fret[0];
-            var f = string_fret[1];
-            arr[6 - s] = f;
-        }
-    }
 
     mergeGroupIntoArray(lastLastGroup, mergedNoteGroup);
     mergeGroupIntoArray(lastGroup, mergedNoteGroup);
