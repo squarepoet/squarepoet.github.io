@@ -1,6 +1,14 @@
 # squarepoet.github.io
 
 # Authoring Tool
-The authoring tool uses PencilCode's musical library.
+PencilCode musical library to generate tones (musical.min.js & musical.js)
+* https://github.com/PencilCode/musical.js
 
-See: https://github.com/PencilCode/musical.js
+JSmidgen to create MIDI files (jsmidgen.js)
+* https://github.com/dingram/jsmidgen
+
+Drag & Drop Library (dragdrop.min.js)
+* https://github.com/feross/drag-drop
+
+MIDIFile (midifile.js)
+* https://github.com/nfroidure/MIDIFile/blob/master/dist/MIDIFile.js

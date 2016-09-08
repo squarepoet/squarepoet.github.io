@@ -3,18 +3,22 @@
 
 <head>
     <meta charset='utf-8' />
-    <link rel="stylesheet" href="/s/css/author.css" type="text/css" media="screen">
+    <link rel="stylesheet" href="/s/css/author2.css" type="text/css" media="screen">
     <title>Piano Author V2</title>
     <!-- JS UTILS -->
     <script type="text/javascript" src="/s/js/jquery.min.js"></script>
     <script type="text/javascript" src="/s/js/lodash.min.js"></script>
     <!-- PENCILCODE's SIMPLE MUSICAL TONE GENERATING LIBRARY -->
-    <script type="text/javascript" src="/s/js/musical.min.js"></script>
+    <script type="text/javascript" src="/s/js/musical.js"></script>
     <!-- JSMIDGEN - CREATE MIDI FILES -->
     <script type="text/javascript" src="/s/js/jsmidgen.js"></script>
+    <!-- DRAG & DROP SUPPORT -->
+    <script type="text/javascript" src="/s/js/dragdrop.min.js"></script>
+    <!-- MIDI FILE READING -->
+    <script type="text/javascript" src="/s/js/midievents.js"></script>
+    <script type="text/javascript" src="/s/js/midifile.js"></script>
     <!-- SQUAREPOET's AUTHORING TOOL -->
     <script type="text/javascript" src="/s/js/author/piano2.js"></script>
-
 </head>
 
 <body>
@@ -31,40 +35,13 @@
     <br/>
 
     <div id="content" style="width:100%; text-align:center;">
-        <textarea id="textarea" rows="5" cols="80" style="width:1040px;"></textarea>
+        <textarea id="textarea" rows="15" cols="80" style="width:1040px;"></textarea>
         <canvas id="pianoCanvas" width="1040" height="150" style="border: 1px solid #444;"></canvas>
     </div>
     <div style="margin:20px auto;width:200px;">
         Download <a id="download_midi_link" download="song.mid">MIDI</a> | <a id="download_text_link" href="data:text/plain;base64,SGVsbG8gV29ybGQh" download="song.txt">TEXT</a>
     </div>
-    <script type="text/javascript">
-        $(function() {
-            // jsmidgen
-            var file = new Midi.File();
-            var track = new Midi.Track();
-            track.setTempo(60); // BPM
-            file.addTrack(track);
-
-            var duration = 128; // 128 ticks == quarter note
-            track.addNote(0, p2m(40), duration, 64 /* time since previous event */ ); // C4 == MIDI NOTE 60
-            track.addNote(0, p2m(42), duration);
-            track.addNote(0, p2m(44), duration);
-            track.addNote(0, p2m(45), duration);
-            track.addNote(0, p2m(47), duration);
-
-            var base64URI = 'data:audio/midi;base64,' + btoa(file.toBytes());
-
-            $('#download_midi_link').attr('href', base64URI);
-
-
-            // TODO: use this in a 
-            piano.tone({
-                pitch: -p2m(40), // This API expects negative numbers to indicate MIDI notes. Positive numbers indicate audio tone frequency (Hz).
-                duration: 1.0
-            });
-
-        });
-    </script>
+    <div id="drag-and-drop-target">Drop a MIDI file here!</div>
 </body>
 
 </html>

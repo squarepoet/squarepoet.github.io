@@ -1,0 +1,61 @@
+/* Authoring Tool */
+
+body {
+    font-family: "Lucida Grande", Arial, sans-serif;
+    margin-top: 15px;
+    margin-left: 20px;
+    margin-right: 20px;
+}
+
+#click {
+    width: 120px;
+    height: 40px;
+    background-color: #999;
+    position: relative;
+    cursor: pointer;
+}
+
+#clickText {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    text-align: center;
+    padding-top: 10px;
+    color: #FBFBFC;
+}
+
+#clickOverlay {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+}
+
+#textarea {
+    font-family: Inconsolata, Menlo, Monaco, sans-serif;
+    font-size: 16pt;
+}
+
+input {
+    width: 50px;
+}
+
+#drag-and-drop-target {
+    padding: 20px;
+    text-align: center;
+    color: #444;
+    background-color: #DEDEDE;
+    position: absolute;
+    height: 100px;
+    bottom: 0px;
+    left: 0px;
+    right: 0px;
+}
+
+#drag-and-drop-target.drag {
+    background-color: #CCDEDE;
+    font-weight: bold;
+}
