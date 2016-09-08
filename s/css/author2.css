@@ -59,3 +59,17 @@ input {
     background-color: #CCDEDE;
     font-weight: bold;
 }
+
+.bottom-info {
+    margin-bottom: 10px;
+}
+
+.track {
+    width: 1040px;
+    background-color: #DFFAFB;
+    text-align: left;
+    overflow: scroll;
+    padding: 10px;
+    white-space: nowrap;
+    margin: 4px auto;
+}

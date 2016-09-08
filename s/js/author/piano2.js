@@ -107,7 +107,7 @@ function deleteLastGroup() {
 function saveAndShowData() {
     var newText = noteGroups.join(" ");
     localStorage.text = newText;
-    $text.val(newText);
+    $text.text(newText);
     drawPiano();
 }
 
@@ -268,7 +268,7 @@ function loadNoteGroups() {
     } else {
         noteGroups = text.split(" ");
     }
-    $text.val(noteGroups.join(" "));
+    $text.text(noteGroups.join(" "));
 }
 
 function play(keyCode, sharpModifier) {
@@ -303,7 +303,7 @@ function play(keyCode, sharpModifier) {
 }
 
 function setupUI() {
-    $text = $("#textarea");
+    $text = $("#track-1-text");
     $sharps = $("#sharps_textarea");
     $flats = $("#flats_textarea");
 
@@ -327,12 +327,12 @@ function setupUI() {
         }
 
         if (e.keyCode == 91 || e.keyCode == 93) { // CMD KEY on Mac
-            $text.select();
+            // NOTHING
         }
 
-        if (e.metaKey) {
+        if (e.metaKey) { // CMD
             if (e.keyCode == 88 || e.keyCode == 67) { // CMD + X or CMD + C
-                setTimeout(resetEverything, 100);
+                // NOTHING
             }
             return;
         }
@@ -400,16 +400,9 @@ function setupMIDIFileSupport() {
 
     $('#download_midi_link').attr('href', base64URI);
 
-
-    // piano.tone({
-    //     pitch: -p2m(40), // This API expects negative numbers to indicate MIDI notes. Positive numbers indicate audio tone frequency (Hz).
-    //     duration: 1.0
-    // });
-
     DragDrop('#drag-and-drop-target', function(filesArray) {
         var file = filesArray[0]; // Just get the first file.
-        console.log(file.name);
-        console.log(file.fullPath);
+        displayFileInfo(file);
 
         var reader = new FileReader();
         reader.addEventListener('load', function(e) {
@@ -450,11 +443,26 @@ function loadMIDIFile(arrayBuffer) {
 
     let events = midiFile.getEvents( /* type, subtype */ );
     let lastEvent = events[events.length - 1];
-    durationInMillis = lastEvent.playTime;
+    let durationInMillis = lastEvent.playTime;
+    let durationInSeconds = durationInMillis / 1000;
 
-    console.log(`Duration: ${durationInMillis / 1000} seconds.`);
+    console.log(`Duration: ${durationInSeconds} seconds.`);
+
+    displaySongInfo({
+        numTracks: numTracks,
+        duration: durationInSeconds
+    });
 
     currentRAFID = requestAnimationFrame(setupPlayback);
+}
+
+function displayFileInfo(file) {
+    $('#file-info').text(`File: ${file.name} | Size: ${file.size} bytes`);
+}
+
+function displaySongInfo(params) {
+    let duration = Math.round(params.duration * 100) / 100;
+    $('#song-info').text(`Num Tracks: ${params.numTracks} | Duration: ${duration} secs`);
 }
 
 let midiFile = null;
@@ -515,7 +523,7 @@ function playNextEvents(timeMillis) {
 
 function playMIDINote(midiNoteNum, velocity) {
     piano.tone({
-        pitch: -midiNoteNum, // This API expects a negative number to indicate a MIDI note.
+        pitch: -midiNoteNum, // This API expects negative numbers to indicate MIDI notes. Positive numbers indicate audio tone frequency (Hz).
         duration: 2.0, // 0.125, 0.25, 0.5, 1.0, 2.0
         velocity: (velocity / 127.0)
     });
