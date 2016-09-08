@@ -1,7 +1,7 @@
-let $track1, $track2, $track3;
-var noteGroups1 = [];
-var noteGroups2 = [];
-var noteGroups3 = [];
+// Support multi track MIDI songs.
+// When we compose by hand, stick everything in track 0.
+let tracks = [];
+let $tracksDOM = [];
 
 let $sharps, $flats;
 var sharps = ""; // the string value of the $sharps input
@@ -31,6 +31,13 @@ function p2m(pianoNote) {
 }
 
 var piano = new Instrument('piano');
+
+
+class NoteGroup {
+    constructor() {
+
+    }
+}
 
 var keyCodeToPianoKey = {
     32: 11, // SPACE => G1
@@ -100,34 +107,44 @@ function resetOffset() {
 function resetEverything() {
     console.log("Reset Everything!");
     octaveOffset = 0;
-    noteGroups1 = [];
-    noteGroups2 = [];
-    noteGroups3 = [];
+    setupTracks();
     saveAndShowData();
 }
 
+function addTracks(numTracks) {
+    let html = '';
+    for (let i = 0; i < numTracks; i++) {
+        tracks.push([]); // Add one array for each track. Tracks contain NoteGroups.
+        html += `<div id="track-${i}" class="track" contenteditable="true"></div>`; // Also add the corresponding DOM elements.
+    }
+    $('#tracks').html(html);
+    for (let i = 0; i < numTracks; i++) {
+        $tracksDOM.push($(`#track-${i}`));
+    }
+}
+
 function deleteLastGroup() {
-    noteGroups1.pop();
+    tracks[0].pop();
     saveAndShowData();
 }
 
 function saveAndShowData() {
-    var newText = noteGroups1.join(" ");
+    var newText = tracks[0].join(" ");
     localStorage.text = newText;
-    showNoteGroupsForTrack1();
+    showNoteGroupsForTrack0();
     drawPiano();
 }
 
-function showNoteGroupsForTrack1() {
+function showNoteGroupsForTrack0() {
     let n = 0;
     let html = '';
     let spanID = '';
-    for (let noteGroup of noteGroups1) {
-        spanID = `track_1_notegroup_${n}`;
+    for (let noteGroup of tracks[0]) {
+        spanID = `track_0_notegroup_${n}`;
         html += `<span id="${spanID}">${noteGroup}</span> `;
         n++;
     }
-    $track1.html(html);
+    $tracksDOM[0].html(html);
 
     // Scroll the div all the way to the right to make sure the most recent notegroup is visible.
     let element = $(`#${spanID}`)[0];
@@ -137,13 +154,13 @@ function showNoteGroupsForTrack1() {
 }
 
 function mergeLastTwoGroups() {
-    if (noteGroups1.length >= 2) {
-        var merged = noteGroups1.pop() + "." + noteGroups1.pop();
+    if (tracks[0].length >= 2) {
+        var merged = tracks[0].pop() + "." + tracks[0].pop();
 
         // Remove duplicates and sort the list.
         var arr = merged.split(".").sort();
         arr = _.uniq(arr, true);
-        noteGroups1.push(arr.join("."));
+        tracks[0].push(arr.join("."));
 
         saveAndShowData();
     }
@@ -181,7 +198,7 @@ function drawBlackKeys(c) {
 }
 
 function drawMostRecentGroup(c) {
-    var lastGroup = noteGroups1.slice(-1); // array of the last item
+    var lastGroup = tracks[0].slice(-1); // array of the last item
     if (lastGroup.length == 0) {
         return;
     }
@@ -289,11 +306,11 @@ function loadNoteGroups() {
 
     var text = localStorage.text.trim();
     if (text == "") {
-        noteGroups1 = [];
+        tracks[0] = [];
     } else {
-        noteGroups1 = text.split(" ");
+        tracks[0] = text.split(" ");
     }
-    showNoteGroupsForTrack1();
+    showNoteGroupsForTrack0();
 }
 
 function play(keyCode, sharpModifier) {
@@ -319,7 +336,7 @@ function play(keyCode, sharpModifier) {
             return;
         }
 
-        noteGroups1.push(pianoKeyNumber + ""); // push the string onto our array
+        tracks[0].push(pianoKeyNumber + ""); // push the string onto our array
         piano.tone({
             pitch: -p2m(pianoKeyNumber), // This API expects a negative number to indicate a MIDI note.
             duration: 1.0
@@ -329,7 +346,7 @@ function play(keyCode, sharpModifier) {
 }
 
 function setupUI() {
-    $track1 = $("#track-1-text");
+    setupTracks();
     $sharps = $("#sharps_textarea");
     $flats = $("#flats_textarea");
 
@@ -404,6 +421,12 @@ function setupUI() {
     });
 
     drawPiano();
+}
+
+function setupTracks() {
+    tracks = [];
+    $tracksDOM = [];
+    addTracks(1);
 }
 
 // parse input midi files
