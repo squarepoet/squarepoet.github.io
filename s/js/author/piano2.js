@@ -1,7 +1,11 @@
-var $text, $sharps, $flats;
+let $track1, $track2, $track3;
+var noteGroups1 = [];
+var noteGroups2 = [];
+var noteGroups3 = [];
+
+let $sharps, $flats;
 var sharps = ""; // the string value of the $sharps input
 var flats = "";
-var noteGroups = [];
 var octaveOffset = 0;
 
 // piano key numbers % 12
@@ -95,30 +99,50 @@ function resetOffset() {
 function resetEverything() {
     console.log("Reset Everything!");
     octaveOffset = 0;
-    noteGroups = [];
+    noteGroups1 = [];
+    noteGroups2 = [];
+    noteGroups3 = [];
     saveAndShowData();
 }
 
 function deleteLastGroup() {
-    noteGroups.pop();
+    noteGroups1.pop();
     saveAndShowData();
 }
 
 function saveAndShowData() {
-    var newText = noteGroups.join(" ");
+    var newText = noteGroups1.join(" ");
     localStorage.text = newText;
-    $text.text(newText);
+    showNoteGroupsForTrack1();
     drawPiano();
 }
 
+function showNoteGroupsForTrack1() {
+    let n = 0;
+    let html = '';
+    let spanID = '';
+    for (let noteGroup of noteGroups1) {
+        spanID = `track_1_notegroup_${n}`;
+        html += `<span id="${spanID}">${noteGroup}</span> `;
+        n++;
+    }
+    $track1.html(html);
+
+    // Scroll the div all the way to the right to make sure the most recent notegroup is visible.
+    let element = $(`#${spanID}`)[0];
+    if (element) {
+        element.scrollIntoView();
+    }
+}
+
 function mergeLastTwoGroups() {
-    if (noteGroups.length >= 2) {
-        var merged = noteGroups.pop() + "." + noteGroups.pop();
+    if (noteGroups1.length >= 2) {
+        var merged = noteGroups1.pop() + "." + noteGroups1.pop();
 
         // Remove duplicates and sort the list.
         var arr = merged.split(".").sort();
         arr = _.uniq(arr, true);
-        noteGroups.push(arr.join("."));
+        noteGroups1.push(arr.join("."));
 
         saveAndShowData();
     }
@@ -156,7 +180,7 @@ function drawBlackKeys(c) {
 }
 
 function drawMostRecentGroup(c) {
-    var lastGroup = noteGroups.slice(-1); // array of the last item
+    var lastGroup = noteGroups1.slice(-1); // array of the last item
     if (lastGroup.length == 0) {
         return;
     }
@@ -264,11 +288,11 @@ function loadNoteGroups() {
 
     var text = localStorage.text.trim();
     if (text == "") {
-        noteGroups = [];
+        noteGroups1 = [];
     } else {
-        noteGroups = text.split(" ");
+        noteGroups1 = text.split(" ");
     }
-    $text.text(noteGroups.join(" "));
+    showNoteGroupsForTrack1();
 }
 
 function play(keyCode, sharpModifier) {
@@ -293,7 +317,7 @@ function play(keyCode, sharpModifier) {
             return;
         }
 
-        noteGroups.push(pianoKeyNumber + ""); // push the string onto our array
+        noteGroups1.push(pianoKeyNumber + ""); // push the string onto our array
         piano.tone({
             pitch: -p2m(pianoKeyNumber), // This API expects a negative number to indicate a MIDI note.
             duration: 1.0
@@ -303,7 +327,7 @@ function play(keyCode, sharpModifier) {
 }
 
 function setupUI() {
-    $text = $("#track-1-text");
+    $track1 = $("#track-1-text");
     $sharps = $("#sharps_textarea");
     $flats = $("#flats_textarea");
 
