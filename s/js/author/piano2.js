@@ -14,56 +14,55 @@ var whiteKeys = [1, 3, 4, 6, 8, 9, 11];
 var noteLabels = ['a', 'b', 'c', 'd', 'e', 'f', 'g'];
 
 // which character to type to get the corresponding white key
-var keyboardLabels = ['z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/', 'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', 'r', 't', 'y', 'u', 'i', 'o', 'p', '4', '5', '6', '7', '8', '9', '0', '-', '='];
+var keyboardLabels = [
+    '_', 'z', 'x', // G A B
+    'c', 'v', 'b', 'n', 'm', ',', '.', // C D E F G A B
+    '/', 'a', 's', 'd', 'f', 'g', 'h', // C D E F G A B
+    'j', 'k', 'l', ';', 'q', 'w', 'e', // C D E F G A B
+    'r', 't', 'y', 'u', 'i', 'o', 'p', // C D E F G A B
+    '[', ']', '\\', '1', '2', '3', '4', // C D E F G A B
+    '5', '6', '7', '8', '9', '0', '-', // C D E F G A B
+    '=' // C
+];
 
 // Converts a piano note (C4 == 40) to MIDI (C4 == 60)
 function p2m(pianoNote) {
     return pianoNote + 20;
 }
 
-
 var piano = new Instrument('piano');
 
-
-// 90:23, // z => G
-// 88:25, // x => A
-// 67:27, // c => B
-// 86:28, // v => C3
-// 66:30, // b => D
-// 78:32, // n => E
-// 77:33, // m => F
-// 188:35, // , => G
-// 190:37, // . => A
-// 191:39, // / => B
-
 var keyCodeToPianoKey = {
-    90: 18, // z => D
-    88: 20, // x => E
-    67: 21, // c => F
-    86: 23, // v => G
-    66: 25, // b => A
-    78: 27, // n => B
-    77: 28, // m => C3
-    188: 30, // , => D
-    190: 32, // . => E
-    191: 33, // / => F
+    32: 11, // SPACE => G1
+    90: 13, // z => A
+    88: 15, // x => B
     //
-    65: 35, // a => G
-    83: 37, // s => A
-    68: 39, // d => B
-    70: 40, // f => C4
-    71: 42, // g => D
-    72: 44, // h => E
-    74: 45, // j => F
-    75: 47, // k => G
-    76: 49, // l => A
-    186: 51, // ; => B in Chrome
-    59: 51, // ; => B in Firefox
-    222: 52, // ' => C5
+    67: 16, // c => C2
+    86: 18, // v => D
+    66: 20, // b => E
+    78: 21, // n => F
+    77: 23, // m => G
+    188: 25, // , => A
+    190: 27, // . => B
     //
+    191: 28, // / => C3
+    65: 30, // a => D
+    83: 32, // s => E
+    68: 33, // d => F
+    70: 35, // f => G
+    71: 37, // g => A
+    72: 39, // h => B
+    //
+    74: 40, // j => C4 (Middle C)
+    75: 42, // k => D
+    76: 44, // l => E
+    186: 45, // ; => F in Chrome
+    59: 45, // ; => F in Firefox
+    222: 47, // ' => G
     81: 47, // q => G
     87: 49, // w => A
     69: 51, // e => B
+    //
     82: 52, // r => C5
     84: 54, // t => D
     89: 56, // y => E
@@ -71,23 +70,25 @@ var keyCodeToPianoKey = {
     73: 59, // i => G
     79: 61, // o => A
     80: 63, // p => B
+    // 
     219: 64, // [ => C6
     221: 66, // ] => D
     220: 68, // \ => E
+    192: 68, // ` => E
+    49: 69, // 1 => F
+    50: 71, // 2 => G
+    51: 73, // 3 => A
+    52: 75, // 4 => B
     //
-    192: 57, // ` => F
-    49: 59, // 1 => G
-    50: 61, // 2 => A
-    51: 63, // 3 => B
-    52: 64, // 4 => C6
-    53: 66, // 5 => D
-    54: 68, // 6 => E
-    55: 69, // 7 => F
-    56: 71, // 8 => G
-    57: 73, // 9 => A
-    48: 75, // 0 => B
-    189: 76, // - => C7
-    187: 78 // = => D
+    53: 76, // 5 => C7
+    54: 78, // 6 => D
+    55: 80, // 7 => E
+    56: 81, // 8 => F
+    57: 83, // 9 => G
+    48: 85, // 0 => A
+    189: 87, // - => B
+    //
+    187: 88 // = => C8
 };
 
 // resets the key offset
@@ -205,7 +206,7 @@ function drawMostRecentGroup(c) {
             // white keys are 20px wide
             c.arc(whiteKeyIndex * 20 + 10, 96, 7, 0, 2 * Math.PI, false);
         }
-        c.fillStyle = '#BB0';
+        c.fillStyle = 'rgba(220,220,10,.82)'; // fill the yellow circle
         c.fill();
     }
 }
@@ -260,7 +261,7 @@ function drawKeyLabels(c) {
     c.textAlign = 'center';
 
     // draw the current character to press, under the correct key!
-    var offset = (octaveOffset + 2) * 7 - 4; // start on D (key 18)
+    var offset = (octaveOffset + 1) * 7 - 1; // start on G (key 13)
     var len = keyboardLabels.length;
     for (var i = 0; i < len; i++) {
         c.fillText(keyboardLabels[i], (i + offset) * 20 + 10, 140);
@@ -296,6 +297,7 @@ function loadNoteGroups() {
 }
 
 function play(keyCode, sharpModifier) {
+    console.log(keyCode);
     if (keyCodeToPianoKey.hasOwnProperty(keyCode)) {
         // get the name of the note we are about to play
         var remainder = keyCodeToPianoKey[keyCode] % 12;

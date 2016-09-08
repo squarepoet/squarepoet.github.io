@@ -34,11 +34,6 @@ body {
     right: 0;
 }
 
-#textarea {
-    font-family: Inconsolata, Menlo, Monaco, sans-serif;
-    font-size: 16pt;
-}
-
 input {
     width: 50px;
 }
@@ -65,11 +60,18 @@ input {
 }
 
 .track {
-    width: 1040px;
+    font-family: Inconsolata, Menlo, Monaco, sans-serif;
+    font-size: 12pt;
+    width: 95%;
     background-color: #DFFAFB;
     text-align: left;
     overflow: scroll;
     padding: 10px;
     white-space: nowrap;
     margin: 4px auto;
+}
+
+#pianoCanvas {
+    border: 1px solid #444;
+    margin-top: 10px;
 }
