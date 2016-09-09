@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset='utf-8' />
+    <link rel="stylesheet" href="/s/css/author1.css" type="text/css" media="screen">
+    <script type="text/javascript" src="/s/js/jquery.min.js"></script>
+    <script type="text/javascript" src="/s/js/musical.min.js"></script>
+    <script type="text/javascript" src="/s/js/lodash.min.js"></script>
+    <script type="text/javascript" src="/s/js/author/piano1.js"></script>
+    <title>Piano Author</title>
+</head>
+
+<body>
+    <div style="float:right">
+        shift &rarr; sharp &nbsp;&nbsp;&nbsp;&nbsp; ctrl &rarr; flat &nbsp;&nbsp;&nbsp;&nbsp; shift + esc &rarr; clear<br> up/down &rarr; +/- octave &nbsp;&nbsp;&nbsp;&nbsp; tab &rarr; combine &nbsp;&nbsp;&nbsp;&nbsp; cmd + c &rarr; copy
+    </div>
+    <div style="float:right; margin-right:20px;">
+        sharps: <input id="sharps_textarea"> flats: <input id="flats_textarea">
+    </div>
+    <div id="click">
+        <div id="clickText">Copy</div>
+        <div id="clickOverlay"></div>
+    </div>
+    <br/>
+
+    <div id="content" style="width:100%; text-align:center;">
+        <textarea id="textarea" rows="5" cols="80" style="width:1040px;"></textarea>
+        <canvas id="pianoCanvas" width="1040" height="150" style="border: 1px solid #444;"></canvas>
+    </div>
+    <script type="text/javascript">
+    </script>
+</body>
+
+</html>

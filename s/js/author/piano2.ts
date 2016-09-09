@@ -1,278 +1,310 @@
 'use strict';
-var __extends = (this && this.__extends) || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-};
+
 /////////////////////////////////////////////////////////////////////////////////
+// declare types that are defined in 3rd party libraries
+declare var $: any;
+declare var _: any;
+declare var Midi: any; // jsmidgen
+declare var MIDIEvents: any;
+declare var MIDIFile: any;
+declare var DragDrop: any;
+declare var Instrument: any;
+/////////////////////////////////////////////////////////////////////////////////
+
 (function () {
+
+
     // Support multi track MIDI songs.
     // When we compose by hand, stick everything in track 0.
-    var tracks = [];
-    var $tracksDOM = [];
-    var $sharps, $flats;
-    var sharps = ""; // the string value of the $sharps input
-    var flats = "";
+    let tracks: Array<Track> = [];
+    let $tracksDOM = [];
+
+    let $sharps, $flats;
+    let sharps = ""; // the string value of the $sharps input
+    let flats = "";
     var octaveOffset = 0;
+
     // piano key numbers % 12
     var blackKeys = [2, -1, 5, 7, -1, 10, 0]; // -1 is for the spaces where there are no black keys
     var whiteKeys = [1, 3, 4, 6, 8, 9, 11];
     var noteLabels = ['a', 'b', 'c', 'd', 'e', 'f', 'g'];
+
     // which character to type to get the corresponding white key
     var keyboardLabels = [
-        '_', 'z', 'x',
-        'c', 'v', 'b', 'n', 'm', ',', '.',
-        '/', 'a', 's', 'd', 'f', 'g', 'h',
-        'j', 'k', 'l', ';', 'q', 'w', 'e',
-        'r', 't', 'y', 'u', 'i', 'o', 'p',
-        '[', ']', '\\', '1', '2', '3', '4',
-        '5', '6', '7', '8', '9', '0', '-',
+        '_', 'z', 'x', // G A B
+        'c', 'v', 'b', 'n', 'm', ',', '.', // C D E F G A B
+        '/', 'a', 's', 'd', 'f', 'g', 'h', // C D E F G A B
+        'j', 'k', 'l', ';', 'q', 'w', 'e', // C D E F G A B
+        'r', 't', 'y', 'u', 'i', 'o', 'p', // C D E F G A B
+        '[', ']', '\\', '1', '2', '3', '4', // C D E F G A B
+        '5', '6', '7', '8', '9', '0', '-', // C D E F G A B
         '=' // C
     ];
+
     // Converts a piano note (C4 == 40) to MIDI (C4 == 60)
     function p2m(pianoNote) {
         return pianoNote + 20;
     }
-    var piano = new Instrument('piano');
+
+    let piano = new Instrument('piano');
+
     // A Track is just an Array of NoteGroups
-    var Track = (function (_super) {
-        __extends(Track, _super);
-        function Track() {
-            _super.apply(this, arguments);
-        }
-        return Track;
-    }(Array));
+    class Track extends Array<NoteGroup> { }
+
     //////////////////////////////////////////////////////////////////////    
-    var NoteGroup = (function () {
+    class NoteGroup {
+        notes: Array<Note>;
+
         // Parameter "a"" can be either a single Note or a string which indicates multiple notes.
         // The string is formatted as multiple piano key numbers separated by a period (e.g., "40.52").
-        function NoteGroup(a) {
-            if (typeof a === 'string') {
-                var pianoKeyNotes = [];
-                var pianoKeyStrings = a.split('.');
-                for (var _i = 0, pianoKeyStrings_1 = pianoKeyStrings; _i < pianoKeyStrings_1.length; _i++) {
-                    var s = pianoKeyStrings_1[_i];
-                    var n = parseInt(s);
+        constructor(a?: Note | string) {
+            if (typeof a === 'string') { // e.g., "40.44.47" => C,E,G
+                let pianoKeyNotes = [];
+                let pianoKeyStrings = a.split('.');
+                for (let s of pianoKeyStrings) {
+                    let n = parseInt(s);
                     pianoKeyNotes.push(new Note(n));
                 }
                 this.notes = pianoKeyNotes;
-            }
-            else if (a) {
+            } else if (a) {
                 this.notes = [a];
-            }
-            else {
+            } else {
                 this.notes = [];
             }
         }
-        NoteGroup.prototype.addNote = function (n) {
+
+        addNote(n: Note) {
             this.notes.push(n);
-            var len = this.notes.length;
-            if (len > 1) {
+            let len = this.notes.length;
+            if (len > 1) { // If the notes array contains more than one item, we need to sort and unique the notes. 
                 this.notes.sort(Note.compare);
+
                 // This "unique-ifying" algorithm only works because we sorted the array in the line above.
-                var uniqueNotes = [this.notes[0]];
-                for (var i = 1; i < len; i++) {
-                    var mostRecentlyAddedNote = uniqueNotes[uniqueNotes.length - 1];
-                    var note = this.notes[i];
+                let uniqueNotes = [this.notes[0]];
+                for (let i = 1; i < len; i++) {
+                    let mostRecentlyAddedNote = uniqueNotes[uniqueNotes.length - 1];
+                    let note = this.notes[i];
                     if (note.pianoNote !== mostRecentlyAddedNote.pianoNote) {
                         uniqueNotes.push(note);
                     }
                 }
                 this.notes = uniqueNotes;
             }
-        };
-        NoteGroup.prototype.toString = function () {
+        }
+
+        toString(): string {
             return this.notes.join('.');
-        };
-        NoteGroup.merge = function (n1, n2) {
-            var merged = new NoteGroup();
-            for (var _i = 0, _a = n1.notes; _i < _a.length; _i++) {
-                var note = _a[_i];
+        }
+
+        static merge(n1: NoteGroup, n2: NoteGroup): NoteGroup {
+            let merged = new NoteGroup();
+            for (let note of n1.notes) {
                 merged.addNote(note);
             }
-            for (var _b = 0, _c = n2.notes; _b < _c.length; _b++) {
-                var note = _c[_b];
+            for (let note of n2.notes) {
                 merged.addNote(note);
             }
             return merged;
-        };
-        return NoteGroup;
-    }());
+        }
+    }
     //////////////////////////////////////////////////////////////////////    
-    var Note = (function () {
-        function Note(pianoNote, durationInMillis, velocity) {
-            if (durationInMillis === void 0) { durationInMillis = 1000; }
-            if (velocity === void 0) { velocity = 127; }
+    class Note {
+        pianoNote: number;
+        midiNote: number;
+        durationInMillis: number;
+        velocity: number;
+
+        constructor(pianoNote, durationInMillis = 1000, velocity = 127) {
             this.pianoNote = pianoNote;
             this.midiNote = pianoNote + 20;
             this.durationInMillis = durationInMillis;
             this.velocity = velocity;
         }
-        Note.prototype.toString = function () {
+
+        toString(): string {
             return this.pianoNote + '';
-        };
-        Note.compare = function (a, b) {
+        }
+
+        static compare(a: Note, b: Note): number {
             return a.pianoNote - b.pianoNote; // sort from smallest number to highest number
-        };
-        return Note;
-    }());
+        }
+    }
     //////////////////////////////////////////////////////////////////////    
-    var keyCodeToPianoKey = {
-        32: 11,
-        90: 13,
-        88: 15,
+
+    let keyCodeToPianoKey = {
+        32: 11, // SPACE => G1
+        90: 13, // z => A
+        88: 15, // x => B
         //
-        67: 16,
-        86: 18,
-        66: 20,
-        78: 21,
-        77: 23,
-        188: 25,
-        190: 27,
+        67: 16, // c => C2
+        86: 18, // v => D
+        66: 20, // b => E
+        78: 21, // n => F
+        77: 23, // m => G
+        188: 25, // , => A
+        190: 27, // . => B
         //
-        191: 28,
-        65: 30,
-        83: 32,
-        68: 33,
-        70: 35,
-        71: 37,
-        72: 39,
+        191: 28, // / => C3
+        65: 30, // a => D
+        83: 32, // s => E
+        68: 33, // d => F
+        70: 35, // f => G
+        71: 37, // g => A
+        72: 39, // h => B
         //
-        74: 40,
-        75: 42,
-        76: 44,
-        186: 45,
-        59: 45,
-        222: 47,
-        81: 47,
-        87: 49,
-        69: 51,
+        74: 40, // j => C4 (Middle C)
+        75: 42, // k => D
+        76: 44, // l => E
+        186: 45, // ; => F in Chrome
+        59: 45, // ; => F in Firefox
+        222: 47, // ' => G
+        81: 47, // q => G
+        87: 49, // w => A
+        69: 51, // e => B
         //
-        82: 52,
-        84: 54,
-        89: 56,
-        85: 57,
-        73: 59,
-        79: 61,
-        80: 63,
+        82: 52, // r => C5
+        84: 54, // t => D
+        89: 56, // y => E
+        85: 57, // u => F
+        73: 59, // i => G
+        79: 61, // o => A
+        80: 63, // p => B
         // 
-        219: 64,
-        221: 66,
-        220: 68,
-        192: 68,
-        49: 69,
-        50: 71,
-        51: 73,
-        52: 75,
+        219: 64, // [ => C6
+        221: 66, // ] => D
+        220: 68, // \ => E
+        192: 68, // ` => E
+        49: 69, // 1 => F
+        50: 71, // 2 => G
+        51: 73, // 3 => A
+        52: 75, // 4 => B
         //
-        53: 76,
-        54: 78,
-        55: 80,
-        56: 81,
-        57: 83,
-        48: 85,
-        189: 87,
+        53: 76, // 5 => C7
+        54: 78, // 6 => D
+        55: 80, // 7 => E
+        56: 81, // 8 => F
+        57: 83, // 9 => G
+        48: 85, // 0 => A
+        189: 87, // - => B
         //
         187: 88 // = => C8
     };
+
     // resets the key offset
     function resetOffset() {
         console.log("Reset Offsets");
         octaveOffset = 0;
     }
+
     function resetEverything() {
         console.log("Reset Everything!");
         octaveOffset = 0;
         setupTracks(1);
         saveAndShowData();
     }
+
     function addTracks(numTracks) {
-        var html = '';
-        for (var i = 0; i < numTracks; i++) {
+        let html = '';
+        for (let i = 0; i < numTracks; i++) {
             tracks.push([]); // Add one array for each track. Tracks contain NoteGroups.
-            html += "<div id=\"track-" + i + "\" class=\"track\" contenteditable=\"true\"></div>"; // Also add the corresponding DOM elements.
+            html += `<div id="track-${i}" class="track" contenteditable="true"></div>`; // Also add the corresponding DOM elements.
         }
         $('#tracks').html(html);
-        for (var i = 0; i < numTracks; i++) {
-            $tracksDOM.push($("#track-" + i));
+
+        for (let i = 0; i < numTracks; i++) {
+            $tracksDOM.push($(`#track-${i}`));
         }
     }
+
     function deleteLastGroup() {
         tracks[0].pop();
         saveAndShowData();
     }
+
     function saveAndShowData() {
         saveTracksToLocalStorage();
         showNoteGroupsForTrack0();
         drawPiano();
     }
+
     function showNoteGroupsForTrack0() {
-        var n = 0;
-        var html = '';
-        var spanID = '';
-        for (var _i = 0, _a = tracks[0]; _i < _a.length; _i++) {
-            var noteGroup = _a[_i];
-            spanID = "track_0_notegroup_" + n;
-            html += "<span id=\"" + spanID + "\">" + noteGroup + "</span> ";
+        let n = 0;
+        let html = '';
+        let spanID = '';
+        for (let noteGroup of tracks[0]) {
+            spanID = `track_0_notegroup_${n}`;
+            html += `<span id="${spanID}">${noteGroup}</span> `;
             n++;
         }
         $tracksDOM[0].html(html);
+
         // Scroll the div all the way to the right to make sure the most recent notegroup is visible.
-        var element = $("#" + spanID)[0];
+        let element = $(`#${spanID}`)[0];
         if (element) {
             element.scrollIntoView();
         }
     }
+
     function mergeLastTwoGroups() {
         if (tracks[0].length >= 2) {
-            var merged = NoteGroup.merge(tracks[0].pop(), tracks[0].pop());
+            var merged: NoteGroup = NoteGroup.merge(tracks[0].pop(), tracks[0].pop());
             tracks[0].push(merged);
             saveAndShowData();
         }
     }
+
     function drawWhiteKeys(c) {
         c.strokeStyle = '#000';
         c.lineWidth = .2;
         c.fillStyle = '#FFF';
+
         for (var k = 0; k < 52; k++) {
             c.fillRect(k * 20, 0, 20, 120);
             c.strokeRect(k * 20, 0, 20, 120);
         }
+
         c.fillStyle = '#FCC';
         c.fillRect(23 * 20, 0, 20, 120);
     }
+
     function drawBlackKeys(c) {
         c.fillStyle = '#323232';
+
         for (var octave = 0; octave < 7; octave++) {
             for (var key = 0; key < 7; key++) {
                 if (key == 1 || key == 4) {
                     continue; // skip B# and E#
                 }
+
                 c.fillRect(12 + 20 * (key + (octave * 7)), 0, 16, 72);
             }
         }
+
         // highest black key
         c.fillRect(12 + (7 * 7 * 20), 0, 16, 72);
     }
+
     function drawMostRecentGroup(c) {
         var lastGroup = tracks[0].slice(-1); // array of the last item
         if (lastGroup.length == 0) {
             return;
         }
-        var notes = lastGroup[0].notes;
-        for (var _i = 0, notes_1 = notes; _i < notes_1.length; _i++) {
-            var n = notes_1[_i];
+
+        var notes: Array<Note> = lastGroup[0].notes;
+        for (let n of notes) {
             var remainder = n.pianoNote % 12;
+
             var octaveIndex = Math.floor((n.pianoNote - 1) / 12);
+
             c.beginPath();
-            if (_.contains(blackKeys, remainder)) {
+            if (_.contains(blackKeys, remainder)) { // is it a black key?
                 var blackKeyIndex = (octaveIndex * 7) + blackKeys.indexOf(remainder);
                 // black keys are 16px wide
                 c.arc(blackKeyIndex * 20 + 20, 60, 6, 0, 2 * Math.PI, false);
-            }
-            else {
+            } else {
                 // if white, we map it to one of the 52 white keys
                 var whiteKeyIndex = (octaveIndex * 7) + whiteKeys.indexOf(remainder);
+
                 // white keys are 20px wide
                 c.arc(whiteKeyIndex * 20 + 10, 96, 7, 0, 2 * Math.PI, false);
             }
@@ -280,8 +312,9 @@ var __extends = (this && this.__extends) || function (d, b) {
             c.fill();
         }
     }
+
     function drawPiano() {
-        var elem = document.getElementById('pianoCanvas');
+        var elem: HTMLCanvasElement = <HTMLCanvasElement>document.getElementById('pianoCanvas');
         if (!elem || !elem.getContext) {
             return;
         }
@@ -289,16 +322,20 @@ var __extends = (this && this.__extends) || function (d, b) {
         if (!c) {
             return;
         }
+
         // clear the background
         c.fillStyle = "#444";
         c.fillRect(0, 0, elem.width, elem.height);
+
         drawWhiteKeys(c);
         drawBlackKeys(c);
         drawKeyLabels(c);
         drawMostRecentGroup(c);
     }
+
     function drawKeyLabels(c) {
         c.textAlign = 'center';
+
         // draw the piano key numbers for the white keys
         // also draw the note name
         for (var k = 1; k <= 88; k++) {
@@ -310,8 +347,7 @@ var __extends = (this && this.__extends) || function (d, b) {
                 var noteLabel = noteLabels[whiteKeyNoteIndex];
                 if (noteLabel == "c") {
                     c.font = "bold 13px Tahoma";
-                }
-                else {
+                } else {
                     c.font = "13px Tahoma";
                 }
                 c.fillStyle = "#777";
@@ -321,9 +357,11 @@ var __extends = (this && this.__extends) || function (d, b) {
                 c.fillText(k, whiteKeyIndex * 20 + 10, 115);
             }
         }
+
         c.font = "15px Consolas";
         c.fillStyle = "#FFF";
         c.textAlign = 'center';
+
         // draw the current character to press, under the correct key!
         var offset = (octaveOffset + 1) * 7 - 1; // start on G (key 13)
         var len = keyboardLabels.length;
@@ -331,48 +369,52 @@ var __extends = (this && this.__extends) || function (d, b) {
             c.fillText(keyboardLabels[i], (i + offset) * 20 + 10, 140);
         }
     }
+
     function loadSharpsAndFlats() {
         if (!localStorage.getItem('sharps')) {
             localStorage.setItem('sharps', '');
         }
         sharps = localStorage.getItem('sharps');
         $sharps.val(sharps);
+
         if (!localStorage.getItem('flats')) {
             localStorage.setItem('flats', '');
         }
         flats = localStorage.getItem('flats');
         $flats.val(flats);
     }
+
     function loadTracksFromLocalStorage() {
         try {
-            var savedTracks = JSON.parse(localStorage.getItem('tracks'));
-            var numTracks = savedTracks.length;
+            let savedTracks = JSON.parse(localStorage.getItem('tracks'));
+            let numTracks = savedTracks.length;
+
             setupTracks(numTracks);
-            for (var i = 0; i < numTracks; i++) {
-                var savedTrack = savedTracks[i];
-                for (var _i = 0, savedTrack_1 = savedTrack; _i < savedTrack_1.length; _i++) {
-                    var noteGroupString = savedTrack_1[_i];
+
+            for (let i = 0; i < numTracks; i++) {
+                let savedTrack = savedTracks[i];
+                for (let noteGroupString of savedTrack) {
                     tracks[i].push(new NoteGroup(noteGroupString));
                 }
             }
-        }
-        catch (e) {
+
+        } catch (e) {
             setupTracks(1);
         }
     }
+
     function saveTracksToLocalStorage() {
-        var tracksToSave = [];
-        for (var _i = 0, tracks_1 = tracks; _i < tracks_1.length; _i++) {
-            var sourceTrack = tracks_1[_i];
-            var destTrack = [];
+        let tracksToSave = [];
+        for (let sourceTrack of tracks) {
+            let destTrack = [];
             tracksToSave.push(destTrack);
-            for (var _a = 0, sourceTrack_1 = sourceTrack; _a < sourceTrack_1.length; _a++) {
-                var noteGroup = sourceTrack_1[_a];
+            for (let noteGroup of sourceTrack) {
                 destTrack.push(noteGroup.toString());
             }
         }
         localStorage.setItem('tracks', JSON.stringify(tracksToSave));
     }
+
     function play(keyCode, sharpModifier) {
         // console.log(keyCode);
         if (keyCodeToPianoKey.hasOwnProperty(keyCode)) {
@@ -380,6 +422,7 @@ var __extends = (this && this.__extends) || function (d, b) {
             var remainder = keyCodeToPianoKey[keyCode] % 12;
             var whiteKeyNoteIndex = whiteKeys.indexOf(remainder);
             var noteLabel = noteLabels[whiteKeyNoteIndex];
+
             // is this note auto-sharped, due to the key signature?
             if (sharps.indexOf(noteLabel) != -1) {
                 sharpModifier++; // raise the sharp a half-step!
@@ -388,77 +431,90 @@ var __extends = (this && this.__extends) || function (d, b) {
             if (flats.indexOf(noteLabel) != -1) {
                 sharpModifier--; // lower the note a half-step!
             }
+
+
             var pianoKeyNumber = keyCodeToPianoKey[keyCode] + sharpModifier + (octaveOffset * 12);
             if (pianoKeyNumber < 1 || pianoKeyNumber > 88) {
                 return;
             }
+
             tracks[0].push(new NoteGroup(new Note(pianoKeyNumber)));
+
             piano.tone({
-                pitch: -p2m(pianoKeyNumber),
+                pitch: -p2m(pianoKeyNumber), // This API expects a negative number to indicate a MIDI note.
                 duration: 1.0
             });
             saveAndShowData();
         }
     }
+
     function setupUI() {
         $sharps = $("#sharps_textarea");
         $flats = $("#flats_textarea");
+
         loadTracksFromLocalStorage();
         loadSharpsAndFlats();
+
         showNoteGroupsForTrack0();
+
         $(document).bind('keyup', function (e) {
             // update our sharps / flats
             if ($sharps.is(":focus")) {
                 sharps = $sharps.val().toLowerCase();
                 localStorage.setItem('sharps', sharps);
-            }
-            else if ($flats.is(":focus")) {
+            } else if ($flats.is(":focus")) {
                 flats = $flats.val().toLowerCase();
                 localStorage.setItem('flats', flats);
             }
         });
+
         $(document).bind('keydown', function (e) {
             if ($sharps.is(":focus") || $flats.is(":focus")) {
                 return; // if we are typing in the sharps/flats input, we should ignore the rest of the key handler
             }
-            if (e.keyCode == 91 || e.keyCode == 93) {
+
+            if (e.keyCode == 91 || e.keyCode == 93) { // CMD KEY on Mac
+                // NOTHING
             }
-            if (e.metaKey) {
-                if (e.keyCode == 88 || e.keyCode == 67) {
+
+            if (e.metaKey) { // CMD
+                if (e.keyCode == 88 || e.keyCode == 67) { // CMD + X or CMD + C
+                    // NOTHING
                 }
                 return;
             }
+
             if (e.altKey) {
                 return;
             }
+
             var sharpModifier = 0;
             if (e.ctrlKey) {
                 sharpModifier = -1;
-            }
-            else if (e.shiftKey) {
+            } else if (e.shiftKey) {
                 sharpModifier = +1;
             }
+
             e.preventDefault();
             switch (e.keyCode) {
-                case 27:
+                case 27: // ESC
                     if (e.shiftKey) {
                         resetEverything();
-                    }
-                    else {
+                    } else {
                         resetOffset();
                     }
                     break;
-                case 8:
+                case 8: // BACKSPACE/DEL
                     deleteLastGroup();
                     break;
-                case 9:
+                case 9: // TAB
                     mergeLastTwoGroups();
                     break;
-                case 38:
+                case 38: // UP an octave
                     octaveOffset++;
                     drawPiano();
                     break;
-                case 40:
+                case 40: // DOWN an octave
                     octaveOffset--;
                     drawPiano();
                     break;
@@ -467,13 +523,16 @@ var __extends = (this && this.__extends) || function (d, b) {
                     break;
             }
         });
+
         drawPiano();
     }
-    function setupTracks(numTracks) {
+
+    function setupTracks(numTracks: number) {
         tracks = [];
         $tracksDOM = [];
         addTracks(numTracks);
     }
+
     // parse input midi files
     // create output midi files
     function setupMIDIFileSupport() {
@@ -482,84 +541,101 @@ var __extends = (this && this.__extends) || function (d, b) {
         var track = new Midi.Track();
         track.setTempo(60); // BPM
         file.addTrack(track);
+
         var duration = 128; // 128 ticks == quarter note
         track.addNote(0, p2m(40), duration, 64 /* time since previous event */); // C4 == MIDI NOTE 60
         track.addNote(0, p2m(42), duration);
         track.addNote(0, p2m(44), duration);
         track.addNote(0, p2m(45), duration);
         track.addNote(0, p2m(47), duration);
+
         var base64URI = 'data:audio/midi;base64,' + btoa(file.toBytes());
+
         $('#download_midi_link').attr('href', base64URI);
+
         DragDrop('#drag-and-drop-target', function (filesArray) {
             var file = filesArray[0]; // Just get the first file.
             displayFileInfo(file);
+
             var reader = new FileReader();
-            reader.addEventListener('load', function (e) {
-                var arrayBuffer = e.target.result;
+            reader.addEventListener('load', function (e: any) {
+                let arrayBuffer = e.target.result;
                 loadMIDIFile(arrayBuffer);
             });
             reader.addEventListener('error', function (err) {
-                console.error('FileReader error' + err);
+                console.error('FileReader error' + err)
             });
             reader.readAsArrayBuffer(file);
         });
     }
+
     function loadMIDIFile(arrayBuffer) {
         stopCurrentPlayback();
+
         midiFile = new MIDIFile(arrayBuffer);
-        var header = midiFile.header;
-        var format = header.getFormat();
-        var numTracks = header.getTracksCount();
-        console.log("MIDI Format: " + format); // 0, 1 or 2
+        let header = midiFile.header;
+        let format = header.getFormat();
+        let numTracks = header.getTracksCount();
+        console.log(`MIDI Format: ${format}`); // 0, 1 or 2
         if (header.getTimeDivision() === MIDIFile.Header.TICKS_PER_BEAT) {
-            console.log("Ticks Per Beat: " + header.getTicksPerBeat());
-        }
-        else {
+            console.log(`Ticks Per Beat: ${header.getTicksPerBeat()}`);
+        } else {
             console.log('TODO: SMPTE Frames!');
         }
-        console.log("Num Tracks: " + numTracks);
-        for (var i = 0; i < numTracks; i++) {
-            var track = midiFile.tracks[i];
-            console.log("Track " + i + " has " + track.getTrackLength() + " events.");
+        console.log(`Num Tracks: ${numTracks}`);
+        for (let i = 0; i < numTracks; i++) {
+            let track = midiFile.tracks[i];
+            console.log(`Track ${i} has ${track.getTrackLength()} events.`);
         }
         console.log();
         var lyrics = midiFile.getLyrics();
         if (lyrics.length > 0) {
-            console.log("Lyrics Track " + lyrics.length + " events.");
+            console.log(`Lyrics Track ${lyrics.length} events.`);
+            // Each Lyrics Event has a .playTime and .text property.
         }
-        var events = midiFile.getEvents();
-        var lastEvent = events[events.length - 1];
-        var durationInMillis = lastEvent.playTime;
-        var durationInSeconds = durationInMillis / 1000;
-        console.log("Duration: " + durationInSeconds + " seconds.");
+
+        let events = midiFile.getEvents( /* type, subtype */);
+        let lastEvent = events[events.length - 1];
+        let durationInMillis = lastEvent.playTime;
+        let durationInSeconds = durationInMillis / 1000;
+
+        console.log(`Duration: ${durationInSeconds} seconds.`);
+
         displaySongInfo({
             numTracks: numTracks,
             duration: durationInSeconds
         });
+
         currentRAFID = requestAnimationFrame(setupPlayback);
     }
+
     function displayFileInfo(file) {
-        $('#file-info').text("File: " + file.name + " | Size: " + file.size + " bytes");
+        $('#file-info').text(`File: ${file.name} | Size: ${file.size} bytes`);
     }
+
     function displaySongInfo(params) {
-        var duration = Math.round(params.duration * 100) / 100;
-        $('#song-info').text("Num Tracks: " + params.numTracks + " | Duration: " + duration + " secs");
+        let duration = Math.round(params.duration * 100) / 100;
+        $('#song-info').text(`Num Tracks: ${params.numTracks} | Duration: ${duration} secs`);
     }
-    var midiFile = null;
-    var startTime = 0;
-    var eventsToReplay = null;
-    var currentRAFID = 0;
+
+    let midiFile = null;
+    let startTime = 0;
+    let eventsToReplay = null;
+    let currentRAFID = 0;
+
     function stopCurrentPlayback() {
         if (currentRAFID) {
             cancelAnimationFrame(currentRAFID);
             currentRAFID = 0;
         }
     }
+
     function setupPlayback(timeMillis) {
         startTime = timeMillis;
         eventsToReplay = midiFile.getEvents();
         currentRAFID = requestAnimationFrame(playNextEvents);
     }
+
     // Will be called every ~16.67ms if your display runs at 60 FPS.
     function playNextEvents(timeMillis) {
         // Have we reached the end of the song?
@@ -567,43 +643,49 @@ var __extends = (this && this.__extends) || function (d, b) {
             stopCurrentPlayback();
             return; // DONE!
         }
-        var currTime = timeMillis - startTime;
+
+        let currTime = timeMillis - startTime;
         while (currTime >= eventsToReplay[0].playTime) {
-            var event_1 = eventsToReplay.shift();
-            var type = event_1.type;
-            var subtype = event_1.subtype;
-            var status_1 = (event_1.subtype << 4) + event_1.channel;
-            var statusCodeHexString = '0x' + status_1.toString(16).toUpperCase();
-            var data1 = event_1.param1;
-            var data2 = event_1.param2;
-            var time = event_1.playTime; // time in milliseconds
-            console.log("Type: " + getTypeString(type) + " Subtype: " + getSubTypeString(subtype) + " Status: " + statusCodeHexString + ", Data_1: " + data1 + ", Data_2: " + data2 + ", Event Time: " + time + ", Curr Time: " + currTime);
+            let event = eventsToReplay.shift();
+            let type = event.type;
+            let subtype = event.subtype;
+            let status = (event.subtype << 4) + event.channel;
+            let statusCodeHexString = '0x' + status.toString(16).toUpperCase();
+            let data1 = event.param1;
+            let data2 = event.param2;
+            let time = event.playTime; // time in milliseconds
+            console.log(`Type: ${getTypeString(type)} Subtype: ${getSubTypeString(subtype)} Status: ${statusCodeHexString}, Data_1: ${data1}, Data_2: ${data2}, Event Time: ${time}, Curr Time: ${currTime}`);
+
             if (type === MIDIEvents.EVENT_MIDI) {
                 if (subtype === MIDIEvents.EVENT_MIDI_NOTE_ON) {
                     playMIDINote(data1, data2);
-                }
-                else if (subtype === MIDIEvents.EVENT_MIDI_NOTE_OFF) {
+                } else if (subtype === MIDIEvents.EVENT_MIDI_NOTE_OFF) {
                     stopMIDINote(data1);
                 }
             }
+
             // Have we reached the end of the song?
             if (eventsToReplay.length === 0) {
                 stopCurrentPlayback();
                 return; // DONE!
             }
         }
+
         currentRAFID = requestAnimationFrame(playNextEvents);
     }
+
     function playMIDINote(midiNoteNum, velocity) {
         piano.tone({
-            pitch: -midiNoteNum,
-            duration: 2.0,
+            pitch: -midiNoteNum, // This API expects negative numbers to indicate MIDI notes. Positive numbers indicate audio tone frequency (Hz).
+            duration: 2.0, // 0.125, 0.25, 0.5, 1.0, 2.0
             velocity: (velocity / 127.0)
         });
     }
+
     function stopMIDINote(midiNoteNum) {
         // NOTHING FOR NOW
     }
+
     function getTypeString(type) {
         switch (type) {
             case MIDIEvents.EVENT_MIDI:
@@ -618,59 +700,61 @@ var __extends = (this && this.__extends) || function (d, b) {
                 return 'UNKNOWN';
         }
     }
+
     function getSubTypeString(subtype) {
         switch (subtype) {
-            case MIDIEvents.EVENT_META_SEQUENCE_NUMBER:
+            case MIDIEvents.EVENT_META_SEQUENCE_NUMBER: // = 0x00;
                 return 'META_SEQUENCE_NUMBER';
-            case MIDIEvents.EVENT_META_TEXT:
+            case MIDIEvents.EVENT_META_TEXT: // = 0x01;
                 return 'META_TEXT';
-            case MIDIEvents.EVENT_META_COPYRIGHT_NOTICE:
+            case MIDIEvents.EVENT_META_COPYRIGHT_NOTICE: // = 0x02;
                 return 'META_COPYRIGHT_NOTICE';
-            case MIDIEvents.EVENT_META_TRACK_NAME:
+            case MIDIEvents.EVENT_META_TRACK_NAME: // = 0x03;
                 return 'META_TRACK_NAME';
-            case MIDIEvents.EVENT_META_INSTRUMENT_NAME:
+            case MIDIEvents.EVENT_META_INSTRUMENT_NAME: // = 0x04;
                 return 'META_INSTRUMENT_NAME';
-            case MIDIEvents.EVENT_META_LYRICS:
+            case MIDIEvents.EVENT_META_LYRICS: // = 0x05;
                 return 'META_LYRICS';
-            case MIDIEvents.EVENT_META_MARKER:
+            case MIDIEvents.EVENT_META_MARKER: // = 0x06;
                 return 'META_MARKER';
-            case MIDIEvents.EVENT_META_CUE_POINT:
+            case MIDIEvents.EVENT_META_CUE_POINT: // = 0x07;
                 return 'CUE_POINT';
-            case MIDIEvents.EVENT_META_MIDI_CHANNEL_PREFIX:
+            case MIDIEvents.EVENT_META_MIDI_CHANNEL_PREFIX: // = 0x20;
                 return 'META_MIDI_CHANNEL_PREFIX';
-            case MIDIEvents.EVENT_META_END_OF_TRACK:
+            case MIDIEvents.EVENT_META_END_OF_TRACK: // = 0x2F;
                 return 'META_END_OF_TRACK';
-            case MIDIEvents.EVENT_META_SET_TEMPO:
+            case MIDIEvents.EVENT_META_SET_TEMPO: //= 0x51;
                 return 'META_SET_TEMPO';
-            case MIDIEvents.EVENT_META_SMTPE_OFFSET:
+            case MIDIEvents.EVENT_META_SMTPE_OFFSET: //= 0x54;
                 return 'META_SMTPE_OFFSET';
-            case MIDIEvents.EVENT_META_TIME_SIGNATURE:
+            case MIDIEvents.EVENT_META_TIME_SIGNATURE: //= 0x58;
                 return 'META_TIME_SIGNATURE';
-            case MIDIEvents.EVENT_META_KEY_SIGNATURE:
+            case MIDIEvents.EVENT_META_KEY_SIGNATURE: //= 0x59;
                 return 'META_KEY_SIGNATURE';
-            case MIDIEvents.EVENT_META_SEQUENCER_SPECIFIC:
+            case MIDIEvents.EVENT_META_SEQUENCER_SPECIFIC: //= 0x7F;
                 return 'META_SEQUENCER_SPECIFIC';
-            case MIDIEvents.EVENT_MIDI_NOTE_OFF:
+            case MIDIEvents.EVENT_MIDI_NOTE_OFF: // = 0x8;
                 return 'MIDI_NOTE_OFF';
-            case MIDIEvents.EVENT_MIDI_NOTE_ON:
+            case MIDIEvents.EVENT_MIDI_NOTE_ON: //= 0x9;
                 return 'MIDI_NOTE_ON';
-            case MIDIEvents.EVENT_MIDI_NOTE_AFTERTOUCH:
+            case MIDIEvents.EVENT_MIDI_NOTE_AFTERTOUCH: // = 0xA;
                 return 'MIDI_NOTE_AFTERTOUCH';
-            case MIDIEvents.EVENT_MIDI_CONTROLLER:
+            case MIDIEvents.EVENT_MIDI_CONTROLLER: //= 0xB;
                 return 'MIDI_CONTROLLER';
-            case MIDIEvents.EVENT_MIDI_PROGRAM_CHANGE:
+            case MIDIEvents.EVENT_MIDI_PROGRAM_CHANGE: // = 0xC;
                 return 'MIDI_PROGRAM_CHANGE';
-            case MIDIEvents.EVENT_MIDI_CHANNEL_AFTERTOUCH:
+            case MIDIEvents.EVENT_MIDI_CHANNEL_AFTERTOUCH: // = 0xD;
                 return 'MIDI_CHANNEL_AFTERTOUCH';
-            case MIDIEvents.EVENT_MIDI_PITCH_BEND:
+            case MIDIEvents.EVENT_MIDI_PITCH_BEND: // = 0xE;
                 return 'MIDI_PITCH_BEND';
             default:
                 return 'UNKNOWN';
         }
     }
+
     $(function () {
         setupUI();
         setupMIDIFileSupport();
     });
+
 })();
-//# sourceMappingURL=piano2.js.map
