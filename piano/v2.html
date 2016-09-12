@@ -23,7 +23,7 @@
 
 <body>
     <div style="float:right">
-        shift &rarr; sharp &nbsp;&nbsp;&nbsp;&nbsp; ctrl &rarr; flat &nbsp;&nbsp;&nbsp;&nbsp; shift + esc &rarr; clear<br/> up/down &rarr; +/- octave &nbsp;&nbsp;&nbsp;&nbsp; tab &rarr; combine &nbsp;&nbsp;&nbsp;&nbsp; cmd + c &rarr; copy
+        shift &rarr; sharp &nbsp;&nbsp;&nbsp;&nbsp; ctrl &rarr; flat &nbsp;&nbsp;&nbsp;&nbsp; shift + esc &rarr; clear<br/>        up/down &rarr; +/- octave &nbsp;&nbsp;&nbsp;&nbsp; tab &rarr; combine &nbsp;&nbsp;&nbsp;&nbsp; cmd + c &rarr; copy
     </div>
     <div style="float:right; margin-right:20px;">
         sharps: <input id="sharps_textarea"> flats: <input id="flats_textarea">
@@ -39,7 +39,9 @@
         <canvas id="pianoCanvas" width="1040" height="150"></canvas>
     </div>
     <div style="margin:20px auto;width:200px;">
-        Download <a id="download_midi_link" download="song.mid">MIDI</a> | <a id="download_text_link" href="data:text/plain;base64,SGVsbG8gV29ybGQh" download="song.txt">TEXT</a>
+        Download
+        <a id="download_midi_link" href="data:text/plain;base64,Tm90aGluZw==" download="song.mid">MIDI</a> |
+        <a id="download_text_link" href="data:text/plain;base64,Tm90aGluZw==" download="song.txt">TEXT</a>
     </div>
     <div id="drag-and-drop-target">
         <div class="bottom-info">Drop a MIDI file here!</div>
