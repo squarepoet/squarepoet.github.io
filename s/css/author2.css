@@ -1,5 +1,9 @@
 /* Authoring Tool */
 
+html.drag {
+    background-color: #DFFAFB;
+}
+
 body {
     font-family: "Lucida Grande", Arial, sans-serif;
     margin-top: 15px;
@@ -51,27 +55,93 @@ input {
 }
 
 #drag-and-drop-target.drag {
-    background-color: #CCDEDE;
+    background-color: #DFFAFB;
     font-weight: bold;
+    color: #F66;
 }
 
 .bottom-info {
     margin-bottom: 10px;
 }
 
+#upload-file {
+    color: #39D;
+    text-decoration: underline;
+}
+
+#filechooserlabel {
+    cursor: pointer;
+}
+
 .track {
-    font-family: Inconsolata, Menlo, Monaco, sans-serif;
-    font-size: 12pt;
-    width: 95%;
+    width: 90%;
     background-color: #DFFAFB;
     text-align: left;
-    overflow: scroll;
+    font-family: Inconsolata, Menlo, Monaco, sans-serif;
+    font-size: 11pt;
+    overflow-x: scroll;
+    overflow-y: hidden;
     padding: 10px;
     white-space: nowrap;
-    margin: 4px auto;
+    margin: 5px 0;
+    display: inline-block;
+    height: 20px;
+    line-height: 20px;
+}
+
+.track:read-write:focus {
+    /*     outline: 2px solid #dd8844;*/
+}
+
+.track-info {
+    width: 40px;
+    background-color: #F0F4FF;
+    color: #666;
+    text-align: center;
+    font-family: Inconsolata, Menlo, Monaco, sans-serif;
+    font-size: 11pt;
+    overflow-x: scroll;
+    overflow-y: hidden;
+    padding: 10px;
+    white-space: nowrap;
+    margin: 5px 0;
+    display: inline-block;
+    height: 20px;
+    line-height: 20px;
+}
+
+.notegroup {
+    /* todo */
+    display: inline-block;
+    height: 17px;
+    padding-top: 10px;
+}
+
+.notegroup.multiple {
+    color: #59B;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.18);
+}
+
+.checkbox {
+    height: 50px;
+    margin: 0px;
+    width: 24px;
 }
 
 #pianoCanvas {
     border: 1px solid #444;
     margin-top: 10px;
+}
+
+
+/* always show scrollbars */
+
+::-webkit-scrollbar {
+    width: 0px;
+    height: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+    border-radius: 0px;
+    background-color: rgba(0, 0, 0, 0.18);
 }

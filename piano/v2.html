@@ -44,7 +44,10 @@
         <a id="download_text_link" href="data:text/plain;base64,Tm90aGluZw==" download="song.txt">TEXT</a>
     </div>
     <div id="drag-and-drop-target">
-        <div class="bottom-info">Drop a MIDI file here!</div>
+        <div id="upload-file" class="bottom-info">
+            <input type="file" id="filechooser" style="display:none">
+            <label id="filechooserlabel" for="filechooser">Upload a MIDI file!</label>
+        </div>
         <div id="file-info" class="bottom-info">&nbsp;</div>
         <div id="song-info" class="bottom-info">&nbsp;</div>
         <div id="buttons"><a id="play-button" href="#">Play</a></div>

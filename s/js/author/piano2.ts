@@ -15,7 +15,8 @@ declare var Instrument: any;
 // Support multi track MIDI songs.
 // When we compose by hand, stick everything in track 0.
 let tracks: Array<Track> = [];
-let $tracksDOM = [];
+let $tracks = []; // jQuery references to the elements. Allows us to modify the DOM.
+let $trackInfos = []; // jQuery references to the elements. Allows us to modify the DOM.
 
 
 let $sharps, $flats;
@@ -48,10 +49,16 @@ function p2m(pianoNote) {
     return pianoNote + 20;
 }
 
+function m2p(midiNote) {
+    return midiNote - 20;
+}
+
 let piano = new Instrument('piano');
 
 // A Track is just an Array of NoteGroups
-class Track extends Array<NoteGroup> { }
+class Track extends Array<NoteGroup> {
+    // NOTHING YET
+}
 
 //////////////////////////////////////////////////////////////////////
 class NoteGroup {
@@ -213,42 +220,56 @@ function addTracks(numTracks) {
     let html = '';
     for (let i = 0; i < numTracks; i++) {
         tracks.push([]); // Add one array for each track. Tracks contain NoteGroups.
-        html += `<div id="track-${i}" class="track" contenteditable="true"></div>`; // Also add the corresponding DOM elements.
+        let checkbox = `<input id="track-${i}-checkbox" type="checkbox" checked class="checkbox">`;
+        let info = `<div id="track-${i}-info" class="track-info"></div>`;
+        html += `${checkbox}${info}<div id="track-${i}" class="track"></div><br>`; // Also add the corresponding DOM elements.
     }
     $('#tracks').html(html);
 
     for (let i = 0; i < numTracks; i++) {
-        $tracksDOM.push($(`#track-${i}`));
+        $tracks.push($(`#track-${i}`));
+        $trackInfos.push($(`#track-${i}-info`));
     }
 }
 
 function deleteLastGroup() {
+    // TODO: do this for the currently focused track.
+    // TODO: make it obvious which track is focused with a red border
     tracks[0].pop();
     saveAndShowData();
 }
 
 function saveAndShowData() {
     saveTracksToLocalStorage();
-    showNoteGroupsForTrack0();
+    showNoteGroupsForTracks();
     drawPiano();
 }
 
-function showNoteGroupsForTrack0() {
-    let n = 0;
-    let html = '';
-    let spanID = '';
-    for (let noteGroup of tracks[0]) {
-        spanID = `track_0_notegroup_${n}`;
-        html += `<span id="${spanID}">${noteGroup}</span> `;
-        n++;
-    }
-    $tracksDOM[0].html(html);
+// TODO: When manually editing, only append and modify the last couple of spans. Don't regenerate the entire thing, for performance!
+function showNoteGroupsForTracks() {
+    let numTracks = tracks.length;
+    for (let t = 0; t < numTracks; t++) {
+        let trackHTML = '';
+        let noteGroupID = '';
+        let currTrack = tracks[t];
+        let numNoteGroups = currTrack.length;
+        for (let n = 0; n < numNoteGroups; n++) {
+            let noteGroup = currTrack[n];
+            let multiple = (noteGroup.numNotes > 1) ? ' multiple' : '';
+            noteGroupID = `t_${t}_n_${n}`; // t_0_n_0 stands for track 0 notegroup 0
+            trackHTML += `<div id="${noteGroupID}" class="notegroup${multiple}">${noteGroup}</div>&nbsp;`;
+        }
+        $tracks[t].html(trackHTML);
 
-    // Scroll the div all the way to the right to make sure the most recent notegroup is visible.
-    let element = $(`#${spanID}`)[0];
-    if (element) {
-        element.scrollIntoView();
+        $trackInfos[t].html(`${numNoteGroups}`);
+
+        // Scroll the divs all the way to the right to make sure the most recent NoteGroups are visible.
+        let element = $(`#${noteGroupID}`)[0];
+        if (element) {
+            element.scrollIntoView();
+        }
     }
+
 }
 
 function mergeLastTwoGroups() {
@@ -461,7 +482,7 @@ function setupUI() {
     loadTracksFromLocalStorage();
     loadSharpsAndFlats();
 
-    showNoteGroupsForTrack0();
+    showNoteGroupsForTracks();
 
     setupKeyHandlers();
     setupMouseHandlers();
@@ -614,7 +635,8 @@ function setupMouseHandlers() {
 
 function setupTracks(numTracks: number) {
     tracks = [];
-    $tracksDOM = [];
+    $tracks = [];
+    $trackInfos = [];
     addTracks(numTracks);
 }
 
@@ -635,20 +657,52 @@ function setupMIDIFileSupport() {
     track.addNote(0, p2m(45), duration);
     track.addNote(0, p2m(47), duration);
 
-    DragDrop('#drag-and-drop-target', function (filesArray) {
-        var file = filesArray[0]; // Just get the first file.
-        displayFileInfo(file);
 
-        var reader = new FileReader();
-        reader.addEventListener('load', function (e: any) {
-            let arrayBuffer = e.target.result;
-            loadMIDIFile(arrayBuffer);
-        });
-        reader.addEventListener('error', function (err) {
-            console.error('FileReader error' + err)
-        });
-        reader.readAsArrayBuffer(file);
+    setupDragAndDrop();
+    setupFileChooser();
+}
+
+function displayFileInfo(file) {
+    $('#file-info').text(`Loaded File: ${file.name} | Size: ${file.size} bytes`);
+}
+
+function setupDragAndDrop() {
+    let handlers = {
+        onDrop: (files, pos) => {
+            // console.log('Here are the dropped files', files)
+            // console.log('Dropped at coordinates', pos.x, pos.y)
+            readMIDIFile(files[0]); // Get the first file.
+        },
+        onDragOver: () => {
+            $('#drag-and-drop-target').addClass('drag');
+        },
+        onDragLeave: () => {
+            $('#drag-and-drop-target').removeClass('drag');
+        }
+    }
+    DragDrop('html', handlers);
+}
+
+function setupFileChooser() {
+    $('#filechooser').change((e) => {
+        let files = e.target.files;
+        if (files.length > 0) {
+            readMIDIFile(files[0]); // Get the first file.
+        }
     });
+}
+
+function readMIDIFile(file) {
+    let reader = new FileReader();
+    reader.addEventListener('load', (e: any) => {
+        let arrayBuffer = e.target.result;
+        displayFileInfo(file);
+        loadMIDIFile(arrayBuffer);
+    });
+    reader.addEventListener('error', (err) => {
+        console.error('FileReader error' + err)
+    });
+    reader.readAsArrayBuffer(file);
 }
 
 function loadMIDIFile(arrayBuffer) {
@@ -664,12 +718,10 @@ function loadMIDIFile(arrayBuffer) {
     } else {
         console.log('TODO: SMPTE Frames!');
     }
-    console.log(`Num Tracks: ${numTracks}`);
-    for (let i = 0; i < numTracks; i++) {
-        let track = midiFile.tracks[i];
-        console.log(`Track ${i} has ${track.getTrackLength()} events.`);
-    }
+
+    loadMIDITracks(midiFile, midiFile.tracks);
     console.log();
+
     var lyrics = midiFile.getLyrics();
     if (lyrics.length > 0) {
         console.log(`Lyrics Track ${lyrics.length} events.`);
@@ -688,11 +740,62 @@ function loadMIDIFile(arrayBuffer) {
         duration: durationInSeconds
     });
 
-    currentRAFID = requestAnimationFrame(setupPlayback);
+    // xxx
+    // Start the MIDI playback.
+    // currentRAFID = requestAnimationFrame(setupPlayback);
 }
 
-function displayFileInfo(file) {
-    $('#file-info').text(`File: ${file.name} | Size: ${file.size} bytes`);
+function loadMIDITracks(midiFile, midiTracks) {
+    let numTracks = midiTracks.length;
+    setupTracks(numTracks);
+    for (let t = 0; t < numTracks; t++) {
+        let track = midiTracks[t];
+        let trackEvents = midiFile.getTrackEvents(t);
+        console.log(`Track ${t} has ${trackEvents.length} events.`);
+
+        let numOtherMidiEvents = 0;
+        let numOtherEvents = 0;
+
+        for (let event of trackEvents) {
+            let type = event.type;
+            let subtype = event.subtype;
+            let status = (event.subtype << 4) + event.channel;
+            let statusCodeHexString = '0x' + status.toString(16).toUpperCase();
+            let data1 = event.param1;
+            let data2 = event.param2;
+            let time = event.playTime; // time in milliseconds
+
+            if (type === MIDIEvents.EVENT_MIDI) {
+                if (subtype === MIDIEvents.EVENT_MIDI_NOTE_ON) {
+                    let midiNoteNum = data1;
+                    let pianoNoteNum = m2p(data1);
+                    let velocity = data2;
+
+                    // Only handle NOTE_ON events for now.
+                    // TODO: figure out which notes start at the same time (or are within some time threshold)
+                    tracks[t].push(new NoteGroup(new Note(pianoNoteNum)));
+                    console.log(`Track ${t} Note ON`);
+                } else if (subtype === MIDIEvents.EVENT_MIDI_NOTE_OFF) {
+                    console.log(`Track ${t} Note OFF`);
+                } else {
+                    console.log(`Track ${t} ${getTypeString(type)}.${getSubTypeString(subtype)}`);
+                    numOtherMidiEvents++;
+                }
+            } else {
+                console.log(`Track ${t} ${getTypeString(type)}.${getSubTypeString(subtype)}`);
+                numOtherEvents++;
+            }
+        }
+
+        console.log(`Track ${t} has ${numOtherMidiEvents} other MIDI events and ${numOtherEvents} other events.`);
+
+        // console.log(`Type: ${getTypeString(type)} Subtype: ${getSubTypeString(subtype)} Status: ${statusCodeHexString}, Data_1: ${data1}, Data_2: ${data2}, Event Time: ${time}, Curr Time: ${currTime}`);
+
+
+        // TODO: load the note numbers into each track at the correct spacing?
+    }
+
+    saveAndShowData();
 }
 
 function displaySongInfo(params) {
@@ -736,7 +839,7 @@ function playNextEvents(timeMillis) {
         let data1 = event.param1;
         let data2 = event.param2;
         let time = event.playTime; // time in milliseconds
-        console.log(`Type: ${getTypeString(type)} Subtype: ${getSubTypeString(subtype)} Status: ${statusCodeHexString}, Data_1: ${data1}, Data_2: ${data2}, Event Time: ${time}, Curr Time: ${currTime}`);
+        // console.log(`Type: ${getTypeString(type)} Subtype: ${getSubTypeString(subtype)} Status: ${statusCodeHexString}, Data_1: ${data1}, Data_2: ${data2}, Event Time: ${time}, Curr Time: ${currTime}`);
 
         if (type === MIDIEvents.EVENT_MIDI) {
             if (subtype === MIDIEvents.EVENT_MIDI_NOTE_ON) {
@@ -834,7 +937,41 @@ function getSubTypeString(subtype) {
     }
 }
 
+
+let Colors = {
+    setup() {
+        this.colors = [];
+        this.numColors = 20;
+        for (let i = 0; i < this.numColors; i++) {
+            this.colors.push(this.getRainbow(this.numColors, i));
+        }
+    },
+    getRandom() {
+        return this.colors[Math.floor(Math.random() * this.numColors)];
+    },
+    getRainbow(numOfSteps, step) {
+        var r, g, b;
+        var h = step / numOfSteps;
+        var i = ~~(h * 6); // ~~ => Math.floor
+        var f = h * 6 - i;
+        var q = 1 - f;
+        var max = 0.8;
+        var min = 0.1;
+        switch (i % 6) {
+            case 0: r = max; g = f; b = min; break;
+            case 1: r = q; g = max; b = min; break;
+            case 2: r = min; g = max; b = f; break;
+            case 3: r = min; g = q; b = max; break;
+            case 4: r = f; g = min; b = max; break;
+            case 5: r = max; g = min; b = q; break;
+        }
+        var c = "#" + ("00" + (~ ~(r * 255)).toString(16)).slice(-2) + ("00" + (~ ~(g * 255)).toString(16)).slice(-2) + ("00" + (~ ~(b * 255)).toString(16)).slice(-2);
+        return (c);
+    }
+};
+
 $(function () {
+    Colors.setup();
     setupUI();
     setupMIDIFileSupport();
 });
