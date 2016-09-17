@@ -7,8 +7,15 @@ html.drag {
 body {
     font-family: "Lucida Grande", Arial, sans-serif;
     margin-top: 15px;
-    margin-left: 20px;
-    margin-right: 20px;
+    margin-left: 1%;
+    margin-right: 1%;
+}
+
+.content {
+    width: 100%;
+    text-align: center;
+    clear: both;
+    padding-top: 10px;
 }
 
 #click {
@@ -89,12 +96,8 @@ input {
     line-height: 20px;
 }
 
-.track:read-write:focus {
-    /*     outline: 2px solid #dd8844;*/
-}
-
 .track-info {
-    width: 40px;
+    width: 35px;
     background-color: #F0F4FF;
     color: #666;
     text-align: center;
@@ -123,9 +126,9 @@ input {
 }
 
 .checkbox {
+    width: 22px;
     height: 50px;
     margin: 0px;
-    width: 24px;
 }
 
 #pianoCanvas {
@@ -144,4 +147,25 @@ input {
 ::-webkit-scrollbar-thumb {
     border-radius: 0px;
     background-color: rgba(0, 0, 0, 0.18);
+}
+
+.sharps-and-flats {
+    float: right;
+    margin-right: 20px;
+    text-align: right;
+}
+
+
+/* tweak the margins on half-width display */
+
+@media only screen and (max-width: 1024px) {
+    .checkbox {
+        width: 18px;
+    }
+    .track-info {
+        width: 20px;
+    }
+    .track {
+        width: 88%;
+    }
 }

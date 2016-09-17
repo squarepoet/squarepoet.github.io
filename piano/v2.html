@@ -9,7 +9,7 @@
     <script type="text/javascript" src="/s/js/jquery.min.js"></script>
     <script type="text/javascript" src="/s/js/lodash.min.js"></script>
     <!-- PENCILCODE's SIMPLE MUSICAL TONE GENERATING LIBRARY -->
-    <script type="text/javascript" src="/s/js/musical.js"></script>
+    <script type="text/javascript" src="/s/js/musical.min.js"></script>
     <!-- JSMIDGEN - CREATE MIDI FILES -->
     <script type="text/javascript" src="/s/js/jsmidgen.js"></script>
     <!-- DRAG & DROP SUPPORT -->
@@ -23,18 +23,13 @@
 
 <body>
     <div style="float:right">
-        shift &rarr; sharp &nbsp;&nbsp;&nbsp;&nbsp; ctrl &rarr; flat &nbsp;&nbsp;&nbsp;&nbsp; shift + esc &rarr; clear<br/>        up/down &rarr; +/- octave &nbsp;&nbsp;&nbsp;&nbsp; tab &rarr; combine &nbsp;&nbsp;&nbsp;&nbsp; cmd + c &rarr; copy
+        shift &rarr; sharp &nbsp;&nbsp;&nbsp;&nbsp; ctrl &rarr; flat &nbsp;&nbsp;&nbsp;&nbsp; shift + esc &rarr; clear<br/> up/down &rarr; +/- octave &nbsp;&nbsp;&nbsp;&nbsp; tab &rarr; combine &nbsp;&nbsp;&nbsp;&nbsp; cmd + c &rarr; copy
     </div>
-    <div style="float:right; margin-right:20px;">
-        sharps: <input id="sharps_textarea"> flats: <input id="flats_textarea">
+    <div class="sharps-and-flats">
+        <div>sharps: <input id="sharps_textarea"></div>
+        <div>flats: <input id="flats_textarea"></div>
     </div>
-    <div id="click">
-        <div id="clickText">Copy</div>
-        <div id="clickOverlay"></div>
-    </div>
-    <br/>
-
-    <div id="content" style="width:100%; text-align:center;">
+    <div id="content" class="content">
         <div id="tracks"></div>
         <canvas id="pianoCanvas" width="1040" height="150"></canvas>
     </div>
@@ -50,7 +45,7 @@
         </div>
         <div id="file-info" class="bottom-info">&nbsp;</div>
         <div id="song-info" class="bottom-info">&nbsp;</div>
-        <div id="buttons"><a id="play-button" href="#">Play</a></div>
+        <div id="buttons"><a id="play-button" href="#">Play</a> | <a id="pause-button" href="#">Pause</a> | <a id="stop-button" href="#">Stop</a></div>
     </div>
 </body>
 

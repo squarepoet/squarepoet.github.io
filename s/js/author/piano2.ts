@@ -34,7 +34,7 @@ let noteLabels = ['a', 'b', 'c', 'd', 'e', 'f', 'g'];
 
 // which character to type to get the corresponding white key
 let keyboardLabels = [
-    '_', 'z', 'x', // G A B
+    '␣', 'z', 'x', // G A B
     'c', 'v', 'b', 'n', 'm', ',', '.', // C D E F G A B
     '/', 'a', 's', 'd', 'f', 'g', 'h', // C D E F G A B
     'j', 'k', 'l', ';', 'q', 'w', 'e', // C D E F G A B
@@ -43,6 +43,11 @@ let keyboardLabels = [
     '5', '6', '7', '8', '9', '0', '-', // C D E F G A B
     '=' // C
 ];
+
+// For MIDI playback.
+let midiFile = null;
+
+let pianoInstrument = new Instrument('piano'); // musical.js
 
 // Converts a piano note (C4 == 40) to MIDI (C4 == 60)
 function p2m(pianoNote) {
@@ -53,7 +58,6 @@ function m2p(midiNote) {
     return midiNote - 20;
 }
 
-let piano = new Instrument('piano');
 
 // A Track is just an Array of NoteGroups
 class Track extends Array<NoteGroup> {
@@ -207,6 +211,7 @@ let keyCodeToPianoKey = {
 function resetOffset() {
     console.log("Reset Offsets");
     octaveOffset = 0;
+    drawPiano();
 }
 
 function resetEverything() {
@@ -261,7 +266,11 @@ function showNoteGroupsForTracks() {
         }
         $tracks[t].html(trackHTML);
 
-        $trackInfos[t].html(`${numNoteGroups}`);
+        if (numNoteGroups > 0) {
+            $trackInfos[t].html(`${numNoteGroups}`);
+        } else {
+            $trackInfos[t].html('');
+        }
 
         // Scroll the divs all the way to the right to make sure the most recent NoteGroups are visible.
         let element = $(`#${noteGroupID}`)[0];
@@ -443,7 +452,6 @@ function saveTracksToLocalStorage() {
 }
 
 function play(keyCode, sharpModifier) {
-    // console.log(keyCode);
     if (keyCodeToPianoKey.hasOwnProperty(keyCode)) {
         // get the name of the note we are about to play
         var remainder = keyCodeToPianoKey[keyCode] % 12;
@@ -467,7 +475,7 @@ function play(keyCode, sharpModifier) {
 
         tracks[0].push(new NoteGroup(new Note(pianoKeyNumber)));
 
-        piano.tone({
+        pianoInstrument.tone({
             pitch: -p2m(pianoKeyNumber), // This API expects a negative number to indicate a MIDI note.
             duration: 1.0
         });
@@ -535,6 +543,33 @@ function onKeyDownHandler(e) {
 
     e.preventDefault();
     switch (e.keyCode) {
+        case 33: // PAGE UP | fn + UP_ARROW
+            console.log('fn + UP');
+            break;
+        case 34: // PAGE DOWN | fn + DOWN_ARROW
+            console.log('fn + DOWN');
+            break;
+        case 36: // HOME | fn + LEFT_ARROW
+            console.log('fn + LEFT');
+            break;
+        case 35: // END | fn + RIGHT_ARROW
+            console.log('fn + RIGHT');
+            break;
+        case 112:
+            console.log('F1');
+            break;
+        case 113:
+            console.log('F2');
+            break;
+        case 114:
+            console.log('F3');
+            break;
+        case 115:
+            console.log('F4');
+            break;
+        case 116:
+            console.log('F5');
+            break;
         case 27: // ESC
             if (e.shiftKey) {
                 resetEverything();
@@ -550,10 +585,16 @@ function onKeyDownHandler(e) {
             break;
         case 38: // UP an octave
             octaveOffset++;
+            if (octaveOffset > 2) {
+                octaveOffset = 2;
+            }
             drawPiano();
             break;
         case 40: // DOWN an octave
             octaveOffset--;
+            if (octaveOffset < -2) {
+                octaveOffset = -2;
+            }
             drawPiano();
             break;
         default:
@@ -612,9 +653,10 @@ function getMIDIFileFromTracks(): string {
 }
 
 function setupMouseHandlers() {
+    Playback.setupButtons();
+
     // When we hover over the Download MIDI | TEXT links, we should update
     // the href attributes so that we download the correct data.
-
     $download_midi_link = $('#download_midi_link');
     $download_text_link = $('#download_text_link');
 
@@ -706,7 +748,7 @@ function readMIDIFile(file) {
 }
 
 function loadMIDIFile(arrayBuffer) {
-    stopCurrentPlayback();
+    Playback.stop();
 
     midiFile = new MIDIFile(arrayBuffer);
     let header = midiFile.header;
@@ -739,61 +781,44 @@ function loadMIDIFile(arrayBuffer) {
         numTracks: numTracks,
         duration: durationInSeconds
     });
-
-    // xxx
-    // Start the MIDI playback.
-    // currentRAFID = requestAnimationFrame(setupPlayback);
 }
 
 function loadMIDITracks(midiFile, midiTracks) {
     let numTracks = midiTracks.length;
     setupTracks(numTracks);
-    for (let t = 0; t < numTracks; t++) {
-        let track = midiTracks[t];
-        let trackEvents = midiFile.getTrackEvents(t);
-        console.log(`Track ${t} has ${trackEvents.length} events.`);
 
-        let numOtherMidiEvents = 0;
-        let numOtherEvents = 0;
+    // Only handle NOTE_ON events for now.
+    let noteOnEvents = midiFile.getEvents(MIDIEvents.EVENT_MIDI, MIDIEvents.EVENT_MIDI_NOTE_ON);
 
-        for (let event of trackEvents) {
-            let type = event.type;
-            let subtype = event.subtype;
-            let status = (event.subtype << 4) + event.channel;
-            let statusCodeHexString = '0x' + status.toString(16).toUpperCase();
-            let data1 = event.param1;
-            let data2 = event.param2;
-            let time = event.playTime; // time in milliseconds
+    let lastPlayTime = -1;
+    let lastNoteGroup: NoteGroup = null;
 
-            if (type === MIDIEvents.EVENT_MIDI) {
-                if (subtype === MIDIEvents.EVENT_MIDI_NOTE_ON) {
-                    let midiNoteNum = data1;
-                    let pianoNoteNum = m2p(data1);
-                    let velocity = data2;
+    for (let event of noteOnEvents) {
+        let trackNumber = event.track;
+        let type = event.type;
+        let subtype = event.subtype;
+        let status = (event.subtype << 4) + event.channel;
+        let statusCodeHexString = '0x' + status.toString(16).toUpperCase();
+        let midiNoteNum = event.param1;
+        let pianoNoteNum = m2p(midiNoteNum);
+        let velocity = event.param2;
+        let playTime = event.playTime; // time in milliseconds
 
-                    // Only handle NOTE_ON events for now.
-                    // TODO: figure out which notes start at the same time (or are within some time threshold)
-                    tracks[t].push(new NoteGroup(new Note(pianoNoteNum)));
-                    console.log(`Track ${t} Note ON`);
-                } else if (subtype === MIDIEvents.EVENT_MIDI_NOTE_OFF) {
-                    console.log(`Track ${t} Note OFF`);
-                } else {
-                    console.log(`Track ${t} ${getTypeString(type)}.${getSubTypeString(subtype)}`);
-                    numOtherMidiEvents++;
-                }
-            } else {
-                console.log(`Track ${t} ${getTypeString(type)}.${getSubTypeString(subtype)}`);
-                numOtherEvents++;
-            }
+        // Figure out which notes start at the same time
+        // TODO: handle time delta thresholds!
+        if (playTime === lastPlayTime) {
+            lastNoteGroup.addNote(new Note(pianoNoteNum));
+        } else {
+            let currNoteGroup = new NoteGroup(new Note(pianoNoteNum));
+            tracks[trackNumber].push(currNoteGroup);
+            lastNoteGroup = currNoteGroup;
         }
 
-        console.log(`Track ${t} has ${numOtherMidiEvents} other MIDI events and ${numOtherEvents} other events.`);
-
-        // console.log(`Type: ${getTypeString(type)} Subtype: ${getSubTypeString(subtype)} Status: ${statusCodeHexString}, Data_1: ${data1}, Data_2: ${data2}, Event Time: ${time}, Curr Time: ${currTime}`);
-
-
-        // TODO: load the note numbers into each track at the correct spacing?
+        console.log(`Track ${trackNumber} Note ON at ${playTime}.`);
+        lastPlayTime = playTime;
+        // TODO: load the note numbers into each track at the correct spacing due to .playTime?
     }
+
 
     saveAndShowData();
 }
@@ -803,64 +828,8 @@ function displaySongInfo(params) {
     $('#song-info').text(`Num Tracks: ${params.numTracks} | Duration: ${duration} secs`);
 }
 
-let midiFile = null;
-let startTime = 0;
-let eventsToReplay = null;
-let currentRAFID = 0;
-
-function stopCurrentPlayback() {
-    if (currentRAFID) {
-        cancelAnimationFrame(currentRAFID);
-        currentRAFID = 0;
-    }
-}
-
-function setupPlayback(timeMillis) {
-    startTime = timeMillis;
-    eventsToReplay = midiFile.getEvents();
-    currentRAFID = requestAnimationFrame(playNextEvents);
-}
-
-// Will be called every ~16.67ms if your display runs at 60 FPS.
-function playNextEvents(timeMillis) {
-    // Have we reached the end of the song?
-    if (eventsToReplay.length === 0) {
-        stopCurrentPlayback();
-        return; // DONE!
-    }
-
-    let currTime = timeMillis - startTime;
-    while (currTime >= eventsToReplay[0].playTime) {
-        let event = eventsToReplay.shift();
-        let type = event.type;
-        let subtype = event.subtype;
-        let status = (event.subtype << 4) + event.channel;
-        let statusCodeHexString = '0x' + status.toString(16).toUpperCase();
-        let data1 = event.param1;
-        let data2 = event.param2;
-        let time = event.playTime; // time in milliseconds
-        // console.log(`Type: ${getTypeString(type)} Subtype: ${getSubTypeString(subtype)} Status: ${statusCodeHexString}, Data_1: ${data1}, Data_2: ${data2}, Event Time: ${time}, Curr Time: ${currTime}`);
-
-        if (type === MIDIEvents.EVENT_MIDI) {
-            if (subtype === MIDIEvents.EVENT_MIDI_NOTE_ON) {
-                playMIDINote(data1, data2);
-            } else if (subtype === MIDIEvents.EVENT_MIDI_NOTE_OFF) {
-                stopMIDINote(data1);
-            }
-        }
-
-        // Have we reached the end of the song?
-        if (eventsToReplay.length === 0) {
-            stopCurrentPlayback();
-            return; // DONE!
-        }
-    }
-
-    currentRAFID = requestAnimationFrame(playNextEvents);
-}
-
 function playMIDINote(midiNoteNum, velocity) {
-    piano.tone({
+    pianoInstrument.tone({
         pitch: -midiNoteNum, // This API expects negative numbers to indicate MIDI notes. Positive numbers indicate audio tone frequency (Hz).
         duration: 2.0, // 0.125, 0.25, 0.5, 1.0, 2.0
         velocity: (velocity / 127.0)
@@ -938,6 +907,11 @@ function getSubTypeString(subtype) {
 }
 
 
+///////////////////////////////////////////////////////////////////////////
+
+// Experiment for generating random colors to colorize adjacent note groups.
+// TODO: Maybe remove this chunk of code.
+
 let Colors = {
     setup() {
         this.colors = [];
@@ -970,8 +944,119 @@ let Colors = {
     }
 };
 
+///////////////////////////////////////////////////////////////////////////
+
+namespace Playback {
+
+    // All times are in milliseconds.
+    let currSongTime = 0; // What time is our playhead pointing to?
+    let baseSongTime = 0; // What time did our playhead point to when we started or resumed the song?
+    let rafStartTime = 0;
+
+    let rafID = 0; // Keep a handle on the requestAnimationFrame ID so that we can stop it when the user presses PAUSE or STOP.
+
+    let eventsToReplay = [];
+
+    let isPaused = false;
+
+    // jQuery references to the DOM
+    let $playButton = null;
+    let $pauseButton = null;
+    let $stopButton = null;
+
+    export function isPlaying() {
+        return rafID !== 0;
+    }
+
+    // starts or resumes playback
+    export function start() {
+        if (!midiFile) {
+            console.log('Cannot Start the song. No MIDI File to play!');
+            return;
+        }
+
+        if (isPaused) {
+            baseSongTime = currSongTime;
+        } else {
+            console.log('Start ' + midiFile);
+            // Start the MIDI playback.
+            eventsToReplay = midiFile.getEvents();
+            baseSongTime = 0;
+        }
+        // Call RAF once to set the start time.
+        rafID = requestAnimationFrame((rafCurrTime) => {
+            rafStartTime = rafCurrTime;
+            // After the start time is set, we can begin playing the events!
+            rafID = requestAnimationFrame(playNextEvents);
+        });
+        isPaused = false;
+    }
+
+    export function pause() {
+        stop();
+        isPaused = true; // Next time, continue from where we left off.
+    }
+
+    export function stop() {
+        if (isPlaying()) {
+            cancelAnimationFrame(rafID);
+            rafID = 0;
+        }
+        eventsToReplay = [];
+    }
+
+    // Will be called every ~16.67ms if your display runs at 60 FPS.
+    function playNextEvents(rafCurrTime) {
+        console.log('playNextEvents ' + rafCurrTime);
+        // Have we reached the end of the song?
+        if (eventsToReplay.length === 0) {
+            Playback.stop();
+            return; // DONE!
+        }
+
+        currSongTime = rafCurrTime - rafStartTime + baseSongTime;
+        while (currSongTime >= eventsToReplay[0].playTime) {
+            let event = eventsToReplay.shift();
+            let type = event.type;
+            let subtype = event.subtype;
+            let status = (event.subtype << 4) + event.channel;
+            let statusCodeHexString = '0x' + status.toString(16).toUpperCase();
+            let data1 = event.param1;
+            let data2 = event.param2;
+            let time = event.playTime; // time in milliseconds
+            // console.log(`Type: ${getTypeString(type)} Subtype: ${getSubTypeString(subtype)} Status: ${statusCodeHexString}, Data_1: ${data1}, Data_2: ${data2}, Event Time: ${time}, Curr Time: ${currTime}`);
+
+            if (type === MIDIEvents.EVENT_MIDI) {
+                if (subtype === MIDIEvents.EVENT_MIDI_NOTE_ON) {
+                    playMIDINote(data1, data2);
+                } else if (subtype === MIDIEvents.EVENT_MIDI_NOTE_OFF) {
+                    stopMIDINote(data1);
+                }
+            }
+
+            // Have we reached the end of the song?
+            if (eventsToReplay.length === 0) {
+                Playback.stop();
+                return; // DONE!
+            }
+        }
+
+        rafID = requestAnimationFrame(playNextEvents);
+    }
+
+    export function setupButtons() {
+        $playButton = $('#play-button');
+        $playButton.click(start);
+
+        $pauseButton = $('#pause-button');
+        $pauseButton.click(pause);
+
+        $stopButton = $('#stop-button');
+        $stopButton.click(stop);
+    }
+}
+
 $(function () {
-    Colors.setup();
     setupUI();
     setupMIDIFileSupport();
 });
