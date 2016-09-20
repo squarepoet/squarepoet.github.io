@@ -254,6 +254,7 @@ function resetEverything() {
     octaveOffset = 0;
     setupTracks(1);
     saveAndShowData();
+    Playback.stop();
 }
 
 function addTracks(numTracks) {
@@ -985,9 +986,6 @@ namespace Playback {
     let currSongTime = 0; // What time is our playhead pointing to?
     let baseSongTime = 0; // What time did our playhead point to when we started or resumed the song?
     let clockStartTime = 0;
-    // let rafStartTime = 0;
-
-    // let rafID = 0; // Keep a handle on the requestAnimationFrame ID so that we can stop it when the user presses PAUSE or STOP.
 
     let clock = new Worker('/s/js/author/piano2worker.js');
     let clockIsTicking = false;
@@ -1004,7 +1002,6 @@ namespace Playback {
 
     export function isPlaying() {
         return clockIsTicking;
-        // return rafID !== 0;
     }
 
     // starts or resumes playback
@@ -1033,12 +1030,6 @@ namespace Playback {
             baseSongTime = 0;
             determinePlayTimeForNextEvent();
         }
-        // Call RAF once to set the start time.
-        // rafID = requestAnimationFrame((rafCurrTime) => {
-        //     rafStartTime = rafCurrTime;
-        //     // After the start time is set, we can begin playing the events!
-        //     rafID = requestAnimationFrame(playNextEvents);
-        // });
         isPaused = false;
         clockStartTime = performance.now();
         clock.postMessage('start');
@@ -1067,8 +1058,6 @@ namespace Playback {
         if (isPlaying()) {
             clock.postMessage('stop');
             clockIsTicking = false;
-            // cancelAnimationFrame(rafID);
-            // rafID = 0;
         }
     }
 
@@ -1082,7 +1071,6 @@ namespace Playback {
 
         currSongTime = currTime - clockStartTime + baseSongTime;
 
-        // currSongTime = rafCurrTime - rafStartTime + baseSongTime;
         while (currSongTime >= nextEventPlayTime) { // Inspect the next event (at index 0).
             let noteGroup: NoteGroup = noteGroupsToPlay.shift();
 
@@ -1099,7 +1087,6 @@ namespace Playback {
             }
         }
 
-        // rafID = requestAnimationFrame(playNextEvents);
     }
 
     function determinePlayTimeForNextEvent() {

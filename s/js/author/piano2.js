@@ -237,6 +237,7 @@ function resetEverything() {
     octaveOffset = 0;
     setupTracks(1);
     saveAndShowData();
+    Playback.stop();
 }
 function addTracks(numTracks) {
     var html = '';
@@ -894,8 +895,6 @@ var Playback;
     var currSongTime = 0; // What time is our playhead pointing to?
     var baseSongTime = 0; // What time did our playhead point to when we started or resumed the song?
     var clockStartTime = 0;
-    // let rafStartTime = 0;
-    // let rafID = 0; // Keep a handle on the requestAnimationFrame ID so that we can stop it when the user presses PAUSE or STOP.
     var clock = new Worker('/s/js/author/piano2worker.js');
     var clockIsTicking = false;
     clock.onmessage = function (e) {
@@ -906,7 +905,6 @@ var Playback;
     var nextEventPlayTime = 0;
     function isPlaying() {
         return clockIsTicking;
-        // return rafID !== 0;
     }
     Playback.isPlaying = isPlaying;
     // starts or resumes playback
@@ -934,12 +932,6 @@ var Playback;
             baseSongTime = 0;
             determinePlayTimeForNextEvent();
         }
-        // Call RAF once to set the start time.
-        // rafID = requestAnimationFrame((rafCurrTime) => {
-        //     rafStartTime = rafCurrTime;
-        //     // After the start time is set, we can begin playing the events!
-        //     rafID = requestAnimationFrame(playNextEvents);
-        // });
         isPaused = false;
         clockStartTime = performance.now();
         clock.postMessage('start');
@@ -979,7 +971,6 @@ var Playback;
             return; // DONE!
         }
         currSongTime = currTime - clockStartTime + baseSongTime;
-        // currSongTime = rafCurrTime - rafStartTime + baseSongTime;
         while (currSongTime >= nextEventPlayTime) {
             var noteGroup = noteGroupsToPlay.shift();
             for (var _i = 0, _a = noteGroup.notes; _i < _a.length; _i++) {
@@ -995,7 +986,6 @@ var Playback;
                 determinePlayTimeForNextEvent();
             }
         }
-        // rafID = requestAnimationFrame(playNextEvents);
     }
     function determinePlayTimeForNextEvent() {
         nextEventPlayTime = noteGroupsToPlay[0].playTimeMillis;
