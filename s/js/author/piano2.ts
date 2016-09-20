@@ -8,7 +8,7 @@ declare var DragDrop: any;
 declare var Instrument: any;
 /////////////////////////////////////////////////////////////////////////////////
 
-const TIME_BETWEEN_NOTEGROUPS = 200;
+const TIME_BETWEEN_NOTEGROUPS = 250;
 const TIME_THRESHOLD_FOR_GROUPING_NEARBY_NOTES = 0; // Adjust this for parsing MIDI recordings of piano performances (i.e., imprecise timing).
 
 // Support multi track MIDI songs.
@@ -123,17 +123,18 @@ class NoteGroup {
         }
     }
 
+    // V2
     toString(): string {
         if (this.playTimeMillis === -1) {
             return this.notes.join('.'); // Use the simple format when playTimeMillis is not specified (i.e. -1).
         } else {
             return `[${this.notes.join('.')} @ ${this.playTimeMillis}]`; // V2 contains the playTime for each NoteGroup
         }
-
     }
 
-    // toStringV1(): string {
-    //     return this.notes.join('.'); // Version 1 of our Tiny Piano Song format does not contain the playTime
+    // V1 of our Tiny Piano Song format does not contain the playTime
+    // toString(): string {
+    //     return this.notes.join('.');
     // }
 
     get numNotes(): number {
@@ -142,6 +143,7 @@ class NoteGroup {
 
     copy(): NoteGroup {
         let clone = new NoteGroup(this.toString());
+        clone.playTimeMillis = this.playTimeMillis;
         clone.trackNumber = this.trackNumber;
         return clone;
     }
@@ -572,6 +574,9 @@ function onKeyDownHandler(e) {
 
     e.preventDefault();
     switch (e.keyCode) {
+        case 13: // ENTER
+            Playback.togglePlayPause();
+            break;
         case 33: // PAGE UP | fn + UP_ARROW
             console.log('fn + UP');
             break;
@@ -760,6 +765,7 @@ namespace MIDI {
     declare var MIDIFile: any;
 
     let midiFile = null;
+    let midiEvents = null;
 
     export function hasLoadedAFile(): boolean {
         return midiFile !== null;
@@ -802,11 +808,9 @@ namespace MIDI {
         return file.toBytes();
     }
 
-
-
     // Convert from MIDI events to NoteGroups
     export function getNoteGroupsFromFile() {
-        let midiEvents = midiFile.getMidiEvents();
+        midiEvents = midiFile.getMidiEvents();
 
         let noteGroups: Track = [];
 
@@ -844,7 +848,7 @@ namespace MIDI {
         return noteGroups;
     }
 
-    export function loadMIDIFile(arrayBuffer) {
+    function parseData(arrayBuffer) {
         Playback.stop();
 
         midiFile = new MIDIFile(arrayBuffer);
@@ -858,7 +862,7 @@ namespace MIDI {
             console.log('TODO: SMPTE Frames!');
         }
 
-        loadMIDITracks();
+        fillTracksWithNoteGroups();
         console.log();
 
         var lyrics = midiFile.getLyrics();
@@ -867,16 +871,14 @@ namespace MIDI {
             // Each Lyrics Event has a .playTime and .text property.
         }
 
-        let events = midiFile.getEvents( /* type, subtype */);
-        let lastEvent = events[events.length - 1];
-        let durationInMillis = lastEvent.playTime;
-        let durationInSeconds = durationInMillis / 1000;
-
-        console.log(`Duration: ${durationInSeconds} seconds.`);
+        // Calculate song duration.
+        let lastMidiEvent = midiEvents[midiEvents.length - 1]; // Probably a MIDIEvents.EVENT_MIDI_NOTE_OFF event.
+        let songDurationInMillis = lastMidiEvent.playTime;
+        let songDurationInSeconds = songDurationInMillis / 1000;
 
         displaySongInfo({
             numTracks: numTracks,
-            duration: durationInSeconds
+            duration: songDurationInSeconds
         });
     }
 
@@ -885,7 +887,7 @@ namespace MIDI {
         reader.addEventListener('load', (e: any) => {
             let arrayBuffer = e.target.result;
             displayFileInfo(file);
-            MIDI.loadMIDIFile(arrayBuffer);
+            parseData(arrayBuffer);
         });
         reader.addEventListener('error', (err) => {
             console.error('FileReader error' + err)
@@ -893,15 +895,13 @@ namespace MIDI {
         reader.readAsArrayBuffer(file);
     }
 
-    function loadMIDITracks() {
+    function fillTracksWithNoteGroups() {
         setupTracks(midiFile.tracks.length);
 
-        let noteGroups = MIDI.getNoteGroupsFromFile();
+        let noteGroups = getNoteGroupsFromFile();
         for (let noteGroup of noteGroups) {
             let trackNumber = noteGroup.trackNumber;
             tracks[trackNumber].push(noteGroup.copy());
-
-            console.log(`Track ${trackNumber} Play ${noteGroup.toString()}`);
             // TODO: load the note numbers into each track at the correct spacing due to .playTime?
         }
 
@@ -984,9 +984,17 @@ namespace Playback {
     // All times are in milliseconds.
     let currSongTime = 0; // What time is our playhead pointing to?
     let baseSongTime = 0; // What time did our playhead point to when we started or resumed the song?
-    let rafStartTime = 0;
+    let clockStartTime = 0;
+    // let rafStartTime = 0;
 
-    let rafID = 0; // Keep a handle on the requestAnimationFrame ID so that we can stop it when the user presses PAUSE or STOP.
+    // let rafID = 0; // Keep a handle on the requestAnimationFrame ID so that we can stop it when the user presses PAUSE or STOP.
+
+    let clock = new Worker('/s/js/author/piano2worker.js');
+    let clockIsTicking = false;
+
+    clock.onmessage = function (e) {
+        playNextEvents(performance.now());
+    };
 
     let noteGroupsToPlay: NoteGroup[] = [];
 
@@ -995,11 +1003,12 @@ namespace Playback {
     let nextEventPlayTime = 0;
 
     export function isPlaying() {
-        return rafID !== 0;
+        return clockIsTicking;
+        // return rafID !== 0;
     }
 
     // starts or resumes playback
-    export function start() {
+    export function play() {
         if (isPaused) {
             baseSongTime = currSongTime;
         } else {
@@ -1025,39 +1034,55 @@ namespace Playback {
             determinePlayTimeForNextEvent();
         }
         // Call RAF once to set the start time.
-        rafID = requestAnimationFrame((rafCurrTime) => {
-            rafStartTime = rafCurrTime;
-            // After the start time is set, we can begin playing the events!
-            rafID = requestAnimationFrame(playNextEvents);
-        });
+        // rafID = requestAnimationFrame((rafCurrTime) => {
+        //     rafStartTime = rafCurrTime;
+        //     // After the start time is set, we can begin playing the events!
+        //     rafID = requestAnimationFrame(playNextEvents);
+        // });
         isPaused = false;
+        clockStartTime = performance.now();
+        clock.postMessage('start');
+        clockIsTicking = true;
     }
 
     export function pause() {
-        if (isPlaying()) {
-            cancelAnimationFrame(rafID);
-            rafID = 0;
-        }
+        stopTheClock();
         isPaused = true; // Next time, continue from where we left off.
     }
 
-    export function stop() {
+    export function togglePlayPause() {
         if (isPlaying()) {
-            cancelAnimationFrame(rafID);
-            rafID = 0;
+            pause();
+        } else {
+            play();
         }
+    }
+
+    export function stop() {
+        stopTheClock();
         noteGroupsToPlay = [];
     }
 
+    function stopTheClock() {
+        if (isPlaying()) {
+            clock.postMessage('stop');
+            clockIsTicking = false;
+            // cancelAnimationFrame(rafID);
+            // rafID = 0;
+        }
+    }
+
     // Will be called every ~16.67ms if your display runs at 60 FPS.
-    function playNextEvents(rafCurrTime) {
+    function playNextEvents(currTime) {
         // Have we reached the end of the song?
         if (noteGroupsToPlay.length === 0) {
             Playback.stop();
             return; // DONE!
         }
 
-        currSongTime = rafCurrTime - rafStartTime + baseSongTime;
+        currSongTime = currTime - clockStartTime + baseSongTime;
+
+        // currSongTime = rafCurrTime - rafStartTime + baseSongTime;
         while (currSongTime >= nextEventPlayTime) { // Inspect the next event (at index 0).
             let noteGroup: NoteGroup = noteGroupsToPlay.shift();
 
@@ -1074,7 +1099,7 @@ namespace Playback {
             }
         }
 
-        rafID = requestAnimationFrame(playNextEvents);
+        // rafID = requestAnimationFrame(playNextEvents);
     }
 
     function determinePlayTimeForNextEvent() {
@@ -1085,7 +1110,7 @@ namespace Playback {
     }
 
     export function setupButtons() {
-        $playButton.click(start);
+        $playButton.click(play);
         $pauseButton.click(pause);
         $stopButton.click(stop);
     }

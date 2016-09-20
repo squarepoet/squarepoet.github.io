@@ -5,7 +5,7 @@ var __extends = (this && this.__extends) || function (d, b) {
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
 /////////////////////////////////////////////////////////////////////////////////
-var TIME_BETWEEN_NOTEGROUPS = 200;
+var TIME_BETWEEN_NOTEGROUPS = 250;
 var TIME_THRESHOLD_FOR_GROUPING_NEARBY_NOTES = 0; // Adjust this for parsing MIDI recordings of piano performances (i.e., imprecise timing).
 // Support multi track MIDI songs.
 // When we compose by hand, stick everything in track 0.
@@ -109,6 +109,7 @@ var NoteGroup = (function () {
             this.notes = uniqueNotes;
         }
     };
+    // V2
     NoteGroup.prototype.toString = function () {
         if (this.playTimeMillis === -1) {
             return this.notes.join('.'); // Use the simple format when playTimeMillis is not specified (i.e. -1).
@@ -118,8 +119,9 @@ var NoteGroup = (function () {
         }
     };
     Object.defineProperty(NoteGroup.prototype, "numNotes", {
-        // toStringV1(): string {
-        //     return this.notes.join('.'); // Version 1 of our Tiny Piano Song format does not contain the playTime
+        // V1 of our Tiny Piano Song format does not contain the playTime
+        // toString(): string {
+        //     return this.notes.join('.');
         // }
         get: function () {
             return this.notes.length;
@@ -129,6 +131,7 @@ var NoteGroup = (function () {
     });
     NoteGroup.prototype.copy = function () {
         var clone = new NoteGroup(this.toString());
+        clone.playTimeMillis = this.playTimeMillis;
         clone.trackNumber = this.trackNumber;
         return clone;
     };
@@ -513,6 +516,9 @@ function onKeyDownHandler(e) {
     }
     e.preventDefault();
     switch (e.keyCode) {
+        case 13:
+            Playback.togglePlayPause();
+            break;
         case 33:
             console.log('fn + UP');
             break;
@@ -685,6 +691,7 @@ function playMIDINote(midiNoteNum, velocity) {
 var MIDI;
 (function (MIDI) {
     var midiFile = null;
+    var midiEvents = null;
     function hasLoadedAFile() {
         return midiFile !== null;
     }
@@ -728,7 +735,7 @@ var MIDI;
     MIDI.getFileFromTracks = getFileFromTracks;
     // Convert from MIDI events to NoteGroups
     function getNoteGroupsFromFile() {
-        var midiEvents = midiFile.getMidiEvents();
+        midiEvents = midiFile.getMidiEvents();
         var noteGroups = [];
         // Remember the most recently processed event so that we can merge notes that are played at the same time and on the same track.
         var lastNoteGroup = null;
@@ -764,7 +771,7 @@ var MIDI;
         return noteGroups;
     }
     MIDI.getNoteGroupsFromFile = getNoteGroupsFromFile;
-    function loadMIDIFile(arrayBuffer) {
+    function parseData(arrayBuffer) {
         Playback.stop();
         midiFile = new MIDIFile(arrayBuffer);
         var header = midiFile.header;
@@ -777,29 +784,27 @@ var MIDI;
         else {
             console.log('TODO: SMPTE Frames!');
         }
-        loadMIDITracks();
+        fillTracksWithNoteGroups();
         console.log();
         var lyrics = midiFile.getLyrics();
         if (lyrics.length > 0) {
             console.log("Lyrics Track " + lyrics.length + " events.");
         }
-        var events = midiFile.getEvents();
-        var lastEvent = events[events.length - 1];
-        var durationInMillis = lastEvent.playTime;
-        var durationInSeconds = durationInMillis / 1000;
-        console.log("Duration: " + durationInSeconds + " seconds.");
+        // Calculate song duration.
+        var lastMidiEvent = midiEvents[midiEvents.length - 1]; // Probably a MIDIEvents.EVENT_MIDI_NOTE_OFF event.
+        var songDurationInMillis = lastMidiEvent.playTime;
+        var songDurationInSeconds = songDurationInMillis / 1000;
         displaySongInfo({
             numTracks: numTracks,
-            duration: durationInSeconds
+            duration: songDurationInSeconds
         });
     }
-    MIDI.loadMIDIFile = loadMIDIFile;
     function readFile(file) {
         var reader = new FileReader();
         reader.addEventListener('load', function (e) {
             var arrayBuffer = e.target.result;
             displayFileInfo(file);
-            MIDI.loadMIDIFile(arrayBuffer);
+            parseData(arrayBuffer);
         });
         reader.addEventListener('error', function (err) {
             console.error('FileReader error' + err);
@@ -807,14 +812,13 @@ var MIDI;
         reader.readAsArrayBuffer(file);
     }
     MIDI.readFile = readFile;
-    function loadMIDITracks() {
+    function fillTracksWithNoteGroups() {
         setupTracks(midiFile.tracks.length);
-        var noteGroups = MIDI.getNoteGroupsFromFile();
+        var noteGroups = getNoteGroupsFromFile();
         for (var _i = 0, noteGroups_1 = noteGroups; _i < noteGroups_1.length; _i++) {
             var noteGroup = noteGroups_1[_i];
             var trackNumber = noteGroup.trackNumber;
             tracks[trackNumber].push(noteGroup.copy());
-            console.log("Track " + trackNumber + " Play " + noteGroup.toString());
         }
         saveAndShowData();
     }
@@ -889,17 +893,24 @@ var Playback;
     // All times are in milliseconds.
     var currSongTime = 0; // What time is our playhead pointing to?
     var baseSongTime = 0; // What time did our playhead point to when we started or resumed the song?
-    var rafStartTime = 0;
-    var rafID = 0; // Keep a handle on the requestAnimationFrame ID so that we can stop it when the user presses PAUSE or STOP.
+    var clockStartTime = 0;
+    // let rafStartTime = 0;
+    // let rafID = 0; // Keep a handle on the requestAnimationFrame ID so that we can stop it when the user presses PAUSE or STOP.
+    var clock = new Worker('/s/js/author/piano2worker.js');
+    var clockIsTicking = false;
+    clock.onmessage = function (e) {
+        playNextEvents(performance.now());
+    };
     var noteGroupsToPlay = [];
     var isPaused = false;
     var nextEventPlayTime = 0;
     function isPlaying() {
-        return rafID !== 0;
+        return clockIsTicking;
+        // return rafID !== 0;
     }
     Playback.isPlaying = isPlaying;
     // starts or resumes playback
-    function start() {
+    function play() {
         if (isPaused) {
             baseSongTime = currSongTime;
         }
@@ -924,38 +935,51 @@ var Playback;
             determinePlayTimeForNextEvent();
         }
         // Call RAF once to set the start time.
-        rafID = requestAnimationFrame(function (rafCurrTime) {
-            rafStartTime = rafCurrTime;
-            // After the start time is set, we can begin playing the events!
-            rafID = requestAnimationFrame(playNextEvents);
-        });
+        // rafID = requestAnimationFrame((rafCurrTime) => {
+        //     rafStartTime = rafCurrTime;
+        //     // After the start time is set, we can begin playing the events!
+        //     rafID = requestAnimationFrame(playNextEvents);
+        // });
         isPaused = false;
+        clockStartTime = performance.now();
+        clock.postMessage('start');
+        clockIsTicking = true;
     }
-    Playback.start = start;
+    Playback.play = play;
     function pause() {
-        if (isPlaying()) {
-            cancelAnimationFrame(rafID);
-            rafID = 0;
-        }
+        stopTheClock();
         isPaused = true; // Next time, continue from where we left off.
     }
     Playback.pause = pause;
-    function stop() {
+    function togglePlayPause() {
         if (isPlaying()) {
-            cancelAnimationFrame(rafID);
-            rafID = 0;
+            pause();
         }
+        else {
+            play();
+        }
+    }
+    Playback.togglePlayPause = togglePlayPause;
+    function stop() {
+        stopTheClock();
         noteGroupsToPlay = [];
     }
     Playback.stop = stop;
+    function stopTheClock() {
+        if (isPlaying()) {
+            clock.postMessage('stop');
+            clockIsTicking = false;
+        }
+    }
     // Will be called every ~16.67ms if your display runs at 60 FPS.
-    function playNextEvents(rafCurrTime) {
+    function playNextEvents(currTime) {
         // Have we reached the end of the song?
         if (noteGroupsToPlay.length === 0) {
             Playback.stop();
             return; // DONE!
         }
-        currSongTime = rafCurrTime - rafStartTime + baseSongTime;
+        currSongTime = currTime - clockStartTime + baseSongTime;
+        // currSongTime = rafCurrTime - rafStartTime + baseSongTime;
         while (currSongTime >= nextEventPlayTime) {
             var noteGroup = noteGroupsToPlay.shift();
             for (var _i = 0, _a = noteGroup.notes; _i < _a.length; _i++) {
@@ -971,7 +995,7 @@ var Playback;
                 determinePlayTimeForNextEvent();
             }
         }
-        rafID = requestAnimationFrame(playNextEvents);
+        // rafID = requestAnimationFrame(playNextEvents);
     }
     function determinePlayTimeForNextEvent() {
         nextEventPlayTime = noteGroupsToPlay[0].playTimeMillis;
@@ -980,7 +1004,7 @@ var Playback;
         }
     }
     function setupButtons() {
-        $playButton.click(start);
+        $playButton.click(play);
         $pauseButton.click(pause);
         $stopButton.click(stop);
     }
