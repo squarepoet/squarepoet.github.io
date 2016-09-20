@@ -9,6 +9,7 @@ declare var Instrument: any;
 /////////////////////////////////////////////////////////////////////////////////
 
 const TIME_BETWEEN_NOTEGROUPS = 200;
+const TIME_THRESHOLD_FOR_GROUPING_NEARBY_NOTES = 0; // Adjust this for parsing MIDI recordings of piano performances (i.e., imprecise timing).
 
 // Support multi track MIDI songs.
 // When we compose by hand, stick everything in track 0.
@@ -47,9 +48,6 @@ let keyboardLabels = [
     '=' // C
 ];
 
-// For MIDI playback.
-let midiFile = null;
-
 let pianoInstrument = new Instrument('piano'); // musical.js
 
 // Converts a piano note (C4 == 40) to MIDI (C4 == 60)
@@ -69,19 +67,19 @@ class Track extends Array<NoteGroup> {
 
 //////////////////////////////////////////////////////////////////////
 class NoteGroup {
+
     notes: Array<Note>;
-
     playTimeMillis: number = -1;
-
-    midiTrackNumber: number = 0;
+    trackNumber: number = 0; // Which MIDI track was this NoteGroup extracted from?
 
     // NoteGroup looks like: 40.44.47 or [40.44.47 @ 1530]
     // The number after the @ indicates the playback time of the NoteGroup, in milliseconds.
 
     // Parameter "a"" can be either a single Note or a string which indicates multiple notes.
     // The string is formatted as multiple piano key numbers separated by a period (e.g., "40.52").
-    constructor(a?: Note | string, playTimeMillis: number = -1) {
+    constructor(a?: Note | string, playTimeMillis: number = -1, trackNumber: number = 0) {
         this.playTimeMillis = playTimeMillis;
+        this.trackNumber = trackNumber;
         if (typeof a === 'string') { // e.g., "40.44.47" => C,E,G
             let noteGroupString = a;
             if (noteGroupString.indexOf('[') !== -1) {
@@ -143,7 +141,9 @@ class NoteGroup {
     }
 
     copy(): NoteGroup {
-        return new NoteGroup(this.toString()); // clone this object.
+        let clone = new NoteGroup(this.toString());
+        clone.trackNumber = this.trackNumber;
+        return clone;
     }
 
     static merge(n1: NoteGroup, n2: NoteGroup): NoteGroup {
@@ -632,16 +632,8 @@ function onKeyDownHandler(e) {
     }
 }
 
-// Currently only supports a single track (Track 0).
 // Returns a textual representation of the song (e.g., 40 42 44 45 40.47)
 function getTextFileFromTracks(): string {
-    // TODO: Round Robin through the tracks to find smallest play times (or if they're all undefined, just pick from the first track)
-    // Then keep adding them to our array as strings....
-
-    // fix this so that we can save multi tracks properly
-    // load MIDI => save as TEXT file or save as MIDI
-    // do the same for getMIDIFileFromTracks.... in that case, just replicate our tracks (any tracks that have NOTE_ON events)
-
     let numTracks = tracks.length;
     let noteGroupStrings: string[] = [];
     if (numTracks === 1) {
@@ -683,10 +675,6 @@ function getTextFileFromTracks(): string {
 
     // Melody lines start with two slashes.
     return '// ' + noteGroupStrings.join(' ');
-
-
-
-
 }
 
 
@@ -698,7 +686,7 @@ function setupMouseHandlers() {
 
     $download_midi_link.mouseover(() => {
         // GENERATE THE MIDI FILE FROM OUR TRACKS. BASE 64 ENCODE IT.
-        let midi = MIDI.getMIDIFileFromTracks();
+        let midi = MIDI.getFileFromTracks();
         let base64Text = btoa(midi); // base 64 encoding
         $download_midi_link.attr('href', 'data:audio/midi;base64,' + base64Text);
     });
@@ -727,7 +715,7 @@ function setupDragAndDrop() {
         onDrop: (files, pos) => {
             // console.log('Here are the dropped files', files)
             // console.log('Dropped at coordinates', pos.x, pos.y)
-            readMIDIFile(files[0]); // Get the first file.
+            MIDI.readFile(files[0]); // Get the first file.
         },
         onDragOver: () => {
             $('#bottom-panel').addClass('drag');
@@ -743,37 +731,9 @@ function setupFileChooser() {
     $('#filechooser').change((e) => {
         let files = e.target.files;
         if (files.length > 0) {
-            readMIDIFile(files[0]); // Get the first file.
+            MIDI.readFile(files[0]); // Get the first file.
         }
     });
-}
-
-function readMIDIFile(file) {
-    let reader = new FileReader();
-    reader.addEventListener('load', (e: any) => {
-        let arrayBuffer = e.target.result;
-        displayFileInfo(file);
-        MIDI.loadMIDIFile(arrayBuffer);
-    });
-    reader.addEventListener('error', (err) => {
-        console.error('FileReader error' + err)
-    });
-    reader.readAsArrayBuffer(file);
-}
-
-function loadMIDITracks() {
-    setupTracks(midiFile.tracks.length);
-
-    let noteGroups = MIDI.getNoteGroupsFromMIDIFile();
-    for (let noteGroup of noteGroups) {
-        let trackNumber = noteGroup.midiTrackNumber;
-        tracks[trackNumber].push(noteGroup.copy());
-
-        console.log(`Track ${trackNumber} Play ${noteGroup.toString()}`);
-        // TODO: load the note numbers into each track at the correct spacing due to .playTime?
-    }
-
-    saveAndShowData();
 }
 
 function displaySongInfo(params) {
@@ -794,17 +754,20 @@ function playMIDINote(midiNoteNum, velocity = 127.0) {
 // Wrap all our various MIDI APIs into a single namespace.
 namespace MIDI {
 
+    // Third Party Libraries
     declare var Midi: any; // jsmidgen
-    declare var MIDIEvents: any; // midifile.js
-    declare var MIDIFile: any; // midifile.js
+    declare var MIDIEvents: any;
+    declare var MIDIFile: any;
 
-    function getMIDIEvents() {
-        return midiFile.getMidiEvents();
+    let midiFile = null;
+
+    export function hasLoadedAFile(): boolean {
+        return midiFile !== null;
     }
 
     // Use jsmidgen to create a MIDI file that we can encode in base 64.
     // https://github.com/dingram/jsmidgen
-    export function getMIDIFileFromTracks(): string {
+    export function getFileFromTracks(): string {
         let file = new Midi.File();
         let track = new Midi.Track();
         track.setTempo(120); // BPM
@@ -839,11 +802,13 @@ namespace MIDI {
         return file.toBytes();
     }
 
-    // Convert from MIDI events to NoteGroups
-    export function getNoteGroupsFromMIDIFile() {
-        let midiEvents = getMIDIEvents();
 
-        let noteGroups = [];
+
+    // Convert from MIDI events to NoteGroups
+    export function getNoteGroupsFromFile() {
+        let midiEvents = midiFile.getMidiEvents();
+
+        let noteGroups: Track = [];
 
         // Remember the most recently processed event so that we can merge notes that are played at the same time and on the same track.
         let lastNoteGroup: NoteGroup = null;
@@ -853,8 +818,8 @@ namespace MIDI {
         for (let event of midiEvents) {
             let type = event.type;
             let subtype = event.subtype;
-            let status = (event.subtype << 4) + event.channel;
-            let statusCodeHexString = '0x' + status.toString(16).toUpperCase();
+            // let status = (event.subtype << 4) + event.channel;
+            // let statusCodeHexString = '0x' + status.toString(16).toUpperCase();
             let trackNumber = event.track;
             let playTime = event.playTime; // time in milliseconds
             let midiNoteNum = event.param1;
@@ -862,19 +827,13 @@ namespace MIDI {
             let pianoNoteNum = m2p(midiNoteNum);
             let noteToPlay = new Note(pianoNoteNum, 1.0 /* duration */, velocity);
 
-            if (subtype === MIDIEvents.EVENT_MIDI_NOTE_OFF) {
-                // console.log(`Track ${trackNumber} NOTE_OFF ${noteToPlay} @ ${playTime}`);
-            } else if (subtype === MIDIEvents.EVENT_MIDI_NOTE_ON) {
-                console.log(`Track ${trackNumber} NOTE_ON ${noteToPlay} @ ${playTime}`);
-
-                // TODO: handle time delta thresholds! playTime <= lastPlayTime + threshold
-                if (playTime === lastPlayTime &&
+            if (subtype === MIDIEvents.EVENT_MIDI_NOTE_ON) {
+                if ((playTime <= lastPlayTime + TIME_THRESHOLD_FOR_GROUPING_NEARBY_NOTES) &&
                     trackNumber === lastTrackNumber) {
                     // Merge all notes starting at the same time and on the same track into a single NoteGroup.
                     lastNoteGroup.addNote(noteToPlay);
                 } else {
-                    let noteGroup = new NoteGroup(noteToPlay, playTime);
-                    noteGroup.midiTrackNumber = trackNumber;
+                    let noteGroup = new NoteGroup(noteToPlay, playTime, trackNumber);
                     noteGroups.push(noteGroup);
                     lastNoteGroup = noteGroup;
                     lastTrackNumber = trackNumber;
@@ -921,6 +880,33 @@ namespace MIDI {
         });
     }
 
+    export function readFile(file) {
+        let reader = new FileReader();
+        reader.addEventListener('load', (e: any) => {
+            let arrayBuffer = e.target.result;
+            displayFileInfo(file);
+            MIDI.loadMIDIFile(arrayBuffer);
+        });
+        reader.addEventListener('error', (err) => {
+            console.error('FileReader error' + err)
+        });
+        reader.readAsArrayBuffer(file);
+    }
+
+    function loadMIDITracks() {
+        setupTracks(midiFile.tracks.length);
+
+        let noteGroups = MIDI.getNoteGroupsFromFile();
+        for (let noteGroup of noteGroups) {
+            let trackNumber = noteGroup.trackNumber;
+            tracks[trackNumber].push(noteGroup.copy());
+
+            console.log(`Track ${trackNumber} Play ${noteGroup.toString()}`);
+            // TODO: load the note numbers into each track at the correct spacing due to .playTime?
+        }
+
+        saveAndShowData();
+    }
 
     function getTypeString(type) {
         switch (type) {
@@ -1023,16 +1009,13 @@ namespace Playback {
 
             // Start the MIDI playback.
             // TODO: Only play back the tracks that are checked!
-            if (midiFile) {
-                console.log('Start Playing the MIDI File!');
-                noteGroupsToPlay = MIDI.getNoteGroupsFromMIDIFile();
+            if (MIDI.hasLoadedAFile()) {
+                noteGroupsToPlay = MIDI.getNoteGroupsFromFile();
             } else {
-                console.log('Start Playing the Tracks directly!');
                 noteGroupsToPlay = getNoteGroupsFromTracks();
             }
 
             if (noteGroupsToPlay.length === 0) {
-                console.log('No more NoteGroups to play!');
                 Playback.stop();
                 return; // DONE!
             }
@@ -1068,7 +1051,6 @@ namespace Playback {
 
     // Will be called every ~16.67ms if your display runs at 60 FPS.
     function playNextEvents(rafCurrTime) {
-        logStatus('playNextEvents ' + rafCurrTime);
         // Have we reached the end of the song?
         if (noteGroupsToPlay.length === 0) {
             Playback.stop();
@@ -1100,7 +1082,6 @@ namespace Playback {
         if (nextEventPlayTime === -1) {
             nextEventPlayTime = currSongTime + TIME_BETWEEN_NOTEGROUPS; // If the playTime isn't specified, we play the next note every 200ms!
         }
-        console.log('Next Event Time is ' + nextEventPlayTime);
     }
 
     export function setupButtons() {
