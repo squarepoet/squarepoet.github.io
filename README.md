@@ -11,4 +11,6 @@ Drag & Drop Library (dragdrop.min.js)
 * https://github.com/feross/drag-drop
 
 MIDIFile (midifile.js)
-* https://github.com/nfroidure/MIDIFile/blob/master/dist/MIDIFile.js
+* https://github.com/nfroidure/MIDIFile/
+* https://github.com/nfroidure/MIDIEvents/
+* https://github.com/nfroidure/UTF8.js/

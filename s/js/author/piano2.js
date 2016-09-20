@@ -5,18 +5,23 @@ var __extends = (this && this.__extends) || function (d, b) {
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
 /////////////////////////////////////////////////////////////////////////////////
-var TIME_BETWEEN_NOTEGROUPS = 220;
+var TIME_BETWEEN_NOTEGROUPS = 200;
 // Support multi track MIDI songs.
 // When we compose by hand, stick everything in track 0.
 var tracks = [];
 var $tracks = []; // jQuery references to the elements. Allows us to modify the DOM.
 var $trackInfos = []; // jQuery references to the elements. Allows us to modify the DOM.
+var $currentStatus = null;
 var $sharps, $flats;
 var sharps = ""; // the string value of the $sharps input
 var flats = "";
 var octaveOffset = 0;
-// jQuery objects representing our download links
-var $download_midi_link, $download_text_link;
+// jQuery references to the DOM
+var $download_midi_link = null;
+var $download_text_link = null;
+var $playButton = null;
+var $pauseButton = null;
+var $stopButton = null;
 // piano key numbers % 12
 var blackKeys = [2, -1, 5, 7, -1, 10, 0]; // -1 is for the spaces where there are no black keys
 var whiteKeys = [1, 3, 4, 6, 8, 9, 11];
@@ -57,8 +62,8 @@ var NoteGroup = (function () {
     // Parameter "a"" can be either a single Note or a string which indicates multiple notes.
     // The string is formatted as multiple piano key numbers separated by a period (e.g., "40.52").
     function NoteGroup(a, playTimeMillis) {
-        if (playTimeMillis === void 0) { playTimeMillis = 0; }
-        this.playTimeMillis = 0;
+        if (playTimeMillis === void 0) { playTimeMillis = -1; }
+        this.playTimeMillis = -1;
         this.midiTrackNumber = 0;
         this.playTimeMillis = playTimeMillis;
         if (typeof a === 'string') {
@@ -68,7 +73,7 @@ var NoteGroup = (function () {
                 var match = pattern.exec(noteGroupString);
                 noteGroupString = match[1]; // e.g., 40.44.47
                 var timeString = match[2]; // e.g., 1530
-                this.playTimeMillis = parseFloat(timeString); // override the playTime if we specified it, e.g. [40.44.47 @ 1530]
+                this.playTimeMillis = parseFloat(timeString); // The playTimeMillis was specified, e.g. [40.44.47 @ 1530]
             }
             var pianoKeyNotes = [];
             var pianoKeyStrings = noteGroupString.split('.');
@@ -104,12 +109,17 @@ var NoteGroup = (function () {
         }
     };
     NoteGroup.prototype.toString = function () {
-        return "[" + this.notes.join('.') + " @ " + this.playTimeMillis + "]"; // V2 contains the playTime for each NoteGroup
-    };
-    NoteGroup.prototype.toStringV1 = function () {
-        return this.notes.join('.'); // V1 does not contain the playTime
+        if (this.playTimeMillis === -1) {
+            return this.notes.join('.'); // Use the simple format when playTimeMillis is not specified (i.e. -1).
+        }
+        else {
+            return "[" + this.notes.join('.') + " @ " + this.playTimeMillis + "]"; // V2 contains the playTime for each NoteGroup
+        }
     };
     Object.defineProperty(NoteGroup.prototype, "numNotes", {
+        // toStringV1(): string {
+        //     return this.notes.join('.'); // Version 1 of our Tiny Piano Song format does not contain the playTime
+        // }
         get: function () {
             return this.notes.length;
         },
@@ -243,7 +253,7 @@ function deleteLastGroup() {
     saveAndShowData();
 }
 function saveAndShowData() {
-    saveTracksToLocalStorage();
+    LocalStorage.saveTracks();
     showNoteGroupsForTracks();
     drawPiano();
 }
@@ -259,7 +269,7 @@ function showNoteGroupsForTracks() {
             var noteGroup = currTrack[n];
             var multiple = (noteGroup.numNotes > 1) ? ' multiple' : '';
             noteGroupID = "t_" + t + "_n_" + n; // t_0_n_0 stands for track 0 notegroup 0
-            trackHTML += "<div id=\"" + noteGroupID + "\" class=\"notegroup" + multiple + "\">" + noteGroup.toStringV1() + "</div>&nbsp;";
+            trackHTML += "<div id=\"" + noteGroupID + "\" class=\"notegroup" + multiple + "\">" + noteGroup.toString() + "</div>&nbsp;";
         }
         $tracks[t].html(trackHTML);
         if (numNoteGroups > 0) {
@@ -383,48 +393,62 @@ function drawKeyLabels(c) {
         c.fillText(keyboardLabels[i], (i + offset) * 20 + 10, 140);
     }
 }
-function loadSharpsAndFlats() {
-    if (!localStorage.getItem('sharps')) {
-        localStorage.setItem('sharps', '');
+var LocalStorage;
+(function (LocalStorage) {
+    function load() {
+        loadTracks();
+        loadSharpsAndFlats();
     }
-    sharps = localStorage.getItem('sharps');
-    $sharps.val(sharps);
-    if (!localStorage.getItem('flats')) {
-        localStorage.setItem('flats', '');
+    LocalStorage.load = load;
+    function loadSharpsAndFlats() {
+        if (!localStorage.getItem('sharps')) {
+            localStorage.setItem('sharps', '');
+        }
+        sharps = localStorage.getItem('sharps');
+        $sharps.val(sharps);
+        if (!localStorage.getItem('flats')) {
+            localStorage.setItem('flats', '');
+        }
+        flats = localStorage.getItem('flats');
+        $flats.val(flats);
     }
-    flats = localStorage.getItem('flats');
-    $flats.val(flats);
-}
-function loadTracksFromLocalStorage() {
-    try {
-        var savedTracks = JSON.parse(localStorage.getItem('tracks'));
-        var numTracks = savedTracks.length;
-        setupTracks(numTracks);
-        for (var i = 0; i < numTracks; i++) {
-            var savedTrack = savedTracks[i];
-            for (var _i = 0, savedTrack_1 = savedTrack; _i < savedTrack_1.length; _i++) {
-                var noteGroupString = savedTrack_1[_i];
-                tracks[i].push(new NoteGroup(noteGroupString));
+    function loadTracks() {
+        try {
+            var savedTracks = JSON.parse(localStorage.getItem('tracks')); // can throw a SyntaxError
+            var numTracks = savedTracks.length;
+            setupTracks(numTracks);
+            for (var i = 0; i < numTracks; i++) {
+                var savedTrack = savedTracks[i];
+                for (var _i = 0, savedTrack_1 = savedTrack; _i < savedTrack_1.length; _i++) {
+                    var noteGroupString = savedTrack_1[_i];
+                    tracks[i].push(new NoteGroup(noteGroupString));
+                }
             }
         }
-    }
-    catch (e) {
-        setupTracks(1);
-    }
-}
-function saveTracksToLocalStorage() {
-    var tracksToSave = [];
-    for (var _i = 0, tracks_1 = tracks; _i < tracks_1.length; _i++) {
-        var sourceTrack = tracks_1[_i];
-        var destTrack = [];
-        tracksToSave.push(destTrack);
-        for (var _a = 0, sourceTrack_1 = sourceTrack; _a < sourceTrack_1.length; _a++) {
-            var noteGroup = sourceTrack_1[_a];
-            destTrack.push(noteGroup.toString());
+        catch (e) {
+            setupTracks(1);
         }
     }
-    localStorage.setItem('tracks', JSON.stringify(tracksToSave));
-}
+    function saveTracks() {
+        var tracksToSave = [];
+        for (var _i = 0, tracks_1 = tracks; _i < tracks_1.length; _i++) {
+            var sourceTrack = tracks_1[_i];
+            var destTrack = [];
+            tracksToSave.push(destTrack);
+            for (var _a = 0, sourceTrack_1 = sourceTrack; _a < sourceTrack_1.length; _a++) {
+                var noteGroup = sourceTrack_1[_a];
+                destTrack.push(noteGroup.toString());
+            }
+        }
+        localStorage.setItem('tracks', JSON.stringify(tracksToSave));
+    }
+    LocalStorage.saveTracks = saveTracks;
+    function saveSharpsAndFlats() {
+        localStorage.setItem('sharps', sharps);
+        localStorage.setItem('flats', flats);
+    }
+    LocalStorage.saveSharpsAndFlats = saveSharpsAndFlats;
+})(LocalStorage || (LocalStorage = {}));
 function play(keyCode, sharpModifier) {
     if (keyCodeToPianoKey.hasOwnProperty(keyCode)) {
         // get the name of the note we are about to play
@@ -456,11 +480,11 @@ function onKeyUpHandler(e) {
     // update our sharps / flats
     if ($sharps.is(":focus")) {
         sharps = $sharps.val().toLowerCase();
-        localStorage.setItem('sharps', sharps);
+        LocalStorage.saveSharpsAndFlats();
     }
     else if ($flats.is(":focus")) {
         flats = $flats.val().toLowerCase();
-        localStorage.setItem('flats', flats);
+        LocalStorage.saveSharpsAndFlats();
     }
 }
 function onKeyDownHandler(e) {
@@ -560,7 +584,7 @@ function getTextFileFromTracks() {
         var track = tracks[0];
         for (var _i = 0, track_1 = track; _i < track_1.length; _i++) {
             var noteGroup = track_1[_i];
-            noteGroupStrings.push(noteGroup.toStringV1());
+            noteGroupStrings.push(noteGroup.toString());
         }
     }
     else {
@@ -596,51 +620,13 @@ function getTextFileFromTracks() {
     // Melody lines start with two slashes.
     return '// ' + noteGroupStrings.join(' ');
 }
-// Use jsmidgen to create a MIDI file that we can encode in base 64.
-// https://github.com/dingram/jsmidgen
-function getMIDIFileFromTracks() {
-    var file = new Midi.File();
-    var track = new Midi.Track();
-    track.setTempo(120); // BPM
-    file.addTrack(track);
-    var duration = 32; // 128 ticks == quarter note == 1 beat; 64 ticks == eighth note
-    var timeSincePreviousEvent = 0; // 32 ticks == 1/4 beat gap between notes.
-    var channel = 0;
-    for (var _i = 0, _a = tracks[0]; _i < _a.length; _i++) {
-        var noteGroup = _a[_i];
-        noteGroup.notes.forEach(function (note, index) {
-            if (index === 0) {
-                track.noteOn(channel, note.midiNote, timeSincePreviousEvent, 127 /* velocity */);
-            }
-            else {
-                // Since we are playing a chord, other notes of this NoteGroup start at the same time.
-                // Thus, the timeSincePreviousEvent == 0
-                track.noteOn(channel, note.midiNote, 0, 127 /* velocity */);
-            }
-        });
-        noteGroup.notes.forEach(function (note, index) {
-            if (index === 0) {
-                // timeSincePreviousEvent == duration of the note.
-                track.noteOff(channel, note.midiNote, duration);
-            }
-            else {
-                // Since we are stopping the chord, other notes of this NoteGroup stop at the same time.
-                // Thus, the timeSincePreviousEvent == 0
-                track.noteOff(channel, note.midiNote, 0);
-            }
-        });
-    }
-    return file.toBytes();
-}
 function setupMouseHandlers() {
     Playback.setupButtons();
     // When we hover over the Download MIDI | TEXT links, we should update
     // the href attributes so that we download the correct data.
-    $download_midi_link = $('#download_midi_link');
-    $download_text_link = $('#download_text_link');
     $download_midi_link.mouseover(function () {
         // GENERATE THE MIDI FILE FROM OUR TRACKS. BASE 64 ENCODE IT.
-        var midi = getMIDIFileFromTracks();
+        var midi = MIDI.getMIDIFileFromTracks();
         var base64Text = btoa(midi); // base 64 encoding
         $download_midi_link.attr('href', 'data:audio/midi;base64,' + base64Text);
     });
@@ -669,10 +655,10 @@ function setupDragAndDrop() {
             readMIDIFile(files[0]); // Get the first file.
         },
         onDragOver: function () {
-            $('#drag-and-drop-target').addClass('drag');
+            $('#bottom-panel').addClass('drag');
         },
         onDragLeave: function () {
-            $('#drag-and-drop-target').removeClass('drag');
+            $('#bottom-panel').removeClass('drag');
         }
     };
     DragDrop('html', handlers);
@@ -690,45 +676,16 @@ function readMIDIFile(file) {
     reader.addEventListener('load', function (e) {
         var arrayBuffer = e.target.result;
         displayFileInfo(file);
-        loadMIDIFile(arrayBuffer);
+        MIDI.loadMIDIFile(arrayBuffer);
     });
     reader.addEventListener('error', function (err) {
         console.error('FileReader error' + err);
     });
     reader.readAsArrayBuffer(file);
 }
-function loadMIDIFile(arrayBuffer) {
-    Playback.stop();
-    midiFile = new MIDIFile(arrayBuffer);
-    var header = midiFile.header;
-    var format = header.getFormat();
-    var numTracks = header.getTracksCount();
-    console.log("MIDI Format: " + format); // 0, 1 or 2
-    if (header.getTimeDivision() === MIDIFile.Header.TICKS_PER_BEAT) {
-        console.log("Ticks Per Beat: " + header.getTicksPerBeat());
-    }
-    else {
-        console.log('TODO: SMPTE Frames!');
-    }
-    loadMIDITracks();
-    console.log();
-    var lyrics = midiFile.getLyrics();
-    if (lyrics.length > 0) {
-        console.log("Lyrics Track " + lyrics.length + " events.");
-    }
-    var events = midiFile.getEvents();
-    var lastEvent = events[events.length - 1];
-    var durationInMillis = lastEvent.playTime;
-    var durationInSeconds = durationInMillis / 1000;
-    console.log("Duration: " + durationInSeconds + " seconds.");
-    displaySongInfo({
-        numTracks: numTracks,
-        duration: durationInSeconds
-    });
-}
 function loadMIDITracks() {
     setupTracks(midiFile.tracks.length);
-    var noteGroups = getNoteGroupsFromMIDIFile();
+    var noteGroups = MIDI.getNoteGroupsFromMIDIFile();
     for (var _i = 0, noteGroups_1 = noteGroups; _i < noteGroups_1.length; _i++) {
         var noteGroup = noteGroups_1[_i];
         var trackNumber = noteGroup.midiTrackNumber;
@@ -749,8 +706,123 @@ function playMIDINote(midiNoteNum, velocity) {
         velocity: (velocity / 127.0)
     });
 }
+/////////////////////////////////////////////////////////////////////////////////
+// Wrap all our various MIDI APIs into a single namespace.
 var MIDI;
 (function (MIDI) {
+    function getMIDIEvents() {
+        return midiFile.getMidiEvents();
+    }
+    // Use jsmidgen to create a MIDI file that we can encode in base 64.
+    // https://github.com/dingram/jsmidgen
+    function getMIDIFileFromTracks() {
+        var file = new Midi.File();
+        var track = new Midi.Track();
+        track.setTempo(120); // BPM
+        file.addTrack(track);
+        var duration = 32; // 128 ticks == quarter note == 1 beat; 64 ticks == eighth note
+        var timeSincePreviousEvent = 0; // 32 ticks == 1/4 beat gap between notes.
+        var channel = 0;
+        for (var _i = 0, _a = tracks[0]; _i < _a.length; _i++) {
+            var noteGroup = _a[_i];
+            noteGroup.notes.forEach(function (note, index) {
+                if (index === 0) {
+                    track.noteOn(channel, note.midiNote, timeSincePreviousEvent, 127 /* velocity */);
+                }
+                else {
+                    // Since we are playing a chord, other notes of this NoteGroup start at the same time.
+                    // Thus, the timeSincePreviousEvent == 0
+                    track.noteOn(channel, note.midiNote, 0, 127 /* velocity */);
+                }
+            });
+            noteGroup.notes.forEach(function (note, index) {
+                if (index === 0) {
+                    // timeSincePreviousEvent == duration of the note.
+                    track.noteOff(channel, note.midiNote, duration);
+                }
+                else {
+                    // Since we are stopping the chord, other notes of this NoteGroup stop at the same time.
+                    // Thus, the timeSincePreviousEvent == 0
+                    track.noteOff(channel, note.midiNote, 0);
+                }
+            });
+        }
+        return file.toBytes();
+    }
+    MIDI.getMIDIFileFromTracks = getMIDIFileFromTracks;
+    // Convert from MIDI events to NoteGroups
+    function getNoteGroupsFromMIDIFile() {
+        var midiEvents = getMIDIEvents();
+        var noteGroups = [];
+        // Remember the most recently processed event so that we can merge notes that are played at the same time and on the same track.
+        var lastNoteGroup = null;
+        var lastPlayTime = -1;
+        var lastTrackNumber = -1;
+        for (var _i = 0, midiEvents_1 = midiEvents; _i < midiEvents_1.length; _i++) {
+            var event_1 = midiEvents_1[_i];
+            var type = event_1.type;
+            var subtype = event_1.subtype;
+            var status_1 = (event_1.subtype << 4) + event_1.channel;
+            var statusCodeHexString = '0x' + status_1.toString(16).toUpperCase();
+            var trackNumber = event_1.track;
+            var playTime = event_1.playTime; // time in milliseconds
+            var midiNoteNum = event_1.param1;
+            var velocity = event_1.param2;
+            var pianoNoteNum = m2p(midiNoteNum);
+            var noteToPlay = new Note(pianoNoteNum, 1.0 /* duration */, velocity);
+            if (subtype === MIDIEvents.EVENT_MIDI_NOTE_OFF) {
+            }
+            else if (subtype === MIDIEvents.EVENT_MIDI_NOTE_ON) {
+                console.log("Track " + trackNumber + " NOTE_ON " + noteToPlay + " @ " + playTime);
+                // TODO: handle time delta thresholds! playTime <= lastPlayTime + threshold
+                if (playTime === lastPlayTime &&
+                    trackNumber === lastTrackNumber) {
+                    // Merge all notes starting at the same time and on the same track into a single NoteGroup.
+                    lastNoteGroup.addNote(noteToPlay);
+                }
+                else {
+                    var noteGroup = new NoteGroup(noteToPlay, playTime);
+                    noteGroup.midiTrackNumber = trackNumber;
+                    noteGroups.push(noteGroup);
+                    lastNoteGroup = noteGroup;
+                    lastTrackNumber = trackNumber;
+                    lastPlayTime = playTime;
+                }
+            }
+        }
+        return noteGroups;
+    }
+    MIDI.getNoteGroupsFromMIDIFile = getNoteGroupsFromMIDIFile;
+    function loadMIDIFile(arrayBuffer) {
+        Playback.stop();
+        midiFile = new MIDIFile(arrayBuffer);
+        var header = midiFile.header;
+        var format = header.getFormat();
+        var numTracks = header.getTracksCount();
+        console.log("MIDI Format: " + format); // 0, 1 or 2
+        if (header.getTimeDivision() === MIDIFile.Header.TICKS_PER_BEAT) {
+            console.log("Ticks Per Beat: " + header.getTicksPerBeat());
+        }
+        else {
+            console.log('TODO: SMPTE Frames!');
+        }
+        loadMIDITracks();
+        console.log();
+        var lyrics = midiFile.getLyrics();
+        if (lyrics.length > 0) {
+            console.log("Lyrics Track " + lyrics.length + " events.");
+        }
+        var events = midiFile.getEvents();
+        var lastEvent = events[events.length - 1];
+        var durationInMillis = lastEvent.playTime;
+        var durationInSeconds = durationInMillis / 1000;
+        console.log("Duration: " + durationInSeconds + " seconds.");
+        displaySongInfo({
+            numTracks: numTracks,
+            duration: durationInSeconds
+        });
+    }
+    MIDI.loadMIDIFile = loadMIDIFile;
     function getTypeString(type) {
         switch (type) {
             case MIDIEvents.EVENT_MIDI:
@@ -826,10 +898,6 @@ var Playback;
     var rafID = 0; // Keep a handle on the requestAnimationFrame ID so that we can stop it when the user presses PAUSE or STOP.
     var noteGroupsToPlay = [];
     var isPaused = false;
-    // jQuery references to the DOM
-    var $playButton = null;
-    var $pauseButton = null;
-    var $stopButton = null;
     var nextEventPlayTime = 0;
     function isPlaying() {
         return rafID !== 0;
@@ -841,11 +909,14 @@ var Playback;
             baseSongTime = currSongTime;
         }
         else {
+            if (isPlaying()) {
+                stop();
+            }
             // Start the MIDI playback.
             // TODO: Only play back the tracks that are checked!
             if (midiFile) {
                 console.log('Start Playing the MIDI File!');
-                noteGroupsToPlay = getNoteGroupsFromMIDIFile();
+                noteGroupsToPlay = MIDI.getNoteGroupsFromMIDIFile();
             }
             else {
                 console.log('Start Playing the Tracks directly!');
@@ -870,7 +941,10 @@ var Playback;
     }
     Playback.start = start;
     function pause() {
-        stop();
+        if (isPlaying()) {
+            cancelAnimationFrame(rafID);
+            rafID = 0;
+        }
         isPaused = true; // Next time, continue from where we left off.
     }
     Playback.pause = pause;
@@ -884,6 +958,7 @@ var Playback;
     Playback.stop = stop;
     // Will be called every ~16.67ms if your display runs at 60 FPS.
     function playNextEvents(rafCurrTime) {
+        logStatus('playNextEvents ' + rafCurrTime);
         // Have we reached the end of the song?
         if (noteGroupsToPlay.length === 0) {
             Playback.stop();
@@ -891,8 +966,8 @@ var Playback;
         }
         currSongTime = rafCurrTime - rafStartTime + baseSongTime;
         while (currSongTime >= nextEventPlayTime) {
-            var event_1 = noteGroupsToPlay.shift();
-            for (var _i = 0, _a = event_1.notes; _i < _a.length; _i++) {
+            var noteGroup = noteGroupsToPlay.shift();
+            for (var _i = 0, _a = noteGroup.notes; _i < _a.length; _i++) {
                 var note = _a[_i];
                 playMIDINote(note.midiNote, note.velocity);
             }
@@ -909,81 +984,52 @@ var Playback;
     }
     function determinePlayTimeForNextEvent() {
         nextEventPlayTime = noteGroupsToPlay[0].playTimeMillis;
-        if (typeof nextEventPlayTime === 'undefined') {
-            nextEventPlayTime = currSongTime + TIME_BETWEEN_NOTEGROUPS; // If the playTime isn't specified, we play the next note every half second!
+        if (nextEventPlayTime === -1) {
+            nextEventPlayTime = currSongTime + TIME_BETWEEN_NOTEGROUPS; // If the playTime isn't specified, we play the next note every 200ms!
         }
+        console.log('Next Event Time is ' + nextEventPlayTime);
     }
     function setupButtons() {
-        $playButton = $('#play-button');
         $playButton.click(start);
-        $pauseButton = $('#pause-button');
         $pauseButton.click(pause);
-        $stopButton = $('#stop-button');
         $stopButton.click(stop);
     }
     Playback.setupButtons = setupButtons;
 })(Playback || (Playback = {}));
-// Convert from MIDI events to NoteGroups
-function getNoteGroupsFromMIDIFile() {
-    // Only handle NOTE_ON events for now.
-    var noteOnEvents = midiFile.getEvents(MIDIEvents.EVENT_MIDI, MIDIEvents.EVENT_MIDI_NOTE_ON);
-    var noteGroups = [];
-    // Remember the most recently processed event so that we can merge notes that are played at the same time and on the same track.
-    var lastNoteGroup = null;
-    var lastPlayTime = -1;
-    var lastTrackNumber = -1;
-    for (var _i = 0, noteOnEvents_1 = noteOnEvents; _i < noteOnEvents_1.length; _i++) {
-        var event_2 = noteOnEvents_1[_i];
-        // let type = event.type;
-        // let subtype = event.subtype;
-        // let status = (event.subtype << 4) + event.channel;
-        // let statusCodeHexString = '0x' + status.toString(16).toUpperCase();
-        var trackNumber = event_2.track;
-        var playTime = event_2.playTime; // time in milliseconds
-        var midiNoteNum = event_2.param1;
-        var velocity = event_2.param2;
-        var pianoNoteNum = m2p(midiNoteNum);
-        var noteToPlay = new Note(pianoNoteNum, 1.0 /* duration */, velocity);
-        console.log("Track " + trackNumber + " Play " + noteToPlay + " @ " + playTime);
-        // TODO: handle time delta thresholds! playTime <= lastPlayTime + threshold
-        if (playTime === lastPlayTime &&
-            trackNumber === lastTrackNumber) {
-            // Merge all notes starting at the same time and on the same track into a single NoteGroup.
-            lastNoteGroup.addNote(noteToPlay);
-        }
-        else {
-            var noteGroup = new NoteGroup(noteToPlay, playTime);
-            noteGroup.midiTrackNumber = trackNumber;
-            noteGroups.push(noteGroup);
-            lastNoteGroup = noteGroup;
-            lastTrackNumber = trackNumber;
-            lastPlayTime = playTime;
-        }
-    }
-    return noteGroups;
-}
 function getNoteGroupsFromTracks() {
     var noteGroups = [];
     var currTime = 0;
-    var deltaTime = 500; // milliseconds
-    // TODO: Examine the tracks for the minimum playTime. Round robin between the tracks until we insert all the notegroups properly...
+    // TODO: Loop through all tracks for the minimum playTime. Round robin between the tracks until we insert all the notegroups properly... Merge noteGroups appropriately.
     for (var _i = 0, tracks_2 = tracks; _i < tracks_2.length; _i++) {
         var track = tracks_2[_i];
         for (var _a = 0, track_2 = track; _a < track_2.length; _a++) {
             var noteGroup = track_2[_a];
             var noteGroupCopy = noteGroup.copy();
-            noteGroupCopy.playTimeMillis = currTime;
+            if (noteGroupCopy.playTimeMillis === -1) {
+                noteGroupCopy.playTimeMillis = currTime;
+            }
             noteGroups.push(noteGroupCopy);
-            currTime += deltaTime;
+            currTime += TIME_BETWEEN_NOTEGROUPS;
         }
     }
     return noteGroups;
 }
-function setupUI() {
-    $sharps = $("#sharps_textarea");
-    $flats = $("#flats_textarea");
-    loadTracksFromLocalStorage();
-    loadSharpsAndFlats();
+function logStatus(msg) {
+    $currentStatus.text(msg);
+}
+function setupJQueryDOMReferences() {
+    $sharps = $('#sharps-text');
+    $flats = $('#flats-text');
+    $currentStatus = $('#current-status');
+    $download_midi_link = $('#download_midi_link');
+    $download_text_link = $('#download_text_link');
+    $playButton = $('#play-button');
+    $pauseButton = $('#pause-button');
+    $stopButton = $('#stop-button');
+}
+function go() {
+    setupJQueryDOMReferences();
+    LocalStorage.load();
     showNoteGroupsForTracks();
     setupKeyHandlers();
     setupMouseHandlers();
@@ -992,6 +1038,6 @@ function setupUI() {
     drawPiano();
 }
 $(function () {
-    setupUI();
+    go();
 });
 //# sourceMappingURL=piano2.js.map

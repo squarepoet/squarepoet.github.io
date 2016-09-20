@@ -397,8 +397,8 @@ function play(keyCode, sharpModifier) {
 
 $(function() {
     $text = $("#textarea");
-    $sharps = $("#sharps_textarea");
-    $flats = $("#flats_textarea");
+    $sharps = $("#sharps-text");
+    $flats = $("#flats-text");
 
     loadNoteGroups();
     loadSharpsAndFlats();
