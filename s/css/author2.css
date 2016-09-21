@@ -80,24 +80,43 @@ input {
     cursor: pointer;
 }
 
+.track-container {
+    height: 40px;
+    margin-bottom: 6px;
+}
+
+.track-container.empty {
+    height: 22px;
+}
+
 .track {
+    box-sizing: border-box;
     width: 90%;
+    height: 100%;
     background-color: #DFFAFB;
     text-align: left;
     font-family: Inconsolata, Menlo, Monaco, sans-serif;
     font-size: 11pt;
     overflow-x: scroll;
     overflow-y: hidden;
-    padding: 10px;
+    margin: 0;
+    padding: 0 10px;
     white-space: nowrap;
-    margin: 5px 0;
     display: inline-block;
-    height: 20px;
-    line-height: 20px;
+    line-height: 40px;
+    -webkit-user-select: none;
+    user-select: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0);
+}
+
+.track.highlight {
+    border-bottom: 1px solid rgba(238, 119, 153, 0.4);
 }
 
 .track-info {
-    width: 35px;
+    box-sizing: border-box;
+    width: 38px;
+    height: 100%;
     background-color: #F0F4FF;
     color: #666;
     text-align: center;
@@ -105,30 +124,41 @@ input {
     font-size: 11pt;
     overflow-x: scroll;
     overflow-y: hidden;
-    padding: 10px;
     white-space: nowrap;
-    margin: 5px 0;
+    margin: 0px 0;
     display: inline-block;
-    height: 20px;
-    line-height: 20px;
+    line-height: 40px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0);
+}
+
+.track-info.highlight {
+    border-bottom: 1px solid rgba(238, 119, 153, 0.4);
 }
 
 .notegroup {
-    /* todo */
+    box-sizing: border-box;
     display: inline-block;
-    height: 17px;
-    padding-top: 10px;
+    height: 32px;
 }
 
 .notegroup.multiple {
     color: #59B;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.18);
+}
+
+.notegroup.highlight {
+    color: #E79;
+    border-bottom: 1px solid rgba(238, 119, 153, .4);
 }
 
 .checkbox {
-    width: 22px;
-    height: 50px;
+    box-sizing: border-box;
+    width: 14px;
+    height: 100%;
+    vertical-align: top;
     margin: 0px;
+    margin-right: 6px;
+    border: 0px;
+    padding: 0px;
 }
 
 #pianoCanvas {

@@ -7,6 +7,7 @@ var __extends = (this && this.__extends) || function (d, b) {
 /////////////////////////////////////////////////////////////////////////////////
 var TIME_BETWEEN_NOTEGROUPS = 250;
 var TIME_THRESHOLD_FOR_GROUPING_NEARBY_NOTES = 0; // Adjust this for parsing MIDI recordings of piano performances (i.e., imprecise timing).
+var WHITE_KEY_WIDTH = 20;
 // Support multi track MIDI songs.
 // When we compose by hand, stick everything in track 0.
 var tracks = [];
@@ -23,21 +24,15 @@ var $download_text_link = null;
 var $playButton = null;
 var $pauseButton = null;
 var $stopButton = null;
+// canvas 2d
+var pianoContext2d = null;
+var pianoContext2dWidth = 0;
+var pianoContext2dHeight = 0;
 // piano key numbers % 12
 var blackKeys = [2, -1, 5, 7, -1, 10, 0]; // -1 is for the spaces where there are no black keys
 var whiteKeys = [1, 3, 4, 6, 8, 9, 11];
 var noteLabels = ['a', 'b', 'c', 'd', 'e', 'f', 'g'];
-// which character to type to get the corresponding white key
-var keyboardLabels = [
-    '␣', 'z', 'x',
-    'c', 'v', 'b', 'n', 'm', ',', '.',
-    '/', 'a', 's', 'd', 'f', 'g', 'h',
-    'j', 'k', 'l', ';', 'q', 'w', 'e',
-    'r', 't', 'y', 'u', 'i', 'o', 'p',
-    '[', ']', '\\', '1', '2', '3', '4',
-    '5', '6', '7', '8', '9', '0', '-',
-    '=' // C
-];
+var sharpOrFlatModifier = 0;
 var pianoInstrument = new Instrument('piano'); // musical.js
 // Converts a piano note (C4 == 40) to MIDI (C4 == 60)
 function p2m(pianoNote) {
@@ -46,6 +41,78 @@ function p2m(pianoNote) {
 function m2p(midiNote) {
     return midiNote - 20;
 }
+var Keyboard;
+(function (Keyboard) {
+    // which character to type to get the corresponding white key
+    Keyboard.labels = [
+        '␣', 'z', 'x',
+        'c', 'v', 'b', 'n', 'm', ',', '.',
+        '/', 'a', 's', 'd', 'f', 'g', 'h',
+        'j', 'k', 'l', ';', 'q', 'w', 'e',
+        'r', 't', 'y', 'u', 'i', 'o', 'p',
+        '[', ']', '\\', '1', '2', '3', '4',
+        '5', '6', '7', '8', '9', '0', '-',
+        '=' // C
+    ];
+    Keyboard.keyCodeToPianoKeyNumber = {
+        32: 11,
+        90: 13,
+        88: 15,
+        //
+        67: 16,
+        86: 18,
+        66: 20,
+        78: 21,
+        77: 23,
+        188: 25,
+        190: 27,
+        //
+        191: 28,
+        65: 30,
+        83: 32,
+        68: 33,
+        70: 35,
+        71: 37,
+        72: 39,
+        //
+        74: 40,
+        75: 42,
+        76: 44,
+        186: 45,
+        59: 45,
+        222: 47,
+        81: 47,
+        87: 49,
+        69: 51,
+        //
+        82: 52,
+        84: 54,
+        89: 56,
+        85: 57,
+        73: 59,
+        79: 61,
+        80: 63,
+        //
+        219: 64,
+        221: 66,
+        220: 68,
+        192: 68,
+        49: 69,
+        50: 71,
+        51: 73,
+        52: 75,
+        //
+        53: 76,
+        54: 78,
+        55: 80,
+        56: 81,
+        57: 83,
+        48: 85,
+        189: 87,
+        //
+        187: 88 // = => C8
+    };
+})(Keyboard || (Keyboard = {}));
 // A Track is just an Array of NoteGroups
 var Track = (function (_super) {
     __extends(Track, _super);
@@ -168,64 +235,6 @@ var Note = (function () {
     return Note;
 }());
 //////////////////////////////////////////////////////////////////////
-var keyCodeToPianoKey = {
-    32: 11,
-    90: 13,
-    88: 15,
-    //
-    67: 16,
-    86: 18,
-    66: 20,
-    78: 21,
-    77: 23,
-    188: 25,
-    190: 27,
-    //
-    191: 28,
-    65: 30,
-    83: 32,
-    68: 33,
-    70: 35,
-    71: 37,
-    72: 39,
-    //
-    74: 40,
-    75: 42,
-    76: 44,
-    186: 45,
-    59: 45,
-    222: 47,
-    81: 47,
-    87: 49,
-    69: 51,
-    //
-    82: 52,
-    84: 54,
-    89: 56,
-    85: 57,
-    73: 59,
-    79: 61,
-    80: 63,
-    //
-    219: 64,
-    221: 66,
-    220: 68,
-    192: 68,
-    49: 69,
-    50: 71,
-    51: 73,
-    52: 75,
-    //
-    53: 76,
-    54: 78,
-    55: 80,
-    56: 81,
-    57: 83,
-    48: 85,
-    189: 87,
-    //
-    187: 88 // = => C8
-};
 // resets the key offset
 function resetOffset() {
     console.log("Reset Offsets");
@@ -241,16 +250,18 @@ function resetEverything() {
 }
 function addTracks(numTracks) {
     var html = '';
-    for (var i = 0; i < numTracks; i++) {
+    for (var t = 0; t < numTracks; t++) {
         tracks.push([]); // Add one array for each track. Tracks contain NoteGroups.
-        var checkbox = "<input id=\"track-" + i + "-checkbox\" type=\"checkbox\" checked class=\"checkbox\">";
-        var info = "<div id=\"track-" + i + "-info\" class=\"track-info\"></div>";
-        html += "" + checkbox + info + "<div id=\"track-" + i + "\" class=\"track\"></div><br>"; // Also add the corresponding DOM elements.
+        var checkbox = "<input id=\"track-" + t + "-checkbox\" type=\"checkbox\" class=\"checkbox\">";
+        var info = "<div id=\"track-" + t + "-info\" class=\"track-info\"></div>";
+        var track = "<div id=\"track-" + t + "\" class=\"track\">";
+        html += "<div id=\"track-" + t + "-container\" class=\"track-container\">" + checkbox + info + track + "</div></div>"; // Also add the corresponding DOM elements.
     }
     $('#tracks').html(html);
-    for (var i = 0; i < numTracks; i++) {
-        $tracks.push($("#track-" + i));
-        $trackInfos.push($("#track-" + i + "-info"));
+    for (var t = 0; t < numTracks; t++) {
+        $("#track-" + t + "-checkbox").prop('checked', true);
+        $tracks.push($("#track-" + t));
+        $trackInfos.push($("#track-" + t + "-info"));
     }
 }
 function deleteLastGroup() {
@@ -264,32 +275,44 @@ function saveAndShowData() {
     showNoteGroupsForTracks();
     drawPiano();
 }
+function getNoteGroupID(trackNum, noteGroupNum) {
+    return "t" + trackNum + "_n" + noteGroupNum;
+}
 // TODO: When manually editing, only append and modify the last couple of spans. Don't regenerate the entire thing, for performance!
 function showNoteGroupsForTracks() {
     var numTracks = tracks.length;
     for (var t = 0; t < numTracks; t++) {
         var trackHTML = '';
-        var noteGroupID = '';
         var currTrack = tracks[t];
         var numNoteGroups = currTrack.length;
-        for (var n = 0; n < numNoteGroups; n++) {
+        var n = 0;
+        for (; n < numNoteGroups; n++) {
             var noteGroup = currTrack[n];
             var multiple = (noteGroup.numNotes > 1) ? ' multiple' : '';
-            noteGroupID = "t_" + t + "_n_" + n; // t_0_n_0 stands for track 0 notegroup 0
+            var noteGroupID = getNoteGroupID(t, n); // t_0_n_0 stands for track 0 notegroup 0
             trackHTML += "<div id=\"" + noteGroupID + "\" class=\"notegroup" + multiple + "\">" + noteGroup.toString() + "</div>&nbsp;";
         }
         $tracks[t].html(trackHTML);
         if (numNoteGroups > 0) {
             $trackInfos[t].html("" + numNoteGroups);
+            $("#track-" + t + "-checkbox").prop('checked', true);
+            $("#track-" + t + "-container").removeClass('empty');
         }
         else {
             $trackInfos[t].html('');
+            $("#track-" + t + "-checkbox").prop('checked', false);
+            $("#track-" + t + "-container").addClass('empty');
         }
-        // Scroll the divs all the way to the right to make sure the most recent NoteGroups are visible.
-        var element = $("#" + noteGroupID)[0];
-        if (element) {
-            element.scrollIntoView();
-        }
+        scrollNoteGroupIntoView(t, n); // n is set to the last noteGroup
+    }
+    Highlight.update();
+}
+function scrollNoteGroupIntoView(trackNum, noteGroupNum) {
+    var noteGroupID = getNoteGroupID(trackNum, noteGroupNum);
+    // Scroll the divs all the way to the right to make sure the most recent NoteGroups are visible.
+    var element = document.querySelector("#" + noteGroupID);
+    if (element) {
+        element.scrollIntoView();
     }
 }
 function mergeLastTwoGroups() {
@@ -304,11 +327,12 @@ function drawWhiteKeys(c) {
     c.lineWidth = .2;
     c.fillStyle = '#FFF';
     for (var k = 0; k < 52; k++) {
-        c.fillRect(k * 20, 0, 20, 120);
-        c.strokeRect(k * 20, 0, 20, 120);
+        c.fillRect(k * WHITE_KEY_WIDTH, 0, WHITE_KEY_WIDTH, 120);
+        c.strokeRect(k * WHITE_KEY_WIDTH, 0, WHITE_KEY_WIDTH, 120);
     }
+    // Highlight Middle C in faint red.
     c.fillStyle = '#FCC';
-    c.fillRect(23 * 20, 0, 20, 120);
+    c.fillRect(23 * WHITE_KEY_WIDTH, 0, WHITE_KEY_WIDTH, 120);
 }
 function drawBlackKeys(c) {
     c.fillStyle = '#323232';
@@ -350,17 +374,10 @@ function drawMostRecentGroup(c) {
     }
 }
 function drawPiano() {
-    var elem = document.getElementById('pianoCanvas');
-    if (!elem || !elem.getContext) {
-        return;
-    }
-    var c = elem.getContext('2d');
-    if (!c) {
-        return;
-    }
+    var c = pianoContext2d;
     // clear the background
     c.fillStyle = "#444";
-    c.fillRect(0, 0, elem.width, elem.height);
+    c.fillRect(0, 0, pianoContext2dWidth, pianoContext2dHeight);
     drawWhiteKeys(c);
     drawBlackKeys(c);
     drawKeyLabels(c);
@@ -395,9 +412,9 @@ function drawKeyLabels(c) {
     c.textAlign = 'center';
     // draw the current character to press, under the correct key!
     var offset = (octaveOffset + 1) * 7 - 1; // start on G (key 13)
-    var len = keyboardLabels.length;
+    var len = Keyboard.labels.length;
     for (var i = 0; i < len; i++) {
-        c.fillText(keyboardLabels[i], (i + offset) * 20 + 10, 140);
+        c.fillText(Keyboard.labels[i], (i + offset) * 20 + 10, 140);
     }
 }
 var LocalStorage;
@@ -456,28 +473,27 @@ var LocalStorage;
     }
     LocalStorage.saveSharpsAndFlats = saveSharpsAndFlats;
 })(LocalStorage || (LocalStorage = {}));
-function play(keyCode, sharpModifier) {
-    if (keyCodeToPianoKey.hasOwnProperty(keyCode)) {
-        // get the name of the note we are about to play
-        var remainder = keyCodeToPianoKey[keyCode] % 12;
-        var whiteKeyNoteIndex = whiteKeys.indexOf(remainder);
-        var noteLabel = noteLabels[whiteKeyNoteIndex];
-        // is this note auto-sharped, due to the key signature?
-        if (sharps.indexOf(noteLabel) != -1) {
-            sharpModifier++; // raise the sharp a half-step!
-        }
-        // is this note auto-flatted, due to the key signature?
-        if (flats.indexOf(noteLabel) != -1) {
-            sharpModifier--; // lower the note a half-step!
-        }
-        var pianoKeyNumber = keyCodeToPianoKey[keyCode] + sharpModifier + (octaveOffset * 12);
-        if (pianoKeyNumber < 1 || pianoKeyNumber > 88) {
-            return;
-        }
-        tracks[0].push(new NoteGroup(new Note(pianoKeyNumber)));
-        playMIDINote(p2m(pianoKeyNumber));
-        saveAndShowData();
+function play(basePianoKey) {
+    // get the name of the note we are about to play
+    var remainder = basePianoKey % 12;
+    var whiteKeyNoteIndex = whiteKeys.indexOf(remainder);
+    var noteLabel = noteLabels[whiteKeyNoteIndex];
+    var modifier = sharpOrFlatModifier;
+    // is this note auto-sharped, due to the key signature?
+    if (sharps.indexOf(noteLabel) != -1) {
+        modifier++; // raise the sharp a half-step!
     }
+    // is this note auto-flatted, due to the key signature?
+    if (flats.indexOf(noteLabel) != -1) {
+        modifier--; // lower the note a half-step!
+    }
+    var pianoKeyNumber = basePianoKey + modifier + (octaveOffset * 12);
+    if (pianoKeyNumber < 1 || pianoKeyNumber > 88) {
+        return;
+    }
+    tracks[0].push(new NoteGroup(new Note(pianoKeyNumber)));
+    playMIDINote(p2m(pianoKeyNumber));
+    saveAndShowData();
 }
 function setupKeyHandlers() {
     $(document).bind('keyup', onKeyUpHandler);
@@ -493,38 +509,55 @@ function onKeyUpHandler(e) {
         flats = $flats.val().toLowerCase();
         LocalStorage.saveSharpsAndFlats();
     }
+    else {
+        // Released CTRL or ALT
+        if (e.ctrlKey) {
+            sharpOrFlatModifier = 0;
+        }
+        else if (e.altKey) {
+            sharpOrFlatModifier = 0;
+        }
+    }
 }
 function onKeyDownHandler(e) {
     if ($sharps.is(":focus") || $flats.is(":focus")) {
         return; // if we are typing in the sharps/flats input, we should ignore the rest of the key handler
     }
-    if (e.keyCode == 91 || e.keyCode == 93) {
-    }
+    var keyCode = e.keyCode;
+    // e.metaKey => CMD (91 is LEFT CMD & 93 is RIGHT COMD)
+    // Ignore when we have the CMD pressed down, so that we can use the browser's hotkeys.
     if (e.metaKey) {
-        if (e.keyCode == 88 || e.keyCode == 67) {
-        }
         return;
+    }
+    sharpOrFlatModifier = 0;
+    if (e.ctrlKey) {
+        sharpOrFlatModifier = -1;
     }
     if (e.altKey) {
-        return;
-    }
-    var sharpModifier = 0;
-    if (e.ctrlKey) {
-        sharpModifier = -1;
-    }
-    else if (e.shiftKey) {
-        sharpModifier = +1;
+        sharpOrFlatModifier = +1;
     }
     e.preventDefault();
-    switch (e.keyCode) {
+    switch (keyCode) {
         case 13:
             Playback.togglePlayPause();
             break;
         case 33:
             console.log('fn + UP');
+            // Up an octave.
+            octaveOffset++;
+            if (octaveOffset > 2) {
+                octaveOffset = 2;
+            }
+            drawPiano();
             break;
         case 34:
             console.log('fn + DOWN');
+            // Down an octave.
+            octaveOffset--;
+            if (octaveOffset < -2) {
+                octaveOffset = -2;
+            }
+            drawPiano();
             break;
         case 36:
             console.log('fn + LEFT');
@@ -562,21 +595,21 @@ function onKeyDownHandler(e) {
             mergeLastTwoGroups();
             break;
         case 38:
-            octaveOffset++;
-            if (octaveOffset > 2) {
-                octaveOffset = 2;
-            }
-            drawPiano();
+            Highlight.prevTrack();
             break;
         case 40:
-            octaveOffset--;
-            if (octaveOffset < -2) {
-                octaveOffset = -2;
-            }
-            drawPiano();
+            Highlight.nextTrack();
+            break;
+        case 37:
+            Highlight.prevNoteGroup();
+            break;
+        case 39:
+            Highlight.nextNoteGroup();
             break;
         default:
-            play(e.keyCode, sharpModifier);
+            if (Keyboard.keyCodeToPianoKeyNumber.hasOwnProperty(keyCode)) {
+                play(Keyboard.keyCodeToPianoKeyNumber[keyCode]);
+            }
             break;
     }
 }
@@ -688,6 +721,82 @@ function playMIDINote(midiNoteNum, velocity) {
     });
 }
 /////////////////////////////////////////////////////////////////////////////////
+// Allow us to highlight a current track or current note group.
+var Highlight;
+(function (Highlight) {
+    var currentTrack = 0;
+    var currentNoteGroup = 0;
+    var highlightedTrack = null;
+    var highlightedTrackInfo = null;
+    var highlightedNoteGroup = null;
+    var h = 'highlight';
+    // Updates the visual indicators for our current track and current notegroup.
+    function update() {
+        var numTracks = $tracks.length;
+        // assume the currentTrack & currentNoteGroup numbers are valid.
+        // unhighlight the currently highlighted tracks.
+        if (highlightedTrack) {
+            highlightedTrack.removeClass(h);
+        }
+        if (highlightedTrackInfo) {
+            highlightedTrackInfo.removeClass(h);
+        }
+        if (highlightedNoteGroup) {
+            highlightedNoteGroup.removeClass(h);
+        }
+        highlightedTrack = $tracks[currentTrack].addClass(h);
+        highlightedTrackInfo = $trackInfos[currentTrack].addClass(h);
+        highlightedNoteGroup = $('#' + getNoteGroupID(currentTrack, currentNoteGroup)).addClass(h);
+    }
+    Highlight.update = update;
+    function validateTrackNumber() {
+        var numTracks = tracks.length;
+        if (currentTrack < 0) {
+            currentTrack = 0;
+        }
+        else if (currentTrack >= numTracks) {
+            currentTrack = numTracks - 1;
+        }
+    }
+    function validateNoteGroupNumber() {
+        // Assume the current track number is valid.
+        var track = tracks[currentTrack];
+        var numNoteGroups = track.length;
+        if (currentNoteGroup < 0) {
+            currentNoteGroup = 0;
+        }
+        else if (currentNoteGroup >= numNoteGroups) {
+            currentNoteGroup = numNoteGroups - 1;
+        }
+    }
+    function prevTrack() {
+        currentTrack--;
+        validateTrackNumber();
+        update();
+    }
+    Highlight.prevTrack = prevTrack;
+    function nextTrack() {
+        currentTrack++;
+        validateTrackNumber();
+        update();
+    }
+    Highlight.nextTrack = nextTrack;
+    function prevNoteGroup() {
+        currentNoteGroup--;
+        validateNoteGroupNumber();
+        update();
+        scrollNoteGroupIntoView(currentTrack, currentNoteGroup);
+    }
+    Highlight.prevNoteGroup = prevNoteGroup;
+    function nextNoteGroup() {
+        currentNoteGroup++;
+        validateNoteGroupNumber();
+        update();
+        scrollNoteGroupIntoView(currentTrack, currentNoteGroup);
+    }
+    Highlight.nextNoteGroup = nextNoteGroup;
+})(Highlight || (Highlight = {}));
+/////////////////////////////////////////////////////////////////////////////////
 // Wrap all our various MIDI APIs into a single namespace.
 var MIDI;
 (function (MIDI) {
@@ -699,6 +808,8 @@ var MIDI;
     MIDI.hasLoadedAFile = hasLoadedAFile;
     // Use jsmidgen to create a MIDI file that we can encode in base 64.
     // https://github.com/dingram/jsmidgen
+    // Only support a single track for now.
+    // TODO: Support multiple tracks?
     function getFileFromTracks() {
         var file = new Midi.File();
         var track = new Midi.Track();
@@ -750,6 +861,7 @@ var MIDI;
             // let statusCodeHexString = '0x' + status.toString(16).toUpperCase();
             var trackNumber = event_1.track;
             var playTime = event_1.playTime; // time in milliseconds
+            playTime = Math.round(playTime * 1000) / 1000; // round it to the nearest 0.001
             var midiNoteNum = event_1.param1;
             var velocity = event_1.param2;
             var pianoNoteNum = m2p(midiNoteNum);
@@ -771,7 +883,6 @@ var MIDI;
         }
         return noteGroups;
     }
-    MIDI.getNoteGroupsFromFile = getNoteGroupsFromFile;
     function parseData(arrayBuffer) {
         Playback.stop();
         midiFile = new MIDIFile(arrayBuffer);
@@ -818,8 +929,8 @@ var MIDI;
         var noteGroups = getNoteGroupsFromFile();
         for (var _i = 0, noteGroups_1 = noteGroups; _i < noteGroups_1.length; _i++) {
             var noteGroup = noteGroups_1[_i];
-            var trackNumber = noteGroup.trackNumber;
-            tracks[trackNumber].push(noteGroup.copy());
+            var t = noteGroup.trackNumber;
+            tracks[t].push(noteGroup.copy());
         }
         saveAndShowData();
     }
@@ -918,12 +1029,7 @@ var Playback;
             }
             // Start the MIDI playback.
             // TODO: Only play back the tracks that are checked!
-            if (MIDI.hasLoadedAFile()) {
-                noteGroupsToPlay = MIDI.getNoteGroupsFromFile();
-            }
-            else {
-                noteGroupsToPlay = getNoteGroupsFromTracks();
-            }
+            noteGroupsToPlay = getNoteGroupsFromTracks();
             if (noteGroupsToPlay.length === 0) {
                 Playback.stop();
                 return; // DONE!
@@ -1000,12 +1106,23 @@ var Playback;
     }
     Playback.setupButtons = setupButtons;
 })(Playback || (Playback = {}));
+// Retrieve the notegroups to play.
 function getNoteGroupsFromTracks() {
     var noteGroups = [];
     var currTime = 0;
+    var activeTracks = [];
+    // ignore unchecked tracks
+    var numTracks = tracks.length;
+    for (var t = 0; t < numTracks; t++) {
+        var isChecked = $("#track-" + t + "-checkbox").prop('checked');
+        if (isChecked) {
+            activeTracks.push(tracks[t]);
+        }
+    }
     // TODO: Loop through all tracks for the minimum playTime. Round robin between the tracks until we insert all the notegroups properly... Merge noteGroups appropriately.
-    for (var _i = 0, tracks_2 = tracks; _i < tracks_2.length; _i++) {
-        var track = tracks_2[_i];
+    // xxx
+    for (var _i = 0, activeTracks_1 = activeTracks; _i < activeTracks_1.length; _i++) {
+        var track = activeTracks_1[_i];
         for (var _a = 0, track_2 = track; _a < track_2.length; _a++) {
             var noteGroup = track_2[_a];
             var noteGroupCopy = noteGroup.copy();
@@ -1039,7 +1156,58 @@ function go() {
     setupMouseHandlers();
     setupDragAndDrop();
     setupFileChooser();
+    setupCopyHandler();
+    setupPianoContext2d();
+    setupPianoMouseHandlers();
     drawPiano();
+}
+function setupPianoContext2d() {
+    var elem = document.getElementById('pianoCanvas');
+    pianoContext2dWidth = elem.width;
+    pianoContext2dHeight = elem.height;
+    pianoContext2d = elem.getContext('2d');
+}
+function setupPianoMouseHandlers() {
+    var whiteKeyOffsets = [1, 3, 4, 6, 8, 9, 11]; // A B C D E F G
+    function getPianoKeyNumberForMouseLocaion(x, y) {
+        // TODO: ALSO HANDLE BLACK KEYS?
+        // WHITE KEYS ONLY
+        var whiteKeyNumber = Math.floor(x / 20);
+        var remainder = whiteKeyNumber % 7;
+        var octaveOffset = Math.floor(whiteKeyNumber / 7);
+        return octaveOffset * 12 + whiteKeyOffsets[remainder];
+    }
+    var $piano = $('#pianoCanvas');
+    $piano.mousedown(function (e) {
+        var offsetLeft = this.offsetLeft;
+        var offsetTop = this.offsetTop;
+        var x = e.pageX - offsetLeft;
+        var y = e.pageY - offsetTop;
+        var pianoKeyNumber = getPianoKeyNumberForMouseLocaion(x, y);
+        var lastKeyNumber = pianoKeyNumber;
+        play(pianoKeyNumber);
+        $piano.mousemove(function (e) {
+            var x = e.pageX - offsetLeft;
+            var y = e.pageY - offsetTop;
+            var pianoKeyNumber = getPianoKeyNumberForMouseLocaion(x, y);
+            if (pianoKeyNumber !== lastKeyNumber) {
+                console.log(pianoKeyNumber);
+                lastKeyNumber = pianoKeyNumber;
+                play(pianoKeyNumber);
+            }
+        });
+    });
+    $('html').mouseup(function (e) {
+        $piano.unbind('mousemove');
+    });
+}
+function setupCopyHandler() {
+    document.querySelector('html').addEventListener('copy', function (e) {
+        e.preventDefault();
+        if (e.clipboardData) {
+            e.clipboardData.setData('text/plain', getTextFileFromTracks());
+        }
+    });
 }
 $(function () {
     go();
