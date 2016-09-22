@@ -906,11 +906,14 @@ var MIDI;
             if (!isChecked) {
                 return "continue";
             }
+            var channel = 0; // For now, always use channel 0.
             var midiTrack = new Midi.Track();
             midiTrack.setTempo(BPM);
-            // let duration = 32; // 128 ticks == quarter note == 1 beat; 64 ticks == eighth note
-            // let timeSincePreviousEvent = 0; // 32 ticks == 1/4 beat gap between notes.
-            var channel = 0; // For now, always use channel 0.
+            // https://www.midi.org/specifications/item/gm-level-1-sound-set
+            var instrumentNumber = 74; // 7 === Harpsichord, 25 == Acoustic Guitar Nylon, 74 == Flute
+            // MIDI Instrument Codes are (instrumentNumber - 1) expressed in hexadecimal
+            // For example: Acoustic Guitar Nylon's is # 25 (dec) so its Instrument Code is 24 (dec) === 0x18 (hex)
+            midiTrack.setInstrument(channel, instrumentNumber - 1);
             var lastEventTimeMillis = 0;
             var lastDurationMillis = 0;
             var numNoteGroups = track.length;
