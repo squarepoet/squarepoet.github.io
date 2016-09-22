@@ -139,6 +139,8 @@ input {
     box-sizing: border-box;
     display: inline-block;
     height: 32px;
+    padding: 0px 3px;
+    margin: 0px 1px;
 }
 
 .notegroup.multiple {
