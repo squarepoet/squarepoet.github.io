@@ -669,31 +669,6 @@ function onKeyDownHandler(e) {
             break;
     }
 }
-var TEXT;
-(function (TEXT) {
-    // Returns a textual representation of the song
-    // V1 => e.g., 40 42 44 45 40.47
-    // V2 => e.g., [24.36 @ 0] [17.29 @ 2730] [36 @ 2904] [41 @ 3029] [44 @ 3152]
-    function getFileFromTracks() {
-        var numTracks = tracks.length;
-        if (numTracks === 1) {
-            var noteGroupStrings = [];
-            var track = tracks[0];
-            for (var _i = 0, track_1 = track; _i < track_1.length; _i++) {
-                var noteGroup = track_1[_i];
-                noteGroupStrings.push(noteGroup.toString());
-            }
-            // Melody lines start with two slashes.
-            return '// ' + noteGroupStrings.join(' ');
-        }
-        else {
-            var noteGroups = getNoteGroupsFromTracks();
-            // Melody lines start with two slashes.
-            return '// ' + noteGroups.join(' ');
-        }
-    }
-    TEXT.getFileFromTracks = getFileFromTracks;
-})(TEXT || (TEXT = {}));
 function setupMouseHandlers() {
     Playback.setupButtons();
     // When we hover over the Download MIDI | TEXT links, we update
@@ -706,8 +681,12 @@ function setupMouseHandlers() {
     });
     $download_text_link.mouseover(function () {
         // GENERATE THE TEXT FILE FROM OUR TRACKS. BASE 64 ENCODE IT.
-        // Assume a single track for now.
-        var text = TEXT.getFileFromTracks();
+        // A textual representation of the song:
+        //   V1 => e.g., 40 42 44 45 40.47
+        //   V2 => e.g., [24.36 @ 0] [17.29 @ 2730] [36 @ 2904] [41 @ 3029] [44 @ 3152]
+        var noteGroups = getNoteGroupsFromTracks();
+        // Melody lines start with two slashes.
+        var text = '// ' + noteGroups.join(' ');
         var base64Text = btoa(text); // base 64 encoding
         $download_text_link.attr('href', 'data:text/plain;base64,' + base64Text);
     });
