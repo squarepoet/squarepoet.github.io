@@ -12,6 +12,7 @@ const TIME_BETWEEN_NOTEGROUPS = 250;
 const TIME_THRESHOLD_FOR_GROUPING_NEARBY_NOTES = 0; // Adjust this for parsing MIDI recordings of piano performances (i.e., imprecise timing).
 
 const WHITE_KEY_WIDTH = 20;
+const WORKER_URL = '/s/js/author/piano.v2.worker.js';
 
 // Support multi track MIDI songs.
 // When we compose by hand, stick everything in track 0.
@@ -1261,7 +1262,7 @@ namespace Playback {
     let baseSongTime = 0; // What time did our playhead point to when we started or resumed the song?
     let clockStartTime = 0;
 
-    let clock = new Worker('/s/js/author/piano2worker.js');
+    let clock = new Worker(WORKER_URL);
     let clockIsTicking = false;
 
     clock.onmessage = function (e) {

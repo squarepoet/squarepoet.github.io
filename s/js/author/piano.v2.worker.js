@@ -3,7 +3,7 @@
 
 var isRunning = false;
 var interval = null;
-var delay = 15; // ms between ticks
+var delay = 10; // ms between ticks
 
 onmessage = function (e) {
     switch (e.data) {

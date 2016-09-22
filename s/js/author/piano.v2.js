@@ -8,6 +8,7 @@ var __extends = (this && this.__extends) || function (d, b) {
 var TIME_BETWEEN_NOTEGROUPS = 250;
 var TIME_THRESHOLD_FOR_GROUPING_NEARBY_NOTES = 0; // Adjust this for parsing MIDI recordings of piano performances (i.e., imprecise timing).
 var WHITE_KEY_WIDTH = 20;
+var WORKER_URL = '/s/js/author/piano.v2.worker.js';
 // Support multi track MIDI songs.
 // When we compose by hand, stick everything in track 0.
 var tracks = [];
@@ -231,11 +232,11 @@ var Note = (function () {
         this.durationInMillis = durationInMillis;
         this.velocity = velocity;
     }
-    Note.prototype.toString = function () {
-        return this.pianoNote + '';
-    };
     Note.compare = function (a, b) {
         return a.pianoNote - b.pianoNote; // sort from smallest number to highest number
+    };
+    Note.prototype.toString = function () {
+        return this.pianoNote + '';
     };
     return Note;
 }());
@@ -1167,7 +1168,7 @@ var Playback;
     var currSongTime = 0; // What time is our playhead pointing to?
     var baseSongTime = 0; // What time did our playhead point to when we started or resumed the song?
     var clockStartTime = 0;
-    var clock = new Worker('/s/js/author/piano2worker.js');
+    var clock = new Worker(WORKER_URL);
     var clockIsTicking = false;
     clock.onmessage = function (e) {
         playNextEvents(performance.now());
@@ -1397,4 +1398,4 @@ function setupCopyHandler() {
 $(function () {
     go();
 });
-//# sourceMappingURL=piano2.js.map
+//# sourceMappingURL=piano.v2.js.map
