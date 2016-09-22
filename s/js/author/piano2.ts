@@ -238,10 +238,14 @@ class NoteGroup {
 }
 //////////////////////////////////////////////////////////////////////
 class Note {
-    pianoNote: number;
-    midiNote: number;
-    durationInMillis: number;
-    velocity: number;
+    public static compare(a: Note, b: Note): number {
+        return a.pianoNote - b.pianoNote; // sort from smallest number to highest number
+    }
+
+    public pianoNote: number;
+    public midiNote: number;
+    public durationInMillis: number;
+    public velocity: number;
 
     constructor(pianoNote, durationInMillis = 1000, velocity = 127) {
         this.pianoNote = pianoNote;
@@ -250,12 +254,8 @@ class Note {
         this.velocity = velocity;
     }
 
-    toString(): string {
+    public toString(): string {
         return this.pianoNote + '';
-    }
-
-    static compare(a: Note, b: Note): number {
-        return a.pianoNote - b.pianoNote; // sort from smallest number to highest number
     }
 }
 //////////////////////////////////////////////////////////////////////
@@ -993,7 +993,7 @@ namespace MIDI {
             midiTrack.setTempo(BPM);
 
             // https://www.midi.org/specifications/item/gm-level-1-sound-set
-            let instrumentNumber = 74; // 7 === Harpsichord, 25 == Acoustic Guitar Nylon, 74 == Flute
+            let instrumentNumber = 1; // 1 === Grand Piano, 7 === Harpsichord, 25 == Acoustic Guitar Nylon, 74 == Flute
             // MIDI Instrument Codes are (instrumentNumber - 1) expressed in hexadecimal
             // For example: Acoustic Guitar Nylon's is # 25 (dec) so its Instrument Code is 24 (dec) === 0x18 (hex)
             midiTrack.setInstrument(channel, instrumentNumber - 1);

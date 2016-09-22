@@ -910,7 +910,7 @@ var MIDI;
             var midiTrack = new Midi.Track();
             midiTrack.setTempo(BPM);
             // https://www.midi.org/specifications/item/gm-level-1-sound-set
-            var instrumentNumber = 74; // 7 === Harpsichord, 25 == Acoustic Guitar Nylon, 74 == Flute
+            var instrumentNumber = 1; // 1 === Grand Piano, 7 === Harpsichord, 25 == Acoustic Guitar Nylon, 74 == Flute
             // MIDI Instrument Codes are (instrumentNumber - 1) expressed in hexadecimal
             // For example: Acoustic Guitar Nylon's is # 25 (dec) so its Instrument Code is 24 (dec) === 0x18 (hex)
             midiTrack.setInstrument(channel, instrumentNumber - 1);
@@ -973,8 +973,7 @@ var MIDI;
         };
         for (var _i = 0, tracks_2 = tracks; _i < tracks_2.length; _i++) {
             var track = tracks_2[_i];
-            var state_3 = _loop_2(track);
-            if (state_3 === "continue") continue;
+            _loop_2(track);
         }
         return file.toBytes();
     }
