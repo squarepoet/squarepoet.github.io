@@ -148,6 +148,7 @@ class NoteGroup {
     playTimeMillis: number = -1;
     trackIndex: number = 0; // Which MIDI track was this NoteGroup extracted from?
     noteIndex: number = -1; // What is the index of the MIDI note?
+    // durationMillis: number = -1; // TODO: if a duration is specified, all notes get the same duration. This overrides each individual note's duration.
 
     // NoteGroup looks like: 40.44.47 or [40.44.47 @ 1530]
     // The number after the @ indicates the playback time of the NoteGroup, in milliseconds.
@@ -209,6 +210,10 @@ class NoteGroup {
         }
     }
 
+    toFullString(): string {
+        return `${this.notes.join('.')} @ ${this.playTimeMillis} with trackIndex: ${this.trackIndex} noteGroupIndex: ${this.noteIndex}`;
+    }
+
     // V1 of our Tiny Piano Song format does not contain the playTime
     // toString(): string {
     //     return this.notes.join('.');
@@ -237,7 +242,9 @@ class NoteGroup {
         return merged;
     }
 }
+
 //////////////////////////////////////////////////////////////////////
+
 class Note {
     public static compare(a: Note, b: Note): number {
         return a.pianoNote - b.pianoNote; // sort from smallest number to highest number
@@ -245,13 +252,13 @@ class Note {
 
     public pianoNote: number;
     public midiNote: number;
-    public durationInMillis: number;
+    public durationMillis: number;
     public velocity: number;
 
-    constructor(pianoNote, durationInMillis = 1000, velocity = 127) {
+    constructor(pianoNote, durationMillis = 1000, velocity = 127) {
         this.pianoNote = pianoNote;
         this.midiNote = pianoNote + 20;
-        this.durationInMillis = durationInMillis;
+        this.durationMillis = durationMillis;
         this.velocity = velocity;
     }
 
@@ -259,8 +266,8 @@ class Note {
         return this.pianoNote + '';
     }
 }
-//////////////////////////////////////////////////////////////////////
 
+//////////////////////////////////////////////////////////////////////
 
 // resets the key offset
 function resetOffset() {
@@ -310,8 +317,8 @@ function saveAndShowData() {
     drawPiano();
 }
 
-function getNoteGroupID(trackNum, noteGroupNum) {
-    return `t${trackNum}_n${noteGroupNum}`;
+function getNoteGroupID(trackNumber, noteGroupNumber) {
+    return `t${trackNumber}_n${noteGroupNumber}`;
 }
 
 // TODO: When manually editing, only append and modify the last couple of spans. Don't regenerate the entire thing, for performance!
@@ -346,8 +353,8 @@ function showNoteGroupsForTracks() {
     Highlight.update();
 }
 
-function scrollNoteGroupIntoView(trackNum, noteGroupNum) {
-    let noteGroupID = getNoteGroupID(trackNum, noteGroupNum);
+function scrollNoteGroupIntoView(trackNumber: number, noteGroupNumber: number) {
+    let noteGroupID = getNoteGroupID(trackNumber, noteGroupNumber);
     // Scroll the divs all the way to the right to make sure the most recent NoteGroups are visible.
     let element = <HTMLElement>document.querySelector(`#${noteGroupID}`);
     if (element) {
@@ -585,7 +592,8 @@ function play(basePianoKey) {
         return;
     }
 
-    tracks[0].push(new NoteGroup(new Note(pianoKeyNumber)));
+    let t = Highlight.activeTrack();
+    tracks[t].push(new NoteGroup(new Note(pianoKeyNumber)));
 
     playMIDINote(p2m(pianoKeyNumber));
     saveAndShowData();
@@ -706,14 +714,22 @@ function onKeyDownHandler(e) {
             if (e.metaKey) {
                 Highlight.firstNoteGroup();
             } else {
-                Highlight.prevNoteGroup();
+                if (e.shiftKey) {
+                    highlightAndPlayPreviousNoteGroup();
+                } else {
+                    Highlight.prevNoteGroup();
+                }
             }
             break;
         case 39: // RIGHT
             if (e.metaKey) {
                 Highlight.lastNoteGroup();
             } else {
-                Highlight.nextNoteGroup();
+                if (e.shiftKey) {
+                    highlightAndPlayNextNoteGroup();
+                } else {
+                    Highlight.nextNoteGroup();
+                }
             }
             break;
         default:
@@ -723,6 +739,26 @@ function onKeyDownHandler(e) {
             break;
     }
 }
+
+function highlightAndPlayActiveNoteGroup() {
+    // Also play the highlighted note.
+    let t = Highlight.activeTrack();
+    let n = Highlight.activeNoteGroup();
+    let noteGroup = tracks[t][n];
+    for (let note of noteGroup.notes) {
+        playMIDINote(note.midiNote, note.velocity);
+    }
+}
+
+let highlightAndPlayPreviousNoteGroup = _.throttle(function () {
+    Highlight.prevNoteGroup();
+    highlightAndPlayActiveNoteGroup();
+}, 180 /* ms */);
+
+let highlightAndPlayNextNoteGroup = _.throttle(function () {
+    Highlight.nextNoteGroup();
+    highlightAndPlayActiveNoteGroup();
+}, 180 /* ms */);
 
 function setupMouseHandlers() {
     Playback.setupButtons();
@@ -741,8 +777,7 @@ function setupMouseHandlers() {
         //   V1 => e.g., 40 42 44 45 40.47
         //   V2 => e.g., [24.36 @ 0] [17.29 @ 2730] [36 @ 2904] [41 @ 3029] [44 @ 3152]
         let noteGroups = getNoteGroupsFromTracks();
-        // Melody lines start with two slashes.
-        let text = '// ' + noteGroups.join(' ');
+        let text = '// ' + noteGroups.join(' '); // Melody lines start with two slashes.
         let base64Text = btoa(text); // base 64 encoding
         $download_text_link.attr('href', 'data:text/plain;base64,' + base64Text);
     });
@@ -782,14 +817,12 @@ function setupFileChooser() {
     let $fileChooser = $('#filechooser');
     $fileChooser.change((e) => {
         let files = e.target.files;
-        console.log(files);
         if (files.length > 0) {
             MIDI.readFile(files[0]); // Get the first file.
         }
     });
 
     $('#filechooserlabel').mousedown((e) => {
-        console.log('nullify');
         $fileChooser[0].value = null;
     });
 }
@@ -811,15 +844,14 @@ function playMIDINote(midiNoteNum, velocity = 127.0) {
 
 // Allow us to highlight a current track or current note group.
 namespace Highlight {
-    let currentTrackIndex = 0;
+    let currentTrackIndex: number = 0;
     let currentNoteGroupIndexForTrackIndex: number[] = [];
 
     let highlightedTrack = null;
     let highlightedTrackInfo = null;
     let highlightedNoteGroup = null;
 
-    let h = 'highlight';
-
+    const h = 'highlight';
 
     export function setupIndexes() {
         currentTrackIndex = 0;
@@ -828,6 +860,14 @@ namespace Highlight {
         for (let t = 0; t < numTracks; t++) {
             currentNoteGroupIndexForTrackIndex.push(0);
         }
+    }
+
+    export function activeTrack(): number {
+        return currentTrackIndex;
+    }
+
+    export function activeNoteGroup() {
+        return currentNoteGroupIndexForTrackIndex[currentTrackIndex];
     }
 
     // Updates the visual indicators for our current track and current notegroup.
@@ -846,11 +886,7 @@ namespace Highlight {
         }
         highlightedTrack = $tracks[currentTrackIndex].addClass(h);
         highlightedTrackInfo = $trackInfos[currentTrackIndex].addClass(h);
-        highlightedNoteGroup = $('#' + getNoteGroupID(currentTrackIndex, currentNoteGroupIndexForTrackIndex[currentTrackIndex])).addClass(h);
-    }
-
-    export function activeTrack(): number {
-        return currentTrackIndex;
+        highlightedNoteGroup = $('#' + getNoteGroupID(currentTrackIndex, activeNoteGroup())).addClass(h);
     }
 
     function validateTrackNumber() {
@@ -866,7 +902,7 @@ namespace Highlight {
         // Assume the current track number is valid.
         let track = tracks[currentTrackIndex];
         let numNoteGroups = track.length;
-        let noteGroupIndex = getCurrentNoteGroupIndex();
+        let noteGroupIndex = activeNoteGroup();
         if (noteGroupIndex < 0) {
             setCurrentNoteGroupIndex(0);
         } else if (noteGroupIndex >= numNoteGroups) {
@@ -893,10 +929,6 @@ namespace Highlight {
         currentTrackIndex++;
         validateTrackNumber();
         update();
-    }
-
-    function getCurrentNoteGroupIndex() {
-        return currentNoteGroupIndexForTrackIndex[currentTrackIndex];
     }
 
     function setCurrentNoteGroupIndex(i) {
@@ -928,7 +960,7 @@ namespace Highlight {
     function validateUpdateScroll() {
         validateNoteGroupNumber();
         update();
-        scrollNoteGroupIntoView(currentTrackIndex, getCurrentNoteGroupIndex());
+        scrollNoteGroupIntoView(currentTrackIndex, activeNoteGroup());
     }
 }
 
@@ -957,10 +989,92 @@ namespace MIDI {
         const BPM = 240; // Normally I'd choose 120, but 240 might give us better time resolution?
         const TICKS_PER_SECOND = 512; // => (128 * BPM / 60.0)  jsmidgen has a hard-coded 128 ticks per beat.
         const TICKS_PER_MILLISECOND = TICKS_PER_SECOND / 1000.0;
+        const CHANNEL = 0; // For now, always use channel 0.
 
-        // For now, just have every note play for one second.
-        // const DURATION_MS = 100;
-        // const DURATION_TICKS = DURATION_MS * TICKS_PER_MILLISECOND;
+        let midiTracks = new Map<number, any>(); // track number => Midi.Track objects
+
+        for (let track of tracks) {
+            let trackNumber = track.trackNumber;
+            let isChecked = $(`#track-${trackNumber}-checkbox`).prop('checked');
+            if (isChecked) {
+                let midiTrack = new Midi.Track();
+                midiTrack.setTempo(BPM);
+
+                // https://www.midi.org/specifications/item/gm-level-1-sound-set
+                let instrumentNumber = 1; // 1 === Grand Piano, 7 === Harpsichord, 25 == Acoustic Guitar Nylon, 74 == Flute
+                // MIDI Instrument Codes are (instrumentNumber - 1) expressed in hexadecimal
+                // For example: Acoustic Guitar Nylon's is # 25 (dec) so its Instrument Code is 24 (dec) === 0x18 (hex)
+                midiTrack.setInstrument(CHANNEL, instrumentNumber - 1);
+
+                midiTracks[trackNumber] = midiTrack;
+                file.addTrack(midiTrack);
+            }
+        }
+
+        // Whenever we add a noteOn event, we will need to turn it off!
+        // We do this because (currently) NoteGroups don't have a filled-in duration field.
+        // So the only way we calculate duration is by waiting until we see a new NoteGroup
+        // in the same track before we turn off the previous NoteGroup.
+        let noteGroupsToTurnOff = new Map<number, NoteGroup>(); // track number => NoteGroup
+
+        let noteGroups = getNoteGroupsFromTracks();
+        for (let currNoteGroup of noteGroups) {
+            let trackNumber = currNoteGroup.trackIndex;
+            let midiTrack = midiTracks[trackNumber];
+            if (!midiTrack) {
+                console.log('OOPS: MIDI TRACK IS NULL'); // should never happen!
+                continue;
+            }
+
+            console.log('Need to play ' + currNoteGroup);
+
+            // duration of a note:
+            //   * next note's playTimeMillis minus current note's playTimeMillis
+            //   * if this is the last note, we set the duration to 1.0 seconds
+
+            let previousNoteGroup: NoteGroup = noteGroupsToTurnOff[trackNumber];
+            if (previousNoteGroup) {
+                noteGroupsToTurnOff[trackNumber] = null;
+
+                let durationOfPreviousNoteMillis = currNoteGroup.playTimeMillis - previousNoteGroup.playTimeMillis;
+                let durationOfPreviousNoteTicks = durationOfPreviousNoteMillis * TICKS_PER_MILLISECOND;
+
+                previousNoteGroup.notes.forEach((previousNote, index) => {
+                    // for the first note, deltaTimeTicks === the note's duration.
+                    // for all other notes, deltaTimeTicks is 0, since they all turn OFF at the same time.
+                    let deltaTimeTicks = (index === 0) ? durationOfPreviousNoteTicks : 0;
+                    midiTrack.noteOff(CHANNEL, previousNote.midiNote, deltaTimeTicks);
+                });
+            }
+
+            currNoteGroup.notes.forEach((note, index) => {
+                // TODO: someday, we'll actually calculate the correct deltaTimeTicks.
+                // Right now, we play all notes immediately after the noteOff of the previous note.
+                midiTrack.noteOn(CHANNEL, note.midiNote, 0 /*deltaTimeTicks*/, note.velocity);
+            });
+            noteGroupsToTurnOff[trackNumber] = currNoteGroup;
+        }
+
+        // There might be a bunch of notes we need to turn off.
+        for (let trackNumber in noteGroupsToTurnOff) {
+            let midiTrack = midiTracks[trackNumber];
+            let noteGroupToTurnOff: NoteGroup = noteGroupsToTurnOff[trackNumber];
+            noteGroupToTurnOff.notes.forEach((note, index) => {
+                let deltaTimeTicks = (index === 0) ? TICKS_PER_SECOND : 0; // This note group will be turned off 1 second after it starts.
+                midiTrack.noteOff(CHANNEL, note.midiNote, deltaTimeTicks);
+            });
+        }
+
+        return file.toBytes();
+    }
+
+
+    export function getFileFromTracks_OLD(): string {
+        let file = new Midi.File();
+
+        const BPM = 240; // Normally I'd choose 120, but 240 might give us better time resolution?
+        const TICKS_PER_SECOND = 512; // => (128 * BPM / 60.0)  jsmidgen has a hard-coded 128 ticks per beat.
+        const TICKS_PER_MILLISECOND = TICKS_PER_SECOND / 1000.0;
 
         for (let track of tracks) {
             let isChecked = $(`#track-${track.trackNumber}-checkbox`).prop('checked');
@@ -1032,41 +1146,6 @@ namespace MIDI {
 
             }
             file.addTrack(midiTrack);
-        }
-        return file.toBytes();
-    }
-
-    export function getFileFromTracksV1(): string {
-        let file = new Midi.File();
-        let track = new Midi.Track();
-        track.setTempo(120); // BPM
-        file.addTrack(track);
-
-        let duration = 32; // 128 ticks == quarter note == 1 beat; 64 ticks == eighth note
-        let timeSincePreviousEvent = 0; // 32 ticks == 1/4 beat gap between notes.
-
-        let channel = 0;
-
-        for (let noteGroup of tracks[0]) {
-            noteGroup.notes.forEach((note, index) => {
-                if (index === 0) {
-                    track.noteOn(channel, note.midiNote, timeSincePreviousEvent, 127 /* velocity */);
-                } else {
-                    // Since we are playing a chord, other notes of this NoteGroup start at the same time.
-                    // Thus, the timeSincePreviousEvent == 0
-                    track.noteOn(channel, note.midiNote, 0, 127 /* velocity */);
-                }
-            });
-            noteGroup.notes.forEach((note, index) => {
-                if (index === 0) {
-                    // timeSincePreviousEvent == duration of the note.
-                    track.noteOff(channel, note.midiNote, duration);
-                } else {
-                    // Since we are stopping the chord, other notes of this NoteGroup stop at the same time.
-                    // Thus, the timeSincePreviousEvent == 0
-                    track.noteOff(channel, note.midiNote, 0);
-                }
-            });
         }
         return file.toBytes();
     }
@@ -1502,7 +1581,9 @@ function setupCopyHandler() {
     document.querySelector('html').addEventListener('copy', function (e: ClipboardEvent) {
         e.preventDefault();
         if (e.clipboardData) {
-            e.clipboardData.setData('text/plain', TEXT.getFileFromTracks());
+            let noteGroups = getNoteGroupsFromTracks();
+            let text = '// ' + noteGroups.join(' '); // Melody lines start with two slashes.
+            e.clipboardData.setData('text/plain', text);
         }
     });
 }

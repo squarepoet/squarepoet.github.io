@@ -25,7 +25,12 @@
 </head>
 
 <body>
-    <div style="float:right">
+    <div style="float:left;">
+        Save as
+        <a id="download_midi_link" href="data:text/plain;base64,Tm90aGluZw==" download="song.mid">MIDI</a> or
+        <a id="download_text_link" href="data:text/plain;base64,Tm90aGluZw==" download="song.txt">TEXT</a>
+    </div>
+    <div style="float:right;">
         ctrl &rarr; flat &nbsp;&nbsp;&nbsp;&nbsp; alt &rarr; sharp &nbsp;&nbsp;&nbsp;&nbsp; shift + esc &rarr; clear<br/> up/down &rarr; +/- octave &nbsp;&nbsp;&nbsp;&nbsp; tab &rarr; combine &nbsp;&nbsp;&nbsp;&nbsp; cmd + c &rarr; copy
     </div>
     <div class="sharps-and-flats">
@@ -35,11 +40,6 @@
     <div id="content" class="content">
         <div id="tracks"></div>
         <canvas id="pianoCanvas" width="1040" height="150"></canvas>
-    </div>
-    <div style="margin:20px auto;width:200px;">
-        Download
-        <a id="download_midi_link" href="data:text/plain;base64,Tm90aGluZw==" download="song.mid">MIDI</a> |
-        <a id="download_text_link" href="data:text/plain;base64,Tm90aGluZw==" download="song.txt">TEXT</a>
     </div>
     <div id="current-status">&nbsp;</div>
     <div id="bottom-panel">
