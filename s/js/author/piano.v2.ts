@@ -753,12 +753,12 @@ function highlightAndPlayActiveNoteGroup() {
 let highlightAndPlayPreviousNoteGroup = _.throttle(function () {
     Highlight.prevNoteGroup();
     highlightAndPlayActiveNoteGroup();
-}, 180 /* ms */);
+}, 100 /* ms */);
 
 let highlightAndPlayNextNoteGroup = _.throttle(function () {
     Highlight.nextNoteGroup();
     highlightAndPlayActiveNoteGroup();
-}, 180 /* ms */);
+}, 100 /* ms */);
 
 function setupMouseHandlers() {
     Playback.setupButtons();
