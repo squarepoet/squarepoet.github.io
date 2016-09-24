@@ -103,7 +103,7 @@ input {
     padding: 0 10px;
     white-space: nowrap;
     display: inline-block;
-    line-height: 40px;
+    line-height: 100%;
     -webkit-user-select: none;
     user-select: none;
     border-bottom: 1px solid rgba(255, 255, 255, 0);
@@ -139,8 +139,9 @@ input {
     box-sizing: border-box;
     display: inline-block;
     height: 32px;
+    line-height: 32px;
     padding: 0px 3px;
-    margin: 0px 1px;
+    margin: 4px 1px 0px 1px;
 }
 
 .notegroup.multiple {
@@ -148,8 +149,8 @@ input {
 }
 
 .notegroup.highlight {
-    color: #E79;
-    border-bottom: 1px solid rgba(238, 119, 153, .4);
+    color: #F67;
+    background-color: rgba(238, 119, 153, .2);
 }
 
 .checkbox {
@@ -198,6 +199,32 @@ input {
     bottom: 100px;
     left: 0px;
     right: 0px;
+}
+
+
+/* animate the played notegroup */
+
+
+/* The animation code */
+
+@keyframes played-note-animation {
+    0% {
+        background-color: rgba(55, 180, 255, 0);
+        color: #59F;
+    }
+    50% {
+        background-color: rgba(55, 180, 255, 0.85);
+        color: #CDF;
+    }
+    100% {
+        background-color: rgba(55, 180, 255, 0);
+        color: #59F;
+    }
+}
+
+.played-note {
+    animation-name: played-note-animation;
+    animation-duration: 0.35s;
 }
 
 

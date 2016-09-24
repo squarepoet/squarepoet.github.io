@@ -1330,22 +1330,15 @@ namespace Playback {
     // Manual Playback of the song or individual tracks.
 
     export function playNoteAndGoBackwardInTheSong() {
-        // find next note to play (min playTimeMillis) via round robin.
         console.log('playNoteAndGoBackwardInTheSong');
         playActiveNoteGroup();
-        // figure out what the current playTimeMillis is...
-        // round robin the tracks to find the next note to highlight.
-        // highlight that note!
+        // xxx
     }
 
     export function playNoteAndGoForwardInTheSong() {
         console.log('playNoteAndGoForwardInTheSong');
         playActiveNoteGroup();
-
-        let minPlayTime = Number.MAX_VALUE;
-        tracks.forEach((track, index) => {
-
-        });
+        // xxx
     }
 
     function playActiveNoteGroup() {
@@ -1355,6 +1348,11 @@ namespace Playback {
         for (let note of noteGroup.notes) {
             playMIDINote(note.midiNote, note.velocity);
         }
+        let $noteGroup = $(`#t${t}_n${n}`);
+        $noteGroup.addClass('played-note');
+        setTimeout(function () {
+            $noteGroup.removeClass('played-note');
+        }, 350);
     }
 
     export const playNoteAndGoBackwardOnActiveTrack = _.throttle(function () {
