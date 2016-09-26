@@ -2,7 +2,6 @@
 /////////////////////////////////////////////////////////////////////////////////
 const TIME_BETWEEN_NOTEGROUPS = 250;
 const TIME_THRESHOLD_FOR_GROUPING_NEARBY_NOTES = 0; // Adjust this for parsing MIDI recordings of piano performances (i.e., imprecise timing).
-const WHITE_KEY_WIDTH = 20;
 const WORKER_URL = '/s/js/author/piano.v2.worker.js';
 // Support multi track MIDI songs.
 // When we compose by hand, stick everything in track 0.
@@ -20,10 +19,6 @@ let $download_text_link = null;
 let $playButton = null;
 let $pauseButton = null;
 let $stopButton = null;
-// canvas 2d
-let pianoContext2d = null;
-let pianoContext2dWidth = 0;
-let pianoContext2dHeight = 0;
 // piano key numbers % 12
 let blackKeys = [2, -1, 5, 7, -1, 10, 0]; // -1 is for the spaces where there are no black keys
 let whiteKeys = [1, 3, 4, 6, 8, 9, 11];
@@ -109,126 +104,12 @@ var Keyboard;
         187: 88 // = => C8
     };
 })(Keyboard || (Keyboard = {}));
-// A Track is just an Array of NoteGroups
-class Track extends Array {
-    constructor() {
-        super(...arguments);
-        // NOTHING YET
-        this.trackNumber = -1;
-    }
-}
-//////////////////////////////////////////////////////////////////////
-class NoteGroup {
-    // durationMillis: number = -1; // TODO: if a duration is specified, all notes get the same duration. This overrides each individual note's duration.
-    // NoteGroup looks like: 40.44.47 or [40.44.47 @ 1530]
-    // The number after the @ indicates the playback time of the NoteGroup, in milliseconds.
-    // Parameter "a"" can be either a single Note or a string which indicates multiple notes.
-    // The string is formatted as multiple piano key numbers separated by a period (e.g., "40.52").
-    constructor(a, playTimeMillis = -1, trackIndex = 0) {
-        this.playTimeMillis = -1;
-        this.trackNumber = 0; // Which MIDI track was this NoteGroup extracted from?
-        this.noteIndex = -1; // What is the index of the MIDI note?
-        this.playTimeMillis = playTimeMillis;
-        this.trackNumber = trackIndex;
-        if (typeof a === 'string') {
-            let noteGroupString = a;
-            if (noteGroupString.indexOf('[') !== -1) {
-                let pattern = /\[\s*(.+)\s*\@\s*(.+)\s*\]/;
-                let match = pattern.exec(noteGroupString);
-                noteGroupString = match[1]; // e.g., 40.44.47
-                let timeString = match[2]; // e.g., 1530
-                this.playTimeMillis = parseFloat(timeString); // The playTimeMillis was specified, e.g. [40.44.47 @ 1530]
-            }
-            let pianoKeyNotes = [];
-            let pianoKeyStrings = noteGroupString.split('.');
-            for (let s of pianoKeyStrings) {
-                let n = parseInt(s);
-                pianoKeyNotes.push(new Note(n));
-            }
-            this.notes = pianoKeyNotes;
-        }
-        else if (a) {
-            this.notes = [a];
-        }
-        else {
-            this.notes = [];
-        }
-    }
-    addNote(n) {
-        this.notes.push(n);
-        let len = this.notes.length;
-        if (len > 1) {
-            this.notes.sort(Note.compare);
-            // This "unique-ifying" algorithm only works because we sorted the array in the line above.
-            let uniqueNotes = [this.notes[0]];
-            for (let i = 1; i < len; i++) {
-                let mostRecentlyAddedNote = uniqueNotes[uniqueNotes.length - 1];
-                let note = this.notes[i];
-                if (note.pianoNote !== mostRecentlyAddedNote.pianoNote) {
-                    uniqueNotes.push(note);
-                }
-            }
-            this.notes = uniqueNotes;
-        }
-    }
-    // V2
-    toString() {
-        if (this.playTimeMillis === -1) {
-            return this.notes.join('.'); // Use the simple format when playTimeMillis is not specified (i.e. -1).
-        }
-        else {
-            return `[${this.notes.join('.')} @ ${this.playTimeMillis}]`; // V2 contains the playTime for each NoteGroup
-        }
-    }
-    toFullString() {
-        return `${this.notes.join('.')} @ ${this.playTimeMillis} with trackIndex: ${this.trackNumber} noteGroupIndex: ${this.noteIndex}`;
-    }
-    // V1 of our Tiny Piano Song format does not contain the playTime
-    // toString(): string {
-    //     return this.notes.join('.');
-    // }
-    get numNotes() {
-        return this.notes.length;
-    }
-    copy() {
-        let clone = new NoteGroup(this.toString());
-        clone.playTimeMillis = this.playTimeMillis;
-        clone.trackNumber = this.trackNumber;
-        clone.noteIndex = this.noteIndex;
-        return clone;
-    }
-    static merge(n1, n2) {
-        let merged = new NoteGroup();
-        for (let note of n1.notes) {
-            merged.addNote(note);
-        }
-        for (let note of n2.notes) {
-            merged.addNote(note);
-        }
-        return merged;
-    }
-}
-//////////////////////////////////////////////////////////////////////
-class Note {
-    constructor(pianoNote, durationMillis = 1000, velocity = 127) {
-        this.pianoNote = pianoNote;
-        this.midiNote = pianoNote + 20;
-        this.durationMillis = durationMillis;
-        this.velocity = velocity;
-    }
-    static compare(a, b) {
-        return a.pianoNote - b.pianoNote; // sort from smallest number to highest number
-    }
-    toString() {
-        return this.pianoNote + '';
-    }
-}
 //////////////////////////////////////////////////////////////////////
 // resets the key offset
 function resetOffset() {
     console.log("Reset Offsets");
     octaveOffset = 0;
-    drawPiano();
+    UI.drawPiano();
 }
 function resetEverything() {
     console.log("Reset Everything!");
@@ -267,7 +148,7 @@ function saveAndShowData() {
     LocalStorage.saveCheckBoxes();
     LocalStorage.saveTracks();
     showNoteGroupsForTracks();
-    drawPiano();
+    UI.drawPiano();
 }
 function getNoteGroupID(trackNumber, noteGroupNumber) {
     return `t${trackNumber}_n${noteGroupNumber}`;
@@ -322,100 +203,6 @@ function deleteLastGroup() {
     let t = Highlight.activeTrack();
     tracks[t].pop();
     saveAndShowData();
-}
-function drawWhiteKeys(c) {
-    c.strokeStyle = '#000';
-    c.lineWidth = .2;
-    c.fillStyle = '#FFF';
-    for (let k = 0; k < 52; k++) {
-        c.fillRect(k * WHITE_KEY_WIDTH, 0, WHITE_KEY_WIDTH, 120);
-        c.strokeRect(k * WHITE_KEY_WIDTH, 0, WHITE_KEY_WIDTH, 120);
-    }
-    // Highlight Middle C in faint red.
-    c.fillStyle = '#FCC';
-    c.fillRect(23 * WHITE_KEY_WIDTH, 0, WHITE_KEY_WIDTH, 120);
-}
-function drawBlackKeys(c) {
-    c.fillStyle = '#323232';
-    for (let octave = 0; octave < 7; octave++) {
-        for (let key = 0; key < 7; key++) {
-            if (key == 1 || key == 4) {
-                continue; // skip B# and E#
-            }
-            c.fillRect(12 + 20 * (key + (octave * 7)), 0, 16, 72);
-        }
-    }
-    // highest black key
-    c.fillRect(12 + (7 * 7 * 20), 0, 16, 72);
-}
-function drawMostRecentGroup(c) {
-    let lastGroup = tracks[0].slice(-1); // array of the last item
-    if (lastGroup.length == 0) {
-        return;
-    }
-    let notes = lastGroup[0].notes;
-    for (let n of notes) {
-        let remainder = n.pianoNote % 12;
-        let octaveIndex = Math.floor((n.pianoNote - 1) / 12);
-        c.beginPath();
-        if (_.includes(blackKeys, remainder)) {
-            let blackKeyIndex = (octaveIndex * 7) + blackKeys.indexOf(remainder);
-            // black keys are 16px wide
-            c.arc(blackKeyIndex * 20 + 20, 60, 6, 0, 2 * Math.PI, false);
-        }
-        else {
-            // if white, we map it to one of the 52 white keys
-            let whiteKeyIndex = (octaveIndex * 7) + whiteKeys.indexOf(remainder);
-            // white keys are 20px wide
-            c.arc(whiteKeyIndex * 20 + 10, 96, 7, 0, 2 * Math.PI, false);
-        }
-        c.fillStyle = 'rgba(220,220,10,.82)'; // fill the yellow circle
-        c.fill();
-    }
-}
-function drawPiano() {
-    let c = pianoContext2d;
-    // clear the background
-    c.fillStyle = "#444";
-    c.fillRect(0, 0, pianoContext2dWidth, pianoContext2dHeight);
-    drawWhiteKeys(c);
-    drawBlackKeys(c);
-    drawKeyLabels(c);
-    drawMostRecentGroup(c);
-}
-function drawKeyLabels(c) {
-    c.textAlign = 'center';
-    // draw the piano key numbers for the white keys
-    // also draw the note name
-    for (let k = 1; k <= 88; k++) {
-        let remainder = k % 12;
-        if (_.includes(whiteKeys, remainder)) {
-            let octave = Math.floor(k / 12);
-            let whiteKeyNoteIndex = whiteKeys.indexOf(remainder);
-            let whiteKeyIndex = octave * 7 + whiteKeyNoteIndex;
-            let noteLabel = noteLabels[whiteKeyNoteIndex];
-            if (noteLabel == "c") {
-                c.font = "bold 13px Tahoma";
-            }
-            else {
-                c.font = "13px Tahoma";
-            }
-            c.fillStyle = "#777";
-            c.fillText(noteLabel, whiteKeyIndex * 20 + 10, 100);
-            c.font = "12px Consolas";
-            c.fillStyle = "#999";
-            c.fillText(k, whiteKeyIndex * 20 + 10, 115);
-        }
-    }
-    c.font = "15px Consolas";
-    c.fillStyle = "#FFF";
-    c.textAlign = 'center';
-    // draw the current character to press, under the correct key!
-    let offset = (octaveOffset + 1) * 7 - 1; // start on G (key 13)
-    let len = Keyboard.labels.length;
-    for (let i = 0; i < len; i++) {
-        c.fillText(Keyboard.labels[i], (i + offset) * 20 + 10, 140);
-    }
 }
 var LocalStorage;
 (function (LocalStorage) {
@@ -574,7 +361,7 @@ function onKeyDownHandler(e) {
             if (octaveOffset > 2) {
                 octaveOffset = 2;
             }
-            drawPiano();
+            UI.drawPiano();
             break;
         case 34:
             console.log('fn + DOWN');
@@ -583,7 +370,7 @@ function onKeyDownHandler(e) {
             if (octaveOffset < -2) {
                 octaveOffset = -2;
             }
-            drawPiano();
+            UI.drawPiano();
             break;
         case 36:
             Playback.playNoteAndGoBackwardInTheSong(); // Find the previous note to play via round robin.
@@ -1184,6 +971,13 @@ var Playback;
     function playNoteAndGoBackwardInTheSong() {
         console.log('playNoteAndGoBackwardInTheSong');
         playActiveNoteGroup();
+        // Whenever we check or uncheck the boxes, we generate a copy of the new song by calling
+        // getNoteGroupsFromTracks().
+        // Reset the cursor to the zeroth note.
+        // We need multiple cursors to keep track of where we are on each track.
+        // The cursors all start at index 0.
+        // To play the next note, round robin all the cursors to find the next notegroup. (If the notegroup is on an unchecked track, keep going.)
+        // ....
         // xxx
     }
     Playback.playNoteAndGoBackwardInTheSong = playNoteAndGoBackwardInTheSong;
@@ -1197,6 +991,9 @@ var Playback;
         let t = Highlight.activeTrack();
         let n = Highlight.activeNoteGroup();
         let noteGroup = tracks[t][n];
+        if (!noteGroup) {
+            return;
+        }
         for (let note of noteGroup.notes) {
             playMIDINote(note.midiNote, note.velocity);
         }
@@ -1204,7 +1001,7 @@ var Playback;
         $noteGroup.addClass('played-note');
         setTimeout(function () {
             $noteGroup.removeClass('played-note');
-        }, 350);
+        }, 400);
     }
     Playback.playNoteAndGoBackwardOnActiveTrack = _.throttle(function () {
         playActiveNoteGroup();
@@ -1289,48 +1086,9 @@ function go() {
     setupDragAndDrop();
     setupFileChooser();
     setupCopyHandler();
-    setupPianoContext2d();
-    setupPianoMouseHandlers();
-    drawPiano();
-}
-function setupPianoContext2d() {
-    let elem = document.getElementById('pianoCanvas');
-    pianoContext2dWidth = elem.width;
-    pianoContext2dHeight = elem.height;
-    pianoContext2d = elem.getContext('2d');
-}
-function setupPianoMouseHandlers() {
-    const whiteKeyOffsets = [1, 3, 4, 6, 8, 9, 11]; // A B C D E F G
-    function getPianoKeyNumberForMouseLocaion(x, y) {
-        // TODO: ALSO HANDLE BLACK KEYS?
-        // WHITE KEYS ONLY
-        let whiteKeyNumber = Math.floor(x / 20);
-        let remainder = whiteKeyNumber % 7;
-        let octaveOffset = Math.floor(whiteKeyNumber / 7);
-        return octaveOffset * 12 + whiteKeyOffsets[remainder];
-    }
-    let $piano = $('#pianoCanvas');
-    $piano.mousedown(function (e) {
-        let offsetLeft = this.offsetLeft;
-        let offsetTop = this.offsetTop;
-        let x = e.pageX - offsetLeft;
-        let y = e.pageY - offsetTop;
-        let pianoKeyNumber = getPianoKeyNumberForMouseLocaion(x, y);
-        let lastKeyNumber = pianoKeyNumber;
-        play(pianoKeyNumber);
-        $piano.mousemove(function (e) {
-            let x = e.pageX - offsetLeft;
-            let y = e.pageY - offsetTop;
-            let pianoKeyNumber = getPianoKeyNumberForMouseLocaion(x, y);
-            if (pianoKeyNumber !== lastKeyNumber) {
-                lastKeyNumber = pianoKeyNumber;
-                play(pianoKeyNumber);
-            }
-        });
-    });
-    $('html').mouseup((e) => {
-        $piano.unbind('mousemove');
-    });
+    UI.setupPianoCanvas();
+    UI.setupPianoMouseHandlers();
+    UI.drawPiano();
 }
 function setupCopyHandler() {
     document.querySelector('html').addEventListener('copy', function (e) {
@@ -1344,6 +1102,8 @@ function setupCopyHandler() {
 }
 var UI;
 (function (UI) {
+    ////////////////////////////////////////////////////////////
+    // The checkboxes to choose active tracks.
     let checkboxState = [true]; // every time a checkbox changes state, its boolean value is written into this array.
     function isChecked(trackNumber) {
         return checkboxState[trackNumber];
@@ -1374,6 +1134,168 @@ var UI;
         return checkboxState;
     }
     UI.getCheckedStateArray = getCheckedStateArray;
+    ////////////////////////////////////////////////////////////
+    // The Piano Visualization (Canvas 2D)
+    const WHITE_KEY_WIDTH = 20;
+    const WHITE_KEY_HEIGHT = 120;
+    const BLACK_KEY_WIDTH = 16;
+    UI.BLACK_KEY_HEIGHT = 72;
+    let context2d = null;
+    let context2dWidth = 0;
+    let context2dHeight = 0;
+    function setupPianoCanvas() {
+        let elem = document.getElementById('pianoCanvas');
+        context2dWidth = elem.width;
+        context2dHeight = elem.height;
+        context2d = elem.getContext('2d');
+    }
+    UI.setupPianoCanvas = setupPianoCanvas;
+    function drawPiano() {
+        let c = context2d;
+        // clear the background
+        c.fillStyle = "#444";
+        c.fillRect(0, 0, context2dWidth, context2dHeight);
+        drawWhiteKeys(c);
+        drawBlackKeys(c);
+        drawKeyLabels(c);
+        drawMostRecentGroup(c);
+    }
+    UI.drawPiano = drawPiano;
+    function drawWhiteKeys(c) {
+        c.strokeStyle = '#000';
+        c.lineWidth = .2;
+        c.fillStyle = '#FFF';
+        for (let k = 0; k < 52; k++) {
+            c.fillRect(k * WHITE_KEY_WIDTH, 0, WHITE_KEY_WIDTH, WHITE_KEY_HEIGHT);
+            c.strokeRect(k * WHITE_KEY_WIDTH, 0, WHITE_KEY_WIDTH, WHITE_KEY_HEIGHT);
+        }
+        // Highlight Middle C in faint red.
+        c.fillStyle = '#FCC';
+        c.fillRect(23 * WHITE_KEY_WIDTH, 0, WHITE_KEY_WIDTH, WHITE_KEY_HEIGHT);
+    }
+    function drawBlackKeys(c) {
+        c.fillStyle = '#323232';
+        for (let octave = 0; octave < 7; octave++) {
+            for (let key = 0; key < 7; key++) {
+                if (key == 1 || key == 4) {
+                    continue; // skip B# and E#
+                }
+                c.fillRect(12 + 20 * (key + (octave * 7)), 0, BLACK_KEY_WIDTH, UI.BLACK_KEY_HEIGHT);
+            }
+        }
+        // highest black key
+        c.fillRect(12 + (7 * 7 * 20), 0, 16, 72);
+    }
+    function drawKeyLabels(c) {
+        c.textAlign = 'center';
+        // draw the piano key numbers for the white keys
+        // also draw the note name
+        for (let k = 1; k <= 88; k++) {
+            let remainder = k % 12;
+            if (_.includes(whiteKeys, remainder)) {
+                let octave = Math.floor(k / 12);
+                let whiteKeyNoteIndex = whiteKeys.indexOf(remainder);
+                let whiteKeyIndex = octave * 7 + whiteKeyNoteIndex;
+                let noteLabel = noteLabels[whiteKeyNoteIndex];
+                if (noteLabel == "c") {
+                    c.font = "bold 13px Tahoma";
+                }
+                else {
+                    c.font = "13px Tahoma";
+                }
+                c.fillStyle = "#777";
+                c.fillText(noteLabel, whiteKeyIndex * 20 + 10, 100);
+                c.font = "12px Consolas";
+                c.fillStyle = "#999";
+                c.fillText(k, whiteKeyIndex * 20 + 10, 115);
+            }
+        }
+        c.font = "15px Consolas";
+        c.fillStyle = "#FFF";
+        c.textAlign = 'center';
+        // draw the current character to press, under the correct key!
+        let offset = (octaveOffset + 1) * 7 - 1; // start on G (key 13)
+        let len = Keyboard.labels.length;
+        for (let i = 0; i < len; i++) {
+            c.fillText(Keyboard.labels[i], (i + offset) * 20 + 10, 140);
+        }
+    }
+    function drawMostRecentGroup(c) {
+        let lastGroup = tracks[0].slice(-1); // array of the last item
+        if (lastGroup.length == 0) {
+            return;
+        }
+        let notes = lastGroup[0].notes;
+        for (let n of notes) {
+            let remainder = n.pianoNote % 12;
+            let octaveIndex = Math.floor((n.pianoNote - 1) / 12);
+            c.beginPath();
+            if (_.includes(blackKeys, remainder)) {
+                let blackKeyIndex = (octaveIndex * 7) + blackKeys.indexOf(remainder);
+                // black keys are 16px wide
+                c.arc(blackKeyIndex * 20 + 20, 60, 6, 0, 2 * Math.PI, false);
+            }
+            else {
+                // if white, we map it to one of the 52 white keys
+                let whiteKeyIndex = (octaveIndex * 7) + whiteKeys.indexOf(remainder);
+                // white keys are 20px wide
+                c.arc(whiteKeyIndex * 20 + 10, 96, 7, 0, 2 * Math.PI, false);
+            }
+            c.fillStyle = 'rgba(220,220,10,.82)'; // fill the yellow circle
+            c.fill();
+        }
+    }
+    ////////////////////////////////////////////////////////////
+    function setupPianoMouseHandlers() {
+        const whiteKeyOffsets = [1, 3, 4, 6, 8, 9, 11]; // A  B  C  D  E  F  G
+        const blackKeyOffsets = [2, 0, 5, 7, 0, 10, 12]; // A# _  C# D# _  F# G#
+        function getPianoKeyNumberForMouseLocation(x, y) {
+            let octaveOffset = 0;
+            if (y <= UI.BLACK_KEY_HEIGHT) {
+                // x: 12 + 20 * (key + (octave * 7))
+                // y: 0
+                // w: BLACK_KEY_WIDTH
+                // h: BLACK_KEY_HEIGHT
+                let temp = Math.floor((x - 12) / 20);
+                octaveOffset = Math.floor(temp / 7);
+                let blackKeyNumber = temp % 7;
+                let xRelativeToKeyOrigin = (x - 12) % 20;
+                if ((xRelativeToKeyOrigin >= 0 && xRelativeToKeyOrigin <= BLACK_KEY_WIDTH) &&
+                    (blackKeyNumber !== 1 && blackKeyNumber !== 4)) {
+                    let keyNumber = octaveOffset * 12 + blackKeyOffsets[blackKeyNumber];
+                    return keyNumber;
+                }
+            }
+            // WHITE KEYS ONLY
+            let whiteKeyNumber = Math.floor(x / 20);
+            let remainder = whiteKeyNumber % 7;
+            octaveOffset = Math.floor(whiteKeyNumber / 7);
+            return octaveOffset * 12 + whiteKeyOffsets[remainder];
+        }
+        let $piano = $('#pianoCanvas');
+        $piano.mousedown(function (e) {
+            let offsetLeft = this.offsetLeft;
+            let offsetTop = this.offsetTop;
+            let x = e.pageX - offsetLeft;
+            let y = e.pageY - offsetTop;
+            let pianoKeyNumber = getPianoKeyNumberForMouseLocation(x, y);
+            let lastKeyNumber = pianoKeyNumber;
+            play(pianoKeyNumber);
+            $piano.mousemove(function (e) {
+                let x = e.pageX - offsetLeft;
+                let y = e.pageY - offsetTop;
+                let pianoKeyNumber = getPianoKeyNumberForMouseLocation(x, y);
+                if (pianoKeyNumber !== lastKeyNumber) {
+                    lastKeyNumber = pianoKeyNumber;
+                    play(pianoKeyNumber);
+                }
+            });
+        });
+        $('html').mouseup((e) => {
+            $piano.unbind('mousemove');
+        });
+    }
+    UI.setupPianoMouseHandlers = setupPianoMouseHandlers;
 })(UI || (UI = {}));
 $(function () {
     go();
