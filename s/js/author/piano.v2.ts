@@ -15,7 +15,6 @@ const WORKER_URL = '/s/js/author/piano.v2.worker.js';
 
 // Support multi track MIDI songs.
 // When we compose by hand, stick everything in track 0.
-let tracks: Array<Track> = [];
 let $tracks = []; // jQuery references to the elements. Allows us to modify the DOM.
 let $trackInfos = []; // jQuery references to the elements. Allows us to modify the DOM.
 let $currentStatus = null;
@@ -147,9 +146,7 @@ function resetEverything() {
 function addTracks(numTracks) {
     let html = '';
     for (let t = 0; t < numTracks; t++) {
-        let trackObj = new Track();
-        trackObj.trackNumber = t;
-        tracks.push(trackObj); // Add one array for each track. Tracks contain NoteGroups.
+        Song.addTrack(t);
         let checkbox = `<input id="track-${t}-checkbox" type="checkbox" class="checkbox">`;
         let info = `<div id="track-${t}-info" class="track-info"></div>`;
         let track = `<div id="track-${t}" class="track">`;
@@ -189,22 +186,6 @@ function scrollNoteGroupIntoView(trackNumber: number, noteGroupNumber: number) {
     }
 }
 
-function mergeLastTwoGroups() {
-    let t = Highlight.activeTrack();
-    let currTrack = tracks[t];
-    if (currTrack.length >= 2) {
-        let merged: NoteGroup = NoteGroup.merge(currTrack.pop(), currTrack.pop());
-        currTrack.push(merged);
-        saveAndShowData();
-    }
-}
-
-function deleteLastGroup() {
-    let t = Highlight.activeTrack();
-    tracks[t].pop();
-    saveAndShowData();
-}
-
 ////////////////////////////////////////////////////////////
 
 namespace LocalStorage {
@@ -239,8 +220,7 @@ namespace LocalStorage {
                 let savedTrack = savedTracks[t];
                 for (let noteGroupString of savedTrack) {
                     let noteGroup = new NoteGroup(noteGroupString);
-                    noteGroup.trackNumber = t;
-                    tracks[t].push(noteGroup);
+                    Song.addNoteGroupToTrack(noteGroup, t);
                 }
             }
         } catch (e) {
@@ -252,7 +232,7 @@ namespace LocalStorage {
         try {
             let savedCheckboxState = JSON.parse(localStorage.getItem('checkboxes')); // can throw a SyntaxError
             if (Array.isArray(savedCheckboxState) &&
-                (savedCheckboxState.length === tracks.length)) {
+                (savedCheckboxState.length === Song.getNumTracks())) {
                 UI.setCheckedStateArray(savedCheckboxState);
             } else {
                 throw 'OOPS';
@@ -268,15 +248,8 @@ namespace LocalStorage {
     }
 
     export function saveTracks() {
-        let tracksToSave = [];
-        for (let sourceTrack of tracks) {
-            let destTrack = [];
-            tracksToSave.push(destTrack);
-            for (let noteGroup of sourceTrack) {
-                destTrack.push(noteGroup.toString());
-            }
-        }
-        localStorage.setItem('tracks', JSON.stringify(tracksToSave));
+        let tracksJSON = Song.getTracksAsJSON();
+        localStorage.setItem('tracks', tracksJSON);
     }
 
     export function saveSharpsAndFlats() {
@@ -308,15 +281,17 @@ function playOneNote(pianoKeyBeforeModifiers) {
     }
 
     let t = Highlight.activeTrack();
-    tracks[t].push(new NoteGroup(new Note(pianoKeyNumber)));
+    let trackLength = Song.addNoteGroupToTrack(new NoteGroup(new Note(pianoKeyNumber)), t);
     UI.setCheckedState(t, true);
 
     playMIDINote(p2m(pianoKeyNumber));
+
+    Highlight.setTrackAndNoteGroup(t, trackLength - 1);
     saveAndShowData();
 }
 
 function setupTracks(numTracks: number) {
-    tracks = [];
+    Song.reset();
     $tracks = [];
     $trackInfos = [];
     addTracks(numTracks);
@@ -370,7 +345,7 @@ namespace Highlight {
     export function setupIndexes() {
         currTrackNumber = 0;
         currNoteGroupNumberForTrackNumber = [];
-        let numTracks = tracks.length;
+        let numTracks = Song.getNumTracks();
         for (let t = 0; t < numTracks; t++) {
             currNoteGroupNumberForTrackNumber.push(0);
         }
@@ -380,7 +355,7 @@ namespace Highlight {
         return currTrackNumber;
     }
 
-    export function activeNoteGroup() {
+    export function activeNoteGroup(): number {
         return currNoteGroupNumberForTrackNumber[currTrackNumber];
     }
 
@@ -401,10 +376,12 @@ namespace Highlight {
         $currTrack = $tracks[currTrackNumber].addClass(h);
         $currTrackInfo = $trackInfos[currTrackNumber].addClass(h);
         $currNoteGroup = $('#' + getNoteGroupID(currTrackNumber, activeNoteGroup())).addClass(h);
+
+        UI.drawPiano();
     }
 
     function validateTrackNumber() {
-        let numTracks = tracks.length;
+        let numTracks = Song.getNumTracks();
         if (currTrackNumber < 0) {
             currTrackNumber = 0;
         } else if (currTrackNumber >= numTracks) {
@@ -414,23 +391,20 @@ namespace Highlight {
 
     function validateNoteGroupNumber() {
         // Assume the current track number is valid.
-        let track = tracks[currTrackNumber];
-        let numNoteGroups = track.length;
-        let noteGroupIndex = activeNoteGroup();
-        if (noteGroupIndex < 0) {
-            setCurrentNoteGroupIndex(0);
-        } else if (noteGroupIndex >= numNoteGroups) {
-            setCurrentNoteGroupIndex(numNoteGroups - 1);
+        let numNoteGroups = Song.getNumNoteGroupsInTrack(currTrackNumber);
+        let noteGroupNumber = activeNoteGroup();
+        if (noteGroupNumber < 0) {
+            setCurrentNoteGroupNumber(0);
+        } else if (noteGroupNumber >= numNoteGroups) {
+            setCurrentNoteGroupNumber(numNoteGroups - 1);
         }
     }
 
     export function setTrackAndNoteGroup(t: number, n: number) {
         currTrackNumber = t;
-        setCurrentNoteGroupIndex(n);
+        setCurrentNoteGroupNumber(n);
         validateTrackNumber();
-        validateNoteGroupNumber();
-        update();
-        scrollNoteGroupIntoView(t, n);
+        validateUpdateScroll();
     }
 
     export function prevTrack() {
@@ -445,7 +419,7 @@ namespace Highlight {
         update();
     }
 
-    function setCurrentNoteGroupIndex(i) {
+    function setCurrentNoteGroupNumber(i) {
         currNoteGroupNumberForTrackNumber[currTrackNumber] = i;
     }
 
@@ -460,14 +434,13 @@ namespace Highlight {
     }
 
     export function firstNoteGroup() {
-        setCurrentNoteGroupIndex(0);
+        setCurrentNoteGroupNumber(0);
         validateUpdateScroll();
     }
 
     export function lastNoteGroup() {
-        let track = tracks[currTrackNumber];
-        let numNoteGroups = track.length;
-        setCurrentNoteGroupIndex(numNoteGroups - 1);
+        let numNoteGroups = Song.getNumNoteGroupsInTrack(currTrackNumber);
+        setCurrentNoteGroupNumber(numNoteGroups - 1);
         validateUpdateScroll();
     }
 
@@ -507,9 +480,9 @@ namespace MIDI {
 
         let midiTracks = new Map<number, any>(); // track number => Midi.Track objects
 
-        for (let track of tracks) {
-            let t = track.trackNumber;
-            if (UI.isChecked(t)) {
+        let numTracks = Song.getNumTracks();
+        for (let trackNumber = 0; trackNumber < numTracks; trackNumber++) {
+            if (UI.isChecked(trackNumber)) {
                 let midiTrack = new Midi.Track();
                 midiTrack.setTempo(BPM);
 
@@ -519,7 +492,7 @@ namespace MIDI {
                 // For example: Acoustic Guitar Nylon's is # 25 (dec) so its Instrument Code is 24 (dec) === 0x18 (hex)
                 midiTrack.setInstrument(CHANNEL, instrumentNumber - 1);
 
-                midiTracks[t] = midiTrack;
+                midiTracks[trackNumber] = midiTrack;
                 file.addTrack(midiTrack);
             }
         }
@@ -530,7 +503,7 @@ namespace MIDI {
         // in the same track before we turn off the previous NoteGroup.
         let noteGroupsToTurnOff = new Map<number, NoteGroup>(); // track number => NoteGroup
 
-        let noteGroups = getNoteGroupsFromTracks();
+        let noteGroups = Song.getNoteGroupsFromTracks();
         for (let currNoteGroup of noteGroups) {
             let trackNumber = currNoteGroup.trackNumber;
             let midiTrack = midiTracks[trackNumber];
@@ -635,14 +608,14 @@ namespace MIDI {
         // Remember the most recently processed event so that we can merge notes that are played at the same time and on the same track.
         let lastNoteGroup: NoteGroup = null;
         let lastPlayTime = -1;
-        let lastTrackIndex = -1;
+        let lastTrackNumber = -1;
 
         for (let event of midiEvents) {
             let type = event.type;
             let subtype = event.subtype;
             // let status = (event.subtype << 4) + event.channel;
             // let statusCodeHexString = '0x' + status.toString(16).toUpperCase();
-            let trackIndex = event.track;
+            let trackNumber = event.track;
             let playTime = event.playTime; // time in milliseconds
             playTime = Math.round(playTime * 1000) / 1000; // round it to the nearest 0.001
             let midiNoteNum = event.param1;
@@ -652,17 +625,17 @@ namespace MIDI {
 
             if (subtype === MIDIEvents.EVENT_MIDI_NOTE_ON) {
                 if ((playTime <= lastPlayTime + TIME_THRESHOLD_FOR_GROUPING_NEARBY_NOTES) &&
-                    trackIndex === lastTrackIndex) {
+                    trackNumber === lastTrackNumber) {
                     // Merge all notes starting at the same time and on the same track into a single NoteGroup.
                     lastNoteGroup.addNote(noteToPlay);
                 } else {
-                    let noteGroup = new NoteGroup(noteToPlay, playTime, trackIndex);
-                    let currTrack = tracks[trackIndex];
-                    noteGroup.noteIndex = currTrack.length;
+                    let noteGroup = new NoteGroup(noteToPlay, playTime, trackNumber);
+                    let currTrack = Song.getTrack(trackNumber);
+                    noteGroup.noteNumber = currTrack.length;
                     currTrack.push(noteGroup);
 
                     lastNoteGroup = noteGroup;
-                    lastTrackIndex = trackIndex;
+                    lastTrackNumber = trackNumber;
                     lastPlayTime = playTime;
                 }
             }
@@ -777,7 +750,7 @@ namespace Playback {
             }
 
             // Start the MIDI playback.
-            noteGroupsToPlay = getNoteGroupsFromTracks();
+            noteGroupsToPlay = Song.getNoteGroupsFromTracks();
 
             if (noteGroupsToPlay.length === 0) {
                 Playback.stop();
@@ -831,7 +804,7 @@ namespace Playback {
 
         while (currSongTime >= nextEventPlayTime) { // Inspect the next event (at index 0).
             let noteGroup: NoteGroup = noteGroupsToPlay.shift();
-            Highlight.setTrackAndNoteGroup(noteGroup.trackNumber, noteGroup.noteIndex);
+            Highlight.setTrackAndNoteGroup(noteGroup.trackNumber, noteGroup.noteNumber);
 
             for (let note of noteGroup.notes) {
                 playMIDINote(note.midiNote, note.velocity);
@@ -869,10 +842,8 @@ namespace Playback {
         playActiveNoteGroup();
 
         // Whenever we check or uncheck the boxes, we generate a copy of the new song by calling
-        // getNoteGroupsFromTracks().
+        // Song.getNoteGroupsFromTracks().
         // Reset the cursor to the zeroth note.
-
-
 
         // xxx
     }
@@ -886,8 +857,10 @@ namespace Playback {
     function playActiveNoteGroup() {
         let t = Highlight.activeTrack();
         let n = Highlight.activeNoteGroup();
-        let noteGroup = tracks[t][n];
-        if (!noteGroup) { return; }
+        let noteGroup = Song.getNoteGroupFromTrack(n, t);
+        if (!noteGroup) {
+            return;
+        }
         for (let note of noteGroup.notes) {
             playMIDINote(note.midiNote, note.velocity);
         }
@@ -907,65 +880,6 @@ namespace Playback {
         playActiveNoteGroup();
         Highlight.nextNoteGroup();
     }, 100 /* ms */);
-}
-
-// Retrieve the notegroups to play or save to file.
-function getNoteGroupsFromTracks(): NoteGroup[] {
-    let noteGroups: NoteGroup[] = [];
-    let currTimeMillis = 0; // Used when our NoteGroups don't have valid timing information (i.e., manual entry).
-
-    let trackIsChecked: boolean[] = []; // Ignore unchecked tracks.
-    let trackIndexes: number[] = []; // keep pointers to the current NoteGroups we are looking at
-    let numTracks = tracks.length;
-    for (let t = 0; t < numTracks; t++) {
-        trackIsChecked.push(UI.isChecked(t));
-        trackIndexes.push(0);
-    }
-
-    // Round robin between the tracks until we insert all the NoteGroups properly. Always choose the NoteGroup with the minimum playTime.
-    while (true) {
-        let minPlayTime = Number.MAX_VALUE;
-        let nextNoteGroup: NoteGroup = null;
-        let nextNoteGroupTrack: Track = null; // Which track contains the next note group to play?
-
-        // Loop through all the tracks to find the next NoteGroup to play.
-        for (let t = 0; t < numTracks; t++) {
-            let currTrack = tracks[t];
-            let currTrackIndex = trackIndexes[t];
-            let currTrackLength = currTrack.length;
-            if (currTrackLength === 0 || !trackIsChecked[t] || currTrackIndex >= currTrackLength) {
-                continue;
-            } else {
-                let noteGroup = currTrack[currTrackIndex];
-                if (noteGroup.playTimeMillis < minPlayTime) {
-                    minPlayTime = noteGroup.playTimeMillis;
-                    nextNoteGroup = noteGroup;
-                    nextNoteGroupTrack = currTrack;
-                }
-            }
-        }
-
-        // If did not find any NoteGroups, we're done!
-        if (!nextNoteGroup) {
-            break;
-        } else {
-            let ng: NoteGroup = nextNoteGroup.copy();
-            if (ng.playTimeMillis === -1) {
-                ng.playTimeMillis = currTimeMillis;
-            }
-
-            let t = nextNoteGroupTrack.trackNumber;
-            let noteNumber = trackIndexes[t];
-            ng.noteIndex = noteNumber;
-
-            trackIndexes[t]++;
-
-            noteGroups.push(ng);
-            currTimeMillis = ng.playTimeMillis + TIME_BETWEEN_NOTEGROUPS;
-        }
-    }
-
-    return noteGroups;
 }
 
 function logStatus(msg) {
@@ -994,7 +908,7 @@ function setupCopyHandler() {
     document.querySelector('html').addEventListener('copy', function (e: ClipboardEvent) {
         e.preventDefault();
         if (e.clipboardData) {
-            let noteGroups = getNoteGroupsFromTracks();
+            let noteGroups = Song.getNoteGroupsFromTracks();
             let text = '// ' + noteGroups.join(' '); // Melody lines start with two slashes.
             e.clipboardData.setData('text/plain', text);
         }
@@ -1016,10 +930,10 @@ namespace UI {
 
     // TODO: When manually editing, only append and modify the last couple of spans. Don't regenerate the entire thing, for performance!
     export function showNoteGroupsForTracks() {
-        let numTracks = tracks.length;
+        let numTracks = Song.getNumTracks();
         for (let t = 0; t < numTracks; t++) {
             let trackHTML = '';
-            let currTrack = tracks[t];
+            let currTrack = Song.getTrack(t);
             let numNoteGroups = currTrack.length;
             let n = 0;
             for (; n < numNoteGroups; n++) {
@@ -1066,7 +980,7 @@ namespace UI {
             // A textual representation of the song:
             //   V1 => e.g., 40 42 44 45 40.47
             //   V2 => e.g., [24.36 @ 0] [17.29 @ 2730] [36 @ 2904] [41 @ 3029] [44 @ 3152]
-            let noteGroups = getNoteGroupsFromTracks();
+            let noteGroups = Song.getNoteGroupsFromTracks();
             let text = '// ' + noteGroups.join(' '); // Melody lines start with two slashes.
             let base64Text = btoa(text); // base 64 encoding
             $download_text_link.attr('href', 'data:text/plain;base64,' + base64Text);
@@ -1175,10 +1089,10 @@ namespace UI {
                 }
                 break;
             case 8: // BACKSPACE/DEL
-                deleteLastGroup();
+                Song.deleteLastGroup();
                 break;
             case 9: // TAB
-                mergeLastTwoGroups();
+                Song.mergeLastTwoGroups();
                 break;
             case 38: // UP
                 Highlight.prevTrack();
@@ -1247,9 +1161,9 @@ namespace UI {
 
     export function checkAllNonEmptyTracks() {
         checkboxState = [];
-        let numTracks = tracks.length;
+        let numTracks = Song.getNumTracks();
         for (var t = 0; t < numTracks; t++) {
-            if (tracks[t].length > 0) {
+            if (Song.getNumNoteGroupsInTrack(t) > 0) {
                 checkboxState.push(true);
             } else {
                 checkboxState.push(false);
@@ -1289,6 +1203,9 @@ namespace UI {
     }
 
     export function drawPiano() {
+        if (!context2d) {
+            return;
+        }
         let c = context2d;
 
         // clear the background
@@ -1370,13 +1287,17 @@ namespace UI {
         }
     }
 
+    // draw the highlighted group?
     function drawMostRecentGroup(c) {
-        let lastGroup = tracks[0].slice(-1); // array of the last item
-        if (lastGroup.length == 0) {
+        let trackNumber = Highlight.activeTrack();
+        let noteGroupNumber = Highlight.activeNoteGroup();
+
+        let lastGroup = Song.getNoteGroupFromTrack(noteGroupNumber, trackNumber);
+        if (!lastGroup) {
             return;
         }
 
-        let notes: Array<Note> = lastGroup[0].notes;
+        let notes: Array<Note> = lastGroup.notes;
         for (let n of notes) {
             let remainder = n.pianoNote % 12;
 
@@ -1459,6 +1380,131 @@ namespace UI {
         $('html').mouseup((e) => {
             $piano.unbind('mousemove');
         })
+    }
+
+}
+
+namespace Song {
+    let tracks: Array<Track> = [];
+
+    export function reset() {
+        tracks = [];
+    }
+
+    export function addTrack(trackNumber: number) {
+        let track = new Track();
+        track.trackNumber = trackNumber;
+        tracks.push(track);
+    }
+
+    // returns the new length of the track
+    export function addNoteGroupToTrack(noteGroup: NoteGroup, trackNumber: number): number {
+        noteGroup.trackNumber = trackNumber;
+        tracks[trackNumber].push(noteGroup);
+        return tracks[trackNumber].length;
+    }
+
+    export function getNumTracks(): number {
+        return tracks.length;
+    }
+
+    export function getNumNoteGroupsInTrack(t: number) {
+        if (t < 0 || t >= tracks.length) {
+            return 0;
+        } else {
+            return tracks[t].length;
+        }
+    }
+
+    export function getTrack(trackNumber: number): Track {
+        return tracks[trackNumber];
+    }
+
+    export function getTracksAsJSON(): string {
+        return JSON.stringify(tracks);
+    }
+
+    export function mergeLastTwoGroups() {
+        let t = Highlight.activeTrack();
+        let currTrack = tracks[t];
+        if (currTrack.length >= 2) {
+            let merged: NoteGroup = NoteGroup.merge(currTrack.pop(), currTrack.pop());
+            currTrack.push(merged);
+            Highlight.setTrackAndNoteGroup(t, currTrack.length - 1);
+            saveAndShowData();
+        }
+    }
+
+    export function deleteLastGroup() {
+        let t = Highlight.activeTrack();
+        tracks[t].pop();
+        Highlight.setTrackAndNoteGroup(t, tracks[t].length - 1);
+        saveAndShowData();
+    }
+
+    export function getNoteGroupFromTrack(noteGroupNumber: number, trackNumber: number) {
+        // TODO: error check?
+        return tracks[trackNumber][noteGroupNumber];
+    }
+
+    // Retrieve the notegroups to play or save to file.
+    // The results are cached! We invalidate the cache anytime we add or subtract notes, or change the state of the checkboxes.
+    export function getNoteGroupsFromTracks(): NoteGroup[] {
+        let noteGroups: NoteGroup[] = [];
+        let currTimeMillis = 0; // Used when our NoteGroups don't have valid timing information (i.e., manual entry).
+
+        let trackIsChecked: boolean[] = []; // Ignore unchecked tracks.
+        let noteGroupNumberPerTrack: number[] = []; // keep pointers to the current NoteGroups we are looking at
+        let numTracks = tracks.length;
+        for (let t = 0; t < numTracks; t++) {
+            trackIsChecked.push(UI.isChecked(t));
+            noteGroupNumberPerTrack.push(0);
+        }
+
+        // Round robin between the tracks until we insert all the NoteGroups properly. Always choose the NoteGroup with the minimum playTime.
+        while (true) {
+            let minPlayTime = Number.MAX_VALUE;
+            let nextNoteGroup: NoteGroup = null;
+            let nextNoteGroupTrack: Track = null; // Which track contains the next note group to play?
+
+            // Loop through all the tracks to find the next NoteGroup to play.
+            for (let t = 0; t < numTracks; t++) {
+                let currTrack = tracks[t];
+                let currNoteGroupNumber = noteGroupNumberPerTrack[t];
+                let currTrackLength = currTrack.length;
+                if (currTrackLength === 0 || !trackIsChecked[t] || currNoteGroupNumber >= currTrackLength) {
+                    continue;
+                } else {
+                    let noteGroup = currTrack[currNoteGroupNumber];
+                    if (noteGroup.playTimeMillis < minPlayTime) {
+                        minPlayTime = noteGroup.playTimeMillis;
+                        nextNoteGroup = noteGroup;
+                        nextNoteGroupTrack = currTrack;
+                    }
+                }
+            }
+
+            // If did not find any NoteGroups, we're done!
+            if (!nextNoteGroup) {
+                break;
+            } else {
+                let ng: NoteGroup = nextNoteGroup.copy();
+                if (ng.playTimeMillis === -1) {
+                    ng.playTimeMillis = currTimeMillis;
+                }
+
+                let t = nextNoteGroupTrack.trackNumber;
+                let noteNumber = noteGroupNumberPerTrack[t];
+                ng.noteNumber = noteNumber;
+
+                noteGroupNumberPerTrack[t]++;
+
+                noteGroups.push(ng);
+                currTimeMillis = ng.playTimeMillis + TIME_BETWEEN_NOTEGROUPS;
+            }
+        }
+
+        return noteGroups;
     }
 
 }

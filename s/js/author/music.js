@@ -18,7 +18,7 @@ class NoteGroup {
     constructor(a, playTimeMillis = -1, trackIndex = 0) {
         this.playTimeMillis = -1;
         this.trackNumber = 0; // Which MIDI track was this NoteGroup extracted from?
-        this.noteIndex = -1; // What is the index of the MIDI note?
+        this.noteNumber = -1; // What is the index of the MIDI note?
         this.playTimeMillis = playTimeMillis;
         this.trackNumber = trackIndex;
         if (typeof a === 'string') {
@@ -71,8 +71,12 @@ class NoteGroup {
             return `[${this.notes.join('.')} @ ${this.playTimeMillis}]`; // V2 contains the playTime for each NoteGroup
         }
     }
+    // Used by Song.getTracksAsJSON() in piano.v2.ts
+    toJSON() {
+        return this.toString();
+    }
     toFullString() {
-        return `${this.notes.join('.')} @ ${this.playTimeMillis} with trackIndex: ${this.trackNumber} noteGroupIndex: ${this.noteIndex}`;
+        return `${this.notes.join('.')} @ ${this.playTimeMillis} with trackIndex: ${this.trackNumber} noteGroupIndex: ${this.noteNumber}`;
     }
     // V1 of our Tiny Piano Song format does not contain the playTime
     // toString(): string {
@@ -85,7 +89,7 @@ class NoteGroup {
         let clone = new NoteGroup(this.toString());
         clone.playTimeMillis = this.playTimeMillis;
         clone.trackNumber = this.trackNumber;
-        clone.noteIndex = this.noteIndex;
+        clone.noteNumber = this.noteNumber;
         return clone;
     }
     static merge(n1, n2) {

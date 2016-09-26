@@ -12,7 +12,7 @@ class NoteGroup {
     notes: Array<Note>;
     playTimeMillis: number = -1;
     trackNumber: number = 0; // Which MIDI track was this NoteGroup extracted from?
-    noteIndex: number = -1; // What is the index of the MIDI note?
+    noteNumber: number = -1; // What is the index of the MIDI note?
     // durationMillis: number = -1; // TODO: if a duration is specified, all notes get the same duration. This overrides each individual note's duration.
 
     // NoteGroup looks like: 40.44.47 or [40.44.47 @ 1530]
@@ -75,8 +75,13 @@ class NoteGroup {
         }
     }
 
+    // Used by Song.getTracksAsJSON() in piano.v2.ts
+    toJSON(): string {
+        return this.toString();
+    }
+
     toFullString(): string {
-        return `${this.notes.join('.')} @ ${this.playTimeMillis} with trackIndex: ${this.trackNumber} noteGroupIndex: ${this.noteIndex}`;
+        return `${this.notes.join('.')} @ ${this.playTimeMillis} with trackIndex: ${this.trackNumber} noteGroupIndex: ${this.noteNumber}`;
     }
 
     // V1 of our Tiny Piano Song format does not contain the playTime
@@ -92,7 +97,7 @@ class NoteGroup {
         let clone = new NoteGroup(this.toString());
         clone.playTimeMillis = this.playTimeMillis;
         clone.trackNumber = this.trackNumber;
-        clone.noteIndex = this.noteIndex;
+        clone.noteNumber = this.noteNumber;
         return clone;
     }
 
