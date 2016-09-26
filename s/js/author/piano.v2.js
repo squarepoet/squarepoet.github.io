@@ -147,40 +147,11 @@ function addTracks(numTracks) {
 function saveAndShowData() {
     LocalStorage.saveCheckBoxes();
     LocalStorage.saveTracks();
-    showNoteGroupsForTracks();
+    UI.showNoteGroupsForTracks();
     UI.drawPiano();
 }
 function getNoteGroupID(trackNumber, noteGroupNumber) {
     return `t${trackNumber}_n${noteGroupNumber}`;
-}
-// TODO: When manually editing, only append and modify the last couple of spans. Don't regenerate the entire thing, for performance!
-function showNoteGroupsForTracks() {
-    let numTracks = tracks.length;
-    for (let t = 0; t < numTracks; t++) {
-        let trackHTML = '';
-        let currTrack = tracks[t];
-        let numNoteGroups = currTrack.length;
-        let n = 0;
-        for (; n < numNoteGroups; n++) {
-            let noteGroup = currTrack[n];
-            let multiple = (noteGroup.numNotes > 1) ? ' multiple' : '';
-            let noteGroupID = getNoteGroupID(t, n); // t_0_n_0 stands for track 0 notegroup 0
-            trackHTML += `<div id="${noteGroupID}" class="notegroup${multiple}">${noteGroup.toString()}</div>`;
-        }
-        $tracks[t].html(trackHTML);
-        if (numNoteGroups > 0) {
-            $trackInfos[t].html(`${numNoteGroups}`);
-            $(`#track-${t}-container`).removeClass('empty');
-        }
-        else {
-            $trackInfos[t].html('');
-            UI.setCheckedState(t, false); // Don't check an empty track.
-            $(`#track-${t}-container`).addClass('empty');
-        }
-        $(`#track-${t}-checkbox`).prop('checked', UI.isChecked(t));
-        scrollNoteGroupIntoView(t, n); // n is set to the last noteGroup
-    }
-    Highlight.update();
 }
 function scrollNoteGroupIntoView(trackNumber, noteGroupNumber) {
     let noteGroupID = getNoteGroupID(trackNumber, noteGroupNumber);
@@ -204,6 +175,7 @@ function deleteLastGroup() {
     tracks[t].pop();
     saveAndShowData();
 }
+////////////////////////////////////////////////////////////
 var LocalStorage;
 (function (LocalStorage) {
     function load() {
@@ -280,9 +252,9 @@ var LocalStorage;
     }
     LocalStorage.saveSharpsAndFlats = saveSharpsAndFlats;
 })(LocalStorage || (LocalStorage = {}));
-function play(basePianoKey) {
+function playOneNote(pianoKeyBeforeModifiers) {
     // get the name of the note we are about to play
-    let remainder = basePianoKey % 12;
+    let remainder = pianoKeyBeforeModifiers % 12;
     let whiteKeyNoteIndex = whiteKeys.indexOf(remainder);
     let noteLabel = noteLabels[whiteKeyNoteIndex];
     let modifier = sharpOrFlatModifier;
@@ -294,7 +266,7 @@ function play(basePianoKey) {
     if (flats.indexOf(noteLabel) != -1) {
         modifier--; // lower the note a half-step!
     }
-    let pianoKeyNumber = basePianoKey + modifier + (octaveOffset * 12);
+    let pianoKeyNumber = pianoKeyBeforeModifiers + modifier + (octaveOffset * 12);
     if (pianoKeyNumber < 1 || pianoKeyNumber > 88) {
         return;
     }
@@ -303,169 +275,6 @@ function play(basePianoKey) {
     UI.setCheckedState(t, true);
     playMIDINote(p2m(pianoKeyNumber));
     saveAndShowData();
-}
-function setupKeyHandlers() {
-    $(document).bind('keyup', onKeyUpHandler);
-    $(document).bind('keydown', onKeyDownHandler);
-}
-function onKeyUpHandler(e) {
-    // update our sharps / flats
-    if ($sharps.is(":focus")) {
-        sharps = $sharps.val().toLowerCase();
-        LocalStorage.saveSharpsAndFlats();
-    }
-    else if ($flats.is(":focus")) {
-        flats = $flats.val().toLowerCase();
-        LocalStorage.saveSharpsAndFlats();
-    }
-    else {
-        // Released CTRL or ALT
-        if (e.ctrlKey) {
-            sharpOrFlatModifier = 0;
-        }
-        else if (e.altKey) {
-            sharpOrFlatModifier = 0;
-        }
-    }
-}
-function onKeyDownHandler(e) {
-    if ($sharps.is(":focus") || $flats.is(":focus")) {
-        return; // if we are typing in the sharps/flats input, we should ignore the rest of the key handler
-    }
-    let keyCode = e.keyCode;
-    // e.metaKey => CMD (91 is LEFT CMD & 93 is RIGHT COMD)
-    if (e.metaKey) {
-        if (keyCode == 37 || keyCode == 39) {
-        }
-        else {
-            // Ignore when we have the CMD pressed down, so that we can use the browser's hotkeys.
-            return;
-        }
-    }
-    sharpOrFlatModifier = 0;
-    if (e.ctrlKey) {
-        sharpOrFlatModifier = -1;
-    }
-    if (e.altKey) {
-        sharpOrFlatModifier = +1;
-    }
-    e.preventDefault();
-    switch (keyCode) {
-        case 13:
-            Playback.togglePlayPause();
-            break;
-        case 33:
-            console.log('fn + UP');
-            // Up an octave.
-            octaveOffset++;
-            if (octaveOffset > 2) {
-                octaveOffset = 2;
-            }
-            UI.drawPiano();
-            break;
-        case 34:
-            console.log('fn + DOWN');
-            // Down an octave.
-            octaveOffset--;
-            if (octaveOffset < -2) {
-                octaveOffset = -2;
-            }
-            UI.drawPiano();
-            break;
-        case 36:
-            Playback.playNoteAndGoBackwardInTheSong(); // Find the previous note to play via round robin.
-            break;
-        case 35:
-            Playback.playNoteAndGoForwardInTheSong(); // Find the next note to play via round robin.
-            break;
-        case 112:
-            console.log('F1');
-            break;
-        case 113:
-            console.log('F2');
-            break;
-        case 114:
-            console.log('F3');
-            break;
-        case 115:
-            console.log('F4');
-            break;
-        case 116:
-            console.log('F5');
-            break;
-        case 27:
-            if (e.shiftKey) {
-                resetEverything();
-            }
-            else {
-                resetOffset();
-            }
-            break;
-        case 8:
-            deleteLastGroup();
-            break;
-        case 9:
-            mergeLastTwoGroups();
-            break;
-        case 38:
-            Highlight.prevTrack();
-            break;
-        case 40:
-            Highlight.nextTrack();
-            break;
-        case 37:
-            if (e.metaKey) {
-                Highlight.firstNoteGroup();
-            }
-            else {
-                if (e.shiftKey) {
-                    Playback.playNoteAndGoBackwardOnActiveTrack();
-                }
-                else {
-                    Highlight.prevNoteGroup();
-                }
-            }
-            break;
-        case 39:
-            if (e.metaKey) {
-                Highlight.lastNoteGroup();
-            }
-            else {
-                if (e.shiftKey) {
-                    Playback.playNoteAndGoForwardOnActiveTrack();
-                }
-                else {
-                    Highlight.nextNoteGroup();
-                }
-            }
-            break;
-        default:
-            if (Keyboard.keyCodeToPianoKeyNumber.hasOwnProperty(keyCode)) {
-                play(Keyboard.keyCodeToPianoKeyNumber[keyCode]);
-            }
-            break;
-    }
-}
-function setupMouseHandlers() {
-    Playback.setupButtons();
-    // When we hover over the Download MIDI | TEXT links, we update
-    // the href attributes so that we download the correct data.
-    $download_midi_link.mouseover(() => {
-        // GENERATE THE MIDI FILE FROM OUR TRACKS. BASE 64 ENCODE IT.
-        let midi = MIDI.getFileFromTracks();
-        let base64Text = btoa(midi); // base 64 encoding
-        $download_midi_link.attr('href', 'data:audio/midi;base64,' + base64Text);
-    });
-    $download_text_link.mouseover(() => {
-        // GENERATE THE TEXT FILE FROM OUR TRACKS. BASE 64 ENCODE IT.
-        // A textual representation of the song:
-        //   V1 => e.g., 40 42 44 45 40.47
-        //   V2 => e.g., [24.36 @ 0] [17.29 @ 2730] [36 @ 2904] [41 @ 3029] [44 @ 3152]
-        let noteGroups = getNoteGroupsFromTracks();
-        let text = '// ' + noteGroups.join(' '); // Melody lines start with two slashes.
-        let base64Text = btoa(text); // base 64 encoding
-        $download_text_link.attr('href', 'data:text/plain;base64,' + base64Text);
-    });
 }
 function setupTracks(numTracks) {
     tracks = [];
@@ -476,22 +285,6 @@ function setupTracks(numTracks) {
 }
 function displayFileInfo(file) {
     $('#file-info').text(`Loaded File: ${file.name} | Size: ${file.size} bytes`);
-}
-function setupDragAndDrop() {
-    let handlers = {
-        onDrop: (files, pos) => {
-            // console.log('Here are the dropped files', files)
-            // console.log('Dropped at coordinates', pos.x, pos.y)
-            MIDI.readFile(files[0]); // Get the first file.
-        },
-        onDragOver: () => {
-            $('#bottom-panel').addClass('drag');
-        },
-        onDragLeave: () => {
-            $('#bottom-panel').removeClass('drag');
-        }
-    };
-    DragDrop('html', handlers);
 }
 function setupFileChooser() {
     let $fileChooser = $('#filechooser');
@@ -974,10 +767,6 @@ var Playback;
         // Whenever we check or uncheck the boxes, we generate a copy of the new song by calling
         // getNoteGroupsFromTracks().
         // Reset the cursor to the zeroth note.
-        // We need multiple cursors to keep track of where we are on each track.
-        // The cursors all start at index 0.
-        // To play the next note, round robin all the cursors to find the next notegroup. (If the notegroup is on an unchecked track, keep going.)
-        // ....
         // xxx
     }
     Playback.playNoteAndGoBackwardInTheSong = playNoteAndGoBackwardInTheSong;
@@ -1067,23 +856,12 @@ function getNoteGroupsFromTracks() {
 function logStatus(msg) {
     $currentStatus.text(msg);
 }
-function setupJQueryDOMReferences() {
-    $sharps = $('#sharps-text');
-    $flats = $('#flats-text');
-    $currentStatus = $('#current-status');
-    $download_midi_link = $('#download_midi_link');
-    $download_text_link = $('#download_text_link');
-    $playButton = $('#play-button');
-    $pauseButton = $('#pause-button');
-    $stopButton = $('#stop-button');
-}
 function go() {
-    setupJQueryDOMReferences();
+    UI.setupJQueryDOMReferences();
     LocalStorage.load();
-    showNoteGroupsForTracks();
-    setupKeyHandlers();
-    setupMouseHandlers();
-    setupDragAndDrop();
+    UI.showNoteGroupsForTracks();
+    UI.setupKeyHandlers();
+    UI.setupMouseHandlers();
     setupFileChooser();
     setupCopyHandler();
     UI.setupPianoCanvas();
@@ -1102,6 +880,232 @@ function setupCopyHandler() {
 }
 var UI;
 (function (UI) {
+    function setupJQueryDOMReferences() {
+        $sharps = $('#sharps-text');
+        $flats = $('#flats-text');
+        $currentStatus = $('#current-status');
+        $download_midi_link = $('#download_midi_link');
+        $download_text_link = $('#download_text_link');
+        $playButton = $('#play-button');
+        $pauseButton = $('#pause-button');
+        $stopButton = $('#stop-button');
+    }
+    UI.setupJQueryDOMReferences = setupJQueryDOMReferences;
+    // TODO: When manually editing, only append and modify the last couple of spans. Don't regenerate the entire thing, for performance!
+    function showNoteGroupsForTracks() {
+        let numTracks = tracks.length;
+        for (let t = 0; t < numTracks; t++) {
+            let trackHTML = '';
+            let currTrack = tracks[t];
+            let numNoteGroups = currTrack.length;
+            let n = 0;
+            for (; n < numNoteGroups; n++) {
+                let noteGroup = currTrack[n];
+                let multiple = (noteGroup.numNotes > 1) ? ' multiple' : '';
+                let noteGroupID = getNoteGroupID(t, n); // t_0_n_0 stands for track 0 notegroup 0
+                trackHTML += `<div id="${noteGroupID}" class="notegroup${multiple}">${noteGroup.toString()}</div>`;
+            }
+            $tracks[t].html(trackHTML);
+            if (numNoteGroups > 0) {
+                $trackInfos[t].html(`${numNoteGroups}`);
+                $(`#track-${t}-container`).removeClass('empty');
+            }
+            else {
+                $trackInfos[t].html('');
+                UI.setCheckedState(t, false); // Don't check an empty track.
+                $(`#track-${t}-container`).addClass('empty');
+            }
+            $(`#track-${t}-checkbox`).prop('checked', UI.isChecked(t));
+            scrollNoteGroupIntoView(t, n); // n is set to the last noteGroup
+        }
+        Highlight.update();
+    }
+    UI.showNoteGroupsForTracks = showNoteGroupsForTracks;
+    ////////////////////////////////////////////////////////////
+    // MOUSE & KEYBOARD
+    function setupMouseHandlers() {
+        Playback.setupButtons();
+        // When we hover over the Download MIDI | TEXT links, we update
+        // the href attributes so that we download the correct data.
+        $download_midi_link.mouseover(() => {
+            // GENERATE THE MIDI FILE FROM OUR TRACKS. BASE 64 ENCODE IT.
+            let midi = MIDI.getFileFromTracks();
+            let base64Text = btoa(midi); // base 64 encoding
+            $download_midi_link.attr('href', 'data:audio/midi;base64,' + base64Text);
+        });
+        $download_text_link.mouseover(() => {
+            // GENERATE THE TEXT FILE FROM OUR TRACKS. BASE 64 ENCODE IT.
+            // A textual representation of the song:
+            //   V1 => e.g., 40 42 44 45 40.47
+            //   V2 => e.g., [24.36 @ 0] [17.29 @ 2730] [36 @ 2904] [41 @ 3029] [44 @ 3152]
+            let noteGroups = getNoteGroupsFromTracks();
+            let text = '// ' + noteGroups.join(' '); // Melody lines start with two slashes.
+            let base64Text = btoa(text); // base 64 encoding
+            $download_text_link.attr('href', 'data:text/plain;base64,' + base64Text);
+        });
+        setupDragAndDropFileUpload();
+    }
+    UI.setupMouseHandlers = setupMouseHandlers;
+    function setupDragAndDropFileUpload() {
+        let handlers = {
+            onDrop: (files, pos) => {
+                // console.log('Here are the dropped files', files)
+                // console.log('Dropped at coordinates', pos.x, pos.y)
+                MIDI.readFile(files[0]); // Get the first file.
+            },
+            onDragOver: () => {
+                $('#bottom-panel').addClass('drag');
+            },
+            onDragLeave: () => {
+                $('#bottom-panel').removeClass('drag');
+            }
+        };
+        DragDrop('html', handlers);
+    }
+    function setupKeyHandlers() {
+        $(document)
+            .bind('keydown', onKeyDownHandler)
+            .bind('keyup', onKeyUpHandler);
+    }
+    UI.setupKeyHandlers = setupKeyHandlers;
+    function onKeyDownHandler(e) {
+        if ($sharps.is(":focus") || $flats.is(":focus")) {
+            return; // if we are typing in the sharps/flats input, we should ignore the rest of the key handler
+        }
+        let keyCode = e.keyCode;
+        // e.metaKey => CMD (91 is LEFT CMD & 93 is RIGHT COMD)
+        if (e.metaKey) {
+            if (keyCode == 37 || keyCode == 39) {
+            }
+            else {
+                // Ignore when we have the CMD pressed down, so that we can use the browser's hotkeys.
+                return;
+            }
+        }
+        sharpOrFlatModifier = 0;
+        if (e.ctrlKey) {
+            sharpOrFlatModifier = -1;
+        }
+        if (e.altKey) {
+            sharpOrFlatModifier = +1;
+        }
+        e.preventDefault();
+        switch (keyCode) {
+            case 13:
+                Playback.togglePlayPause();
+                break;
+            case 33:
+                console.log('fn + UP');
+                // Up an octave.
+                octaveOffset++;
+                if (octaveOffset > 2) {
+                    octaveOffset = 2;
+                }
+                UI.drawPiano();
+                break;
+            case 34:
+                console.log('fn + DOWN');
+                // Down an octave.
+                octaveOffset--;
+                if (octaveOffset < -2) {
+                    octaveOffset = -2;
+                }
+                UI.drawPiano();
+                break;
+            case 36:
+                Playback.playNoteAndGoBackwardInTheSong(); // Find the previous note to play via round robin.
+                break;
+            case 35:
+                Playback.playNoteAndGoForwardInTheSong(); // Find the next note to play via round robin.
+                break;
+            case 112:
+                console.log('F1');
+                break;
+            case 113:
+                console.log('F2');
+                break;
+            case 114:
+                console.log('F3');
+                break;
+            case 115:
+                console.log('F4');
+                break;
+            case 116:
+                console.log('F5');
+                break;
+            case 27:
+                if (e.shiftKey) {
+                    resetEverything();
+                }
+                else {
+                    resetOffset();
+                }
+                break;
+            case 8:
+                deleteLastGroup();
+                break;
+            case 9:
+                mergeLastTwoGroups();
+                break;
+            case 38:
+                Highlight.prevTrack();
+                break;
+            case 40:
+                Highlight.nextTrack();
+                break;
+            case 37:
+                if (e.metaKey) {
+                    Highlight.firstNoteGroup();
+                }
+                else {
+                    if (e.shiftKey) {
+                        Playback.playNoteAndGoBackwardOnActiveTrack();
+                    }
+                    else {
+                        Highlight.prevNoteGroup();
+                    }
+                }
+                break;
+            case 39:
+                if (e.metaKey) {
+                    Highlight.lastNoteGroup();
+                }
+                else {
+                    if (e.shiftKey) {
+                        Playback.playNoteAndGoForwardOnActiveTrack();
+                    }
+                    else {
+                        Highlight.nextNoteGroup();
+                    }
+                }
+                break;
+            default:
+                if (Keyboard.keyCodeToPianoKeyNumber.hasOwnProperty(keyCode)) {
+                    playOneNote(Keyboard.keyCodeToPianoKeyNumber[keyCode]);
+                }
+                break;
+        }
+    }
+    function onKeyUpHandler(e) {
+        // update our sharps / flats
+        if ($sharps.is(":focus")) {
+            sharps = $sharps.val().toLowerCase();
+            LocalStorage.saveSharpsAndFlats();
+        }
+        else if ($flats.is(":focus")) {
+            flats = $flats.val().toLowerCase();
+            LocalStorage.saveSharpsAndFlats();
+        }
+        else {
+            // Released CTRL or ALT
+            if (e.ctrlKey) {
+                sharpOrFlatModifier = 0;
+            }
+            else if (e.altKey) {
+                sharpOrFlatModifier = 0;
+            }
+        }
+    }
     ////////////////////////////////////////////////////////////
     // The checkboxes to choose active tracks.
     let checkboxState = [true]; // every time a checkbox changes state, its boolean value is written into this array.
@@ -1280,14 +1284,14 @@ var UI;
             let y = e.pageY - offsetTop;
             let pianoKeyNumber = getPianoKeyNumberForMouseLocation(x, y);
             let lastKeyNumber = pianoKeyNumber;
-            play(pianoKeyNumber);
+            playOneNote(pianoKeyNumber);
             $piano.mousemove(function (e) {
                 let x = e.pageX - offsetLeft;
                 let y = e.pageY - offsetTop;
                 let pianoKeyNumber = getPianoKeyNumberForMouseLocation(x, y);
                 if (pianoKeyNumber !== lastKeyNumber) {
                     lastKeyNumber = pianoKeyNumber;
-                    play(pianoKeyNumber);
+                    playOneNote(pianoKeyNumber);
                 }
             });
         });
