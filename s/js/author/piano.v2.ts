@@ -157,9 +157,9 @@ function addTracks(numTracks) {
     for (let t = 0; t < numTracks; t++) {
         let $checkbox = $(`#track-${t}-checkbox`);
         $checkbox.change(function () {
-            console.log('$checkbox.change: ' + this.checked);
             UI.setCheckedState(t, this.checked);
             LocalStorage.saveCheckBoxes();
+            Song.invalidateCache();
         });
         $tracks.push($(`#track-${t}`));
         $trackInfos.push($(`#track-${t}-info`));
@@ -630,10 +630,7 @@ namespace MIDI {
                     lastNoteGroup.addNote(noteToPlay);
                 } else {
                     let noteGroup = new NoteGroup(noteToPlay, playTime, trackNumber);
-                    let currTrack = Song.getTrack(trackNumber);
-                    noteGroup.noteNumber = currTrack.length;
-                    currTrack.push(noteGroup);
-
+                    Song.addNoteGroupToTrack(noteGroup, trackNumber);
                     lastNoteGroup = noteGroup;
                     lastTrackNumber = trackNumber;
                     lastPlayTime = playTime;
@@ -933,11 +930,10 @@ namespace UI {
         let numTracks = Song.getNumTracks();
         for (let t = 0; t < numTracks; t++) {
             let trackHTML = '';
-            let currTrack = Song.getTrack(t);
-            let numNoteGroups = currTrack.length;
+            let numNoteGroups = Song.getNumNoteGroupsInTrack(t);;
             let n = 0;
             for (; n < numNoteGroups; n++) {
-                let noteGroup = currTrack[n];
+                let noteGroup = Song.getNoteGroupFromTrack(n, t);
                 let multiple = (noteGroup.numNotes > 1) ? ' multiple' : '';
                 let noteGroupID = getNoteGroupID(t, n); // t_0_n_0 stands for track 0 notegroup 0
                 trackHTML += `<div id="${noteGroupID}" class="notegroup${multiple}">${noteGroup.toString()}</div>`;
@@ -1387,8 +1383,15 @@ namespace UI {
 namespace Song {
     let tracks: Array<Track> = [];
 
+    let cachedNoteGroups: NoteGroup[] = null;
+    let cacheIsValid = false;
+
     export function reset() {
         tracks = [];
+    }
+
+    export function invalidateCache() {
+        cacheIsValid = false;
     }
 
     export function addTrack(trackNumber: number) {
@@ -1399,8 +1402,12 @@ namespace Song {
 
     // returns the new length of the track
     export function addNoteGroupToTrack(noteGroup: NoteGroup, trackNumber: number): number {
+        invalidateCache(); // Every time we modify the tracks, we need to invalidate the cache.
+
+        let track = tracks[trackNumber];
         noteGroup.trackNumber = trackNumber;
-        tracks[trackNumber].push(noteGroup);
+        noteGroup.noteNumber = track.length;
+        track.push(noteGroup);
         return tracks[trackNumber].length;
     }
 
@@ -1416,21 +1423,17 @@ namespace Song {
         }
     }
 
-    export function getTrack(trackNumber: number): Track {
-        return tracks[trackNumber];
-    }
-
     export function getTracksAsJSON(): string {
         return JSON.stringify(tracks);
     }
 
     export function mergeLastTwoGroups() {
-        let t = Highlight.activeTrack();
-        let currTrack = tracks[t];
+        let trackNumber = Highlight.activeTrack();
+        let currTrack = tracks[trackNumber];
         if (currTrack.length >= 2) {
-            let merged: NoteGroup = NoteGroup.merge(currTrack.pop(), currTrack.pop());
-            currTrack.push(merged);
-            Highlight.setTrackAndNoteGroup(t, currTrack.length - 1);
+            let mergedNoteGroup: NoteGroup = NoteGroup.merge(currTrack.pop(), currTrack.pop());
+            addNoteGroupToTrack(mergedNoteGroup, trackNumber);
+            Highlight.setTrackAndNoteGroup(trackNumber, currTrack.length - 1);
             saveAndShowData();
         }
     }
@@ -1450,6 +1453,13 @@ namespace Song {
     // Retrieve the notegroups to play or save to file.
     // The results are cached! We invalidate the cache anytime we add or subtract notes, or change the state of the checkboxes.
     export function getNoteGroupsFromTracks(): NoteGroup[] {
+        if (cacheIsValid) {
+            console.log('Just return the cached NoteGroups!!!!!!');
+            return cachedNoteGroups;
+        }
+
+        console.log('Recompute Cached NoteGroups');
+
         let noteGroups: NoteGroup[] = [];
         let currTimeMillis = 0; // Used when our NoteGroups don't have valid timing information (i.e., manual entry).
 
@@ -1504,6 +1514,8 @@ namespace Song {
             }
         }
 
+        cachedNoteGroups = noteGroups;
+        cacheIsValid = true;
         return noteGroups;
     }
 
