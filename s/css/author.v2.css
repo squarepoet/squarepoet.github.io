@@ -197,6 +197,19 @@ input {
     animation-duration: 0.4s;
 }
 
+.version-toggle {
+    float: left;
+    background-color: #EEE;
+    color: #777;
+    padding: 3px 15px;
+    cursor: pointer;
+}
+
+.version-toggle.selected {
+    color: #333;
+    background-color: #CDEDFF;
+}
+
 
 /* tweak the margins on half-width display */
 

@@ -84,10 +84,10 @@ class NoteGroup {
         return `${this.notes.join('.')} @ ${this.playTimeMillis} with trackIndex: ${this.trackNumber} noteGroupIndex: ${this.noteNumber}`;
     }
 
-    // V1 of our Tiny Piano Song format does not contain the playTime
-    // toString(): string {
-    //     return this.notes.join('.');
-    // }
+    // V1 of our Tiny Piano Song format does not contain the playTime.
+    toStringV1(): string {
+        return this.notes.join('.');
+    }
 
     get numNotes(): number {
         return this.notes.length;

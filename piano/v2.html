@@ -26,10 +26,14 @@
 </head>
 
 <body>
-    <div style="float:left;">
+    <div style="float:left; margin: 3px 0px;">
         Save as
-        <a id="download_midi_link" href="data:text/plain;base64,Tm90aGluZw==" download="song.mid">MIDI</a> or
+        <a id="download_midi_link" href="data:text/plain;base64,Tm90aGluZw==" download="song.mid">MIDI</a>&nbsp;&nbsp;or&nbsp;
         <a id="download_text_link" href="data:text/plain;base64,Tm90aGluZw==" download="song.txt">TEXT</a>
+    </div>
+    <div style="float:left;margin-left:8px;">
+        <div class="version-toggle" id="toggle_v1" href="#">V1</div>
+        <div class="version-toggle" id="toggle_v2" href="#">V2</div>
     </div>
     <div style="float:right;">
         ctrl &rarr; flat &nbsp;&nbsp;&nbsp;&nbsp; alt &rarr; sharp &nbsp;&nbsp;&nbsp;&nbsp; shift + esc &rarr; clear<br/> up/down &rarr; +/- octave &nbsp;&nbsp;&nbsp;&nbsp; tab &rarr; combine &nbsp;&nbsp;&nbsp;&nbsp; cmd + c &rarr; copy

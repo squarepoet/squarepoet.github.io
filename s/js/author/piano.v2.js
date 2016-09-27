@@ -8,10 +8,10 @@ const WORKER_URL = '/s/js/author/piano.v2.worker.js';
 let $tracks = []; // jQuery references to the elements. Allows us to modify the DOM.
 let $trackInfos = []; // jQuery references to the elements. Allows us to modify the DOM.
 let $currentStatus = null;
-let $sharps, $flats;
 let sharps = ""; // the string value of the $sharps input
 let flats = "";
 let octaveOffset = 0;
+let songVersion = 1;
 // jQuery references to the DOM
 let $download_midi_link = null;
 let $download_text_link = null;
@@ -165,6 +165,7 @@ var LocalStorage;
         loadTracks();
         loadSharpsAndFlats();
         loadCheckboxes();
+        loadVersionToggle();
     }
     LocalStorage.load = load;
     function loadSharpsAndFlats() {
@@ -172,12 +173,21 @@ var LocalStorage;
             localStorage.setItem('sharps', '');
         }
         sharps = localStorage.getItem('sharps');
-        $sharps.val(sharps);
         if (!localStorage.getItem('flats')) {
             localStorage.setItem('flats', '');
         }
         flats = localStorage.getItem('flats');
-        $flats.val(flats);
+        UI.updateSharpsAndFlats();
+    }
+    function loadVersionToggle() {
+        if (!localStorage.getItem('song_version')) {
+            localStorage.setItem('song_version', '1');
+        }
+        songVersion = parseInt(localStorage.getItem('song_version'));
+        if (songVersion !== 1 && songVersion !== 2) {
+            songVersion = 1;
+        }
+        UI.updateVersionToggle();
     }
     function loadTracks() {
         try {
@@ -226,6 +236,10 @@ var LocalStorage;
         localStorage.setItem('flats', flats);
     }
     LocalStorage.saveSharpsAndFlats = saveSharpsAndFlats;
+    function saveVersionToggle() {
+        localStorage.setItem('song_version', songVersion + '');
+    }
+    LocalStorage.saveVersionToggle = saveVersionToggle;
 })(LocalStorage || (LocalStorage = {}));
 function playOneNote(pianoKeyBeforeModifiers) {
     // get the name of the note we are about to play
@@ -258,21 +272,6 @@ function setupTracks(numTracks) {
     $trackInfos = [];
     addTracks(numTracks);
     Highlight.setupIndexes();
-}
-function displayFileInfo(file) {
-    $('#file-info').text(`Loaded File: ${file.name} | Size: ${file.size} bytes`);
-}
-function setupFileChooser() {
-    let $fileChooser = $('#filechooser');
-    $fileChooser.change((e) => {
-        let files = e.target.files;
-        if (files.length > 0) {
-            MIDI.readFile(files[0]); // Get the first file.
-        }
-    });
-    $('#filechooserlabel').mousedown((e) => {
-        $fileChooser[0].value = null;
-    });
 }
 function displaySongInfo(params) {
     let duration = Math.round(params.duration * 100) / 100;
@@ -513,7 +512,7 @@ var MIDI;
         let reader = new FileReader();
         reader.addEventListener('load', (e) => {
             let arrayBuffer = e.target.result;
-            displayFileInfo(file);
+            UI.displayFileInfo(file);
             parseData(arrayBuffer);
         });
         reader.addEventListener('error', (err) => {
@@ -795,25 +794,35 @@ function go() {
     UI.showNoteGroupsForTracks();
     UI.setupKeyHandlers();
     UI.setupMouseHandlers();
-    setupFileChooser();
-    setupCopyHandler();
+    UI.setupFileChooser();
+    UI.setupCopyHandler();
     UI.setupPianoCanvas();
     UI.setupPianoMouseHandlers();
     UI.drawPiano();
 }
-function setupCopyHandler() {
-    document.querySelector('html').addEventListener('copy', function (e) {
-        e.preventDefault();
-        if (e.clipboardData) {
-            let noteGroups = Song.getNoteGroupsFromTracks();
-            let text = '// ' + noteGroups.join(' '); // Melody lines start with two slashes.
-            e.clipboardData.setData('text/plain', text);
-        }
-    });
-}
 var UI;
 (function (UI) {
+    let $sharps, $flats;
+    let $toggle_v1, $toggle_v2;
+    function updateSharpsAndFlats() {
+        $sharps.val(sharps);
+        $flats.val(flats);
+    }
+    UI.updateSharpsAndFlats = updateSharpsAndFlats;
+    function updateVersionToggle() {
+        $toggle_v1.removeClass('selected');
+        $toggle_v2.removeClass('selected');
+        if (songVersion === 1) {
+            $toggle_v1.addClass('selected');
+        }
+        else {
+            $toggle_v2.addClass('selected');
+        }
+    }
+    UI.updateVersionToggle = updateVersionToggle;
     function setupJQueryDOMReferences() {
+        $toggle_v1 = $('#toggle_v1');
+        $toggle_v2 = $('#toggle_v2');
         $sharps = $('#sharps-text');
         $flats = $('#flats-text');
         $currentStatus = $('#current-status');
@@ -824,6 +833,16 @@ var UI;
         $stopButton = $('#stop-button');
     }
     UI.setupJQueryDOMReferences = setupJQueryDOMReferences;
+    function setupCopyHandler() {
+        document.querySelector('html').addEventListener('copy', function (e) {
+            e.preventDefault();
+            if (e.clipboardData) {
+                let text = getTextFileFromTracks();
+                e.clipboardData.setData('text/plain', text);
+            }
+        });
+    }
+    UI.setupCopyHandler = setupCopyHandler;
     // TODO: When manually editing, only append and modify the last couple of spans. Don't regenerate the entire thing, for performance!
     function showNoteGroupsForTracks() {
         let numTracks = Song.getNumTracks();
@@ -854,10 +873,37 @@ var UI;
         Highlight.update();
     }
     UI.showNoteGroupsForTracks = showNoteGroupsForTracks;
+    function displayFileInfo(file) {
+        $('#file-info').text(`Loaded File: ${file.name} | Size: ${file.size} bytes`);
+    }
+    UI.displayFileInfo = displayFileInfo;
+    function setupFileChooser() {
+        let $fileChooser = $('#filechooser');
+        $fileChooser.change((e) => {
+            let files = e.target.files;
+            if (files.length > 0) {
+                MIDI.readFile(files[0]); // Get the first file.
+            }
+        });
+        $('#filechooserlabel').mousedown((e) => {
+            $fileChooser[0].value = null;
+        });
+    }
+    UI.setupFileChooser = setupFileChooser;
     ////////////////////////////////////////////////////////////
     // MOUSE & KEYBOARD
     function setupMouseHandlers() {
         Playback.setupButtons();
+        $toggle_v1.click(() => {
+            songVersion = 1;
+            LocalStorage.saveVersionToggle();
+            UI.updateVersionToggle();
+        });
+        $toggle_v2.click(() => {
+            songVersion = 2;
+            LocalStorage.saveVersionToggle();
+            UI.updateVersionToggle();
+        });
         // When we hover over the Download MIDI | TEXT links, we update
         // the href attributes so that we download the correct data.
         $download_midi_link.mouseover(() => {
@@ -871,8 +917,7 @@ var UI;
             // A textual representation of the song:
             //   V1 => e.g., 40 42 44 45 40.47
             //   V2 => e.g., [24.36 @ 0] [17.29 @ 2730] [36 @ 2904] [41 @ 3029] [44 @ 3152]
-            let noteGroups = Song.getNoteGroupsFromTracks();
-            let text = '// ' + noteGroups.join(' '); // Melody lines start with two slashes.
+            let text = getTextFileFromTracks();
             let base64Text = btoa(text); // base 64 encoding
             $download_text_link.attr('href', 'data:text/plain;base64,' + base64Text);
         });
@@ -1377,6 +1422,19 @@ var Song;
     }
     Song.getNoteGroupsFromTracks = getNoteGroupsFromTracks;
 })(Song || (Song = {}));
+function getTextFileFromTracks() {
+    let noteGroups = Song.getNoteGroupsFromTracks();
+    if (songVersion === 1) {
+        let noteGroupV1Strings = [];
+        noteGroups.forEach((noteGroup) => {
+            noteGroupV1Strings.push(noteGroup.toStringV1());
+        });
+        return '// ' + noteGroupV1Strings.join(' '); // Melody lines start with two slashes.
+    }
+    else {
+        return '// ' + noteGroups.join(' '); // Melody lines start with two slashes.
+    }
+}
 $(function () {
     go();
 });
