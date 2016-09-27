@@ -245,7 +245,7 @@ function playOneNote(pianoKeyBeforeModifiers) {
     if (pianoKeyNumber < 1 || pianoKeyNumber > 88) {
         return;
     }
-    let t = Highlight.activeTrack();
+    let t = Highlight.currentTrack();
     let trackLength = Song.addNoteGroupToTrack(new NoteGroup(new Note(pianoKeyNumber)), t);
     UI.setCheckedState(t, true);
     playMIDINote(p2m(pianoKeyNumber));
@@ -304,14 +304,14 @@ var Highlight;
         }
     }
     Highlight.setupIndexes = setupIndexes;
-    function activeTrack() {
+    function currentTrack() {
         return currTrackNumber;
     }
-    Highlight.activeTrack = activeTrack;
-    function activeNoteGroup() {
+    Highlight.currentTrack = currentTrack;
+    function currentNoteGroup() {
         return currNoteGroupNumberForTrackNumber[currTrackNumber];
     }
-    Highlight.activeNoteGroup = activeNoteGroup;
+    Highlight.currentNoteGroup = currentNoteGroup;
     // Updates the visual indicators for our current track and current notegroup.
     function update() {
         let numTracks = $tracks.length;
@@ -328,7 +328,7 @@ var Highlight;
         }
         $currTrack = $tracks[currTrackNumber].addClass(h);
         $currTrackInfo = $trackInfos[currTrackNumber].addClass(h);
-        $currNoteGroup = $('#' + getNoteGroupID(currTrackNumber, activeNoteGroup())).addClass(h);
+        $currNoteGroup = $('#' + getNoteGroupID(currTrackNumber, currentNoteGroup())).addClass(h);
         UI.drawPiano();
     }
     Highlight.update = update;
@@ -344,7 +344,7 @@ var Highlight;
     function validateNoteGroupNumber() {
         // Assume the current track number is valid.
         let numNoteGroups = Song.getNumNoteGroupsInTrack(currTrackNumber);
-        let noteGroupNumber = activeNoteGroup();
+        let noteGroupNumber = currentNoteGroup();
         if (noteGroupNumber < 0) {
             setCurrentNoteGroupNumber(0);
         }
@@ -398,7 +398,7 @@ var Highlight;
     function validateUpdateScroll() {
         validateNoteGroupNumber();
         update();
-        scrollNoteGroupIntoView(currTrackNumber, activeNoteGroup());
+        scrollNoteGroupIntoView(currTrackNumber, currentNoteGroup());
     }
 })(Highlight || (Highlight = {}));
 /////////////////////////////////////////////////////////////////////////////////
@@ -637,8 +637,7 @@ var Playback;
     clock.onmessage = function (e) {
         playNextEvents(performance.now());
     };
-    // let noteGroupsToPlay: NoteGroup[] = [];
-    let nextNoteGroupIndexToPlay = 0;
+    let currNoteGroupNumber = 0;
     let isPaused = false;
     let nextEventPlayTime = 0;
     function isPlaying() {
@@ -660,7 +659,7 @@ var Playback;
                 Playback.stop();
                 return; // DONE!
             }
-            nextNoteGroupIndexToPlay = 0;
+            currNoteGroupNumber = 0;
             currSongTime = 0;
             baseSongTime = 0;
             determinePlayTimeForNextEvent();
@@ -687,7 +686,7 @@ var Playback;
     Playback.togglePlayPause = togglePlayPause;
     function stop() {
         stopTheClock();
-        nextNoteGroupIndexToPlay = 0;
+        currNoteGroupNumber = 0;
     }
     Playback.stop = stop;
     function stopTheClock() {
@@ -700,20 +699,18 @@ var Playback;
     function playNextEvents(currTime) {
         let noteGroupsToPlay = Song.getNoteGroupsFromTracks();
         // Have we reached the end of the song?
-        if (nextNoteGroupIndexToPlay >= noteGroupsToPlay.length) {
+        if (currNoteGroupNumber >= noteGroupsToPlay.length) {
             Playback.stop();
             return; // DONE!
         }
         currSongTime = currTime - clockStartTime + baseSongTime;
         while (currSongTime >= nextEventPlayTime) {
-            let noteGroup = noteGroupsToPlay[nextNoteGroupIndexToPlay];
+            let noteGroup = noteGroupsToPlay[currNoteGroupNumber];
             Highlight.setTrackAndNoteGroup(noteGroup.trackNumber, noteGroup.noteNumber);
-            for (let note of noteGroup.notes) {
-                playMIDINote(note.midiNote, note.velocity);
-            }
-            nextNoteGroupIndexToPlay++; // advance
+            playCurrentNoteGroup();
+            currNoteGroupNumber++; // advance
             // Have we reached the end of the song?
-            if (nextNoteGroupIndexToPlay >= noteGroupsToPlay.length) {
+            if (currNoteGroupNumber >= noteGroupsToPlay.length) {
                 Playback.stop();
                 return; // DONE!
             }
@@ -724,7 +721,7 @@ var Playback;
     }
     function determinePlayTimeForNextEvent() {
         let noteGroupsToPlay = Song.getNoteGroupsFromTracks();
-        nextEventPlayTime = noteGroupsToPlay[nextNoteGroupIndexToPlay].playTimeMillis;
+        nextEventPlayTime = noteGroupsToPlay[currNoteGroupNumber].playTimeMillis;
         if (nextEventPlayTime === -1) {
             nextEventPlayTime = currSongTime + TIME_BETWEEN_NOTEGROUPS; // If the playTime isn't specified, we play the next note every 200ms!
         }
@@ -737,22 +734,36 @@ var Playback;
     Playback.setupButtons = setupButtons;
     /////////////////////////////////////////////////////////////////////////////////
     // Manual Playback of the song or individual tracks.
-    function playNoteAndGoBackwardInTheSong() {
-        console.log('playNoteAndGoBackwardInTheSong');
-        playActiveNoteGroup();
-        // Use the Playback namespace to track the index of the next/prev note to play!!!!!!!!!
-        // xxx
+    function validateCurrNoteGroupNumber() {
+        let noteGroupsToPlay = Song.getNoteGroupsFromTracks();
+        if (currNoteGroupNumber >= noteGroupsToPlay.length) {
+            currNoteGroupNumber = noteGroupsToPlay.length - 1;
+        }
+        else if (currNoteGroupNumber < 0) {
+            currNoteGroupNumber = 0;
+        }
     }
-    Playback.playNoteAndGoBackwardInTheSong = playNoteAndGoBackwardInTheSong;
-    function playNoteAndGoForwardInTheSong() {
-        console.log('playNoteAndGoForwardInTheSong');
-        playActiveNoteGroup();
-        // xxx
+    Playback.playNoteAndGoBackwardInTheSong = _.throttle(function () {
+        playNoteAndAdvanceInDirection(-1);
+    }, 150 /* ms */);
+    Playback.playNoteAndGoForwardInTheSong = _.throttle(function () {
+        playNoteAndAdvanceInDirection(+1);
+    }, 150 /* ms */);
+    function playNoteAndAdvanceInDirection(direction) {
+        let noteGroupsToPlay = Song.getNoteGroupsFromTracks();
+        if (noteGroupsToPlay.length === 0) {
+            return;
+        }
+        validateCurrNoteGroupNumber();
+        let noteGroup = noteGroupsToPlay[currNoteGroupNumber];
+        Highlight.setTrackAndNoteGroup(noteGroup.trackNumber, noteGroup.noteNumber);
+        playCurrentNoteGroup();
+        currNoteGroupNumber += direction;
+        validateCurrNoteGroupNumber();
     }
-    Playback.playNoteAndGoForwardInTheSong = playNoteAndGoForwardInTheSong;
-    function playActiveNoteGroup() {
-        let t = Highlight.activeTrack();
-        let n = Highlight.activeNoteGroup();
+    function playCurrentNoteGroup() {
+        let t = Highlight.currentTrack();
+        let n = Highlight.currentNoteGroup();
         let noteGroup = Song.getNoteGroupFromTrack(n, t);
         if (!noteGroup) {
             return;
@@ -766,14 +777,14 @@ var Playback;
             $noteGroup.removeClass('played-note');
         }, 400);
     }
-    Playback.playNoteAndGoBackwardOnActiveTrack = _.throttle(function () {
-        playActiveNoteGroup();
+    Playback.playAndGoBackwardOnCurrentTrack = _.throttle(function () {
+        playCurrentNoteGroup();
         Highlight.prevNoteGroup();
-    }, 100 /* ms */);
-    Playback.playNoteAndGoForwardOnActiveTrack = _.throttle(function () {
-        playActiveNoteGroup();
+    }, 150 /* ms */);
+    Playback.playAndGoForwardOnCurrentTrack = _.throttle(function () {
+        playCurrentNoteGroup();
         Highlight.nextNoteGroup();
-    }, 100 /* ms */);
+    }, 150 /* ms */);
 })(Playback || (Playback = {}));
 function logStatus(msg) {
     $currentStatus.text(msg);
@@ -981,7 +992,7 @@ var UI;
                 }
                 else {
                     if (e.shiftKey) {
-                        Playback.playNoteAndGoBackwardOnActiveTrack();
+                        Playback.playAndGoBackwardOnCurrentTrack();
                     }
                     else {
                         Highlight.prevNoteGroup();
@@ -994,7 +1005,7 @@ var UI;
                 }
                 else {
                     if (e.shiftKey) {
-                        Playback.playNoteAndGoForwardOnActiveTrack();
+                        Playback.playAndGoForwardOnCurrentTrack();
                     }
                     else {
                         Highlight.nextNoteGroup();
@@ -1151,8 +1162,8 @@ var UI;
     }
     // draw the highlighted group?
     function drawMostRecentGroup(c) {
-        let trackNumber = Highlight.activeTrack();
-        let noteGroupNumber = Highlight.activeNoteGroup();
+        let trackNumber = Highlight.currentTrack();
+        let noteGroupNumber = Highlight.currentNoteGroup();
         let lastGroup = Song.getNoteGroupFromTrack(noteGroupNumber, trackNumber);
         if (!lastGroup) {
             return;
@@ -1277,7 +1288,7 @@ var Song;
     }
     Song.getTracksAsJSON = getTracksAsJSON;
     function mergeLastTwoGroups() {
-        let trackNumber = Highlight.activeTrack();
+        let trackNumber = Highlight.currentTrack();
         let currTrack = tracks[trackNumber];
         if (currTrack.length >= 2) {
             let mergedNoteGroup = NoteGroup.merge(currTrack.pop(), currTrack.pop());
@@ -1288,7 +1299,7 @@ var Song;
     }
     Song.mergeLastTwoGroups = mergeLastTwoGroups;
     function deleteLastGroup() {
-        let t = Highlight.activeTrack();
+        let t = Highlight.currentTrack();
         tracks[t].pop();
         Highlight.setTrackAndNoteGroup(t, tracks[t].length - 1);
         saveAndShowData();
@@ -1309,10 +1320,9 @@ var Song;
     // The results are cached! We invalidate the cache anytime we add or subtract notes, or change the state of the checkboxes.
     function getNoteGroupsFromTracks() {
         if (cacheIsValid) {
-            console.log('Just return the cached NoteGroups!!!!!!');
             return cachedNoteGroups;
         }
-        console.log('Recompute Cached NoteGroups');
+        console.log('Recompute Cached NoteGroups!!!');
         let noteGroups = [];
         let currTimeMillis = 0; // Used when our NoteGroups don't have valid timing information (i.e., manual entry).
         let trackIsChecked = []; // Ignore unchecked tracks.
