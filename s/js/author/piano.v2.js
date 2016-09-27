@@ -637,7 +637,8 @@ var Playback;
     clock.onmessage = function (e) {
         playNextEvents(performance.now());
     };
-    let noteGroupsToPlay = [];
+    // let noteGroupsToPlay: NoteGroup[] = [];
+    let nextNoteGroupIndexToPlay = 0;
     let isPaused = false;
     let nextEventPlayTime = 0;
     function isPlaying() {
@@ -654,11 +655,12 @@ var Playback;
                 stop();
             }
             // Start the MIDI playback.
-            noteGroupsToPlay = Song.getNoteGroupsFromTracks();
+            let noteGroupsToPlay = Song.getNoteGroupsFromTracks();
             if (noteGroupsToPlay.length === 0) {
                 Playback.stop();
                 return; // DONE!
             }
+            nextNoteGroupIndexToPlay = 0;
             currSongTime = 0;
             baseSongTime = 0;
             determinePlayTimeForNextEvent();
@@ -685,7 +687,7 @@ var Playback;
     Playback.togglePlayPause = togglePlayPause;
     function stop() {
         stopTheClock();
-        noteGroupsToPlay = [];
+        nextNoteGroupIndexToPlay = 0;
     }
     Playback.stop = stop;
     function stopTheClock() {
@@ -696,20 +698,22 @@ var Playback;
     }
     // Will be called every ~16.67ms if your display runs at 60 FPS.
     function playNextEvents(currTime) {
+        let noteGroupsToPlay = Song.getNoteGroupsFromTracks();
         // Have we reached the end of the song?
-        if (noteGroupsToPlay.length === 0) {
+        if (nextNoteGroupIndexToPlay >= noteGroupsToPlay.length) {
             Playback.stop();
             return; // DONE!
         }
         currSongTime = currTime - clockStartTime + baseSongTime;
         while (currSongTime >= nextEventPlayTime) {
-            let noteGroup = noteGroupsToPlay.shift();
+            let noteGroup = noteGroupsToPlay[nextNoteGroupIndexToPlay];
             Highlight.setTrackAndNoteGroup(noteGroup.trackNumber, noteGroup.noteNumber);
             for (let note of noteGroup.notes) {
                 playMIDINote(note.midiNote, note.velocity);
             }
+            nextNoteGroupIndexToPlay++; // advance
             // Have we reached the end of the song?
-            if (noteGroupsToPlay.length === 0) {
+            if (nextNoteGroupIndexToPlay >= noteGroupsToPlay.length) {
                 Playback.stop();
                 return; // DONE!
             }
@@ -719,7 +723,8 @@ var Playback;
         }
     }
     function determinePlayTimeForNextEvent() {
-        nextEventPlayTime = noteGroupsToPlay[0].playTimeMillis;
+        let noteGroupsToPlay = Song.getNoteGroupsFromTracks();
+        nextEventPlayTime = noteGroupsToPlay[nextNoteGroupIndexToPlay].playTimeMillis;
         if (nextEventPlayTime === -1) {
             nextEventPlayTime = currSongTime + TIME_BETWEEN_NOTEGROUPS; // If the playTime isn't specified, we play the next note every 200ms!
         }
@@ -735,9 +740,7 @@ var Playback;
     function playNoteAndGoBackwardInTheSong() {
         console.log('playNoteAndGoBackwardInTheSong');
         playActiveNoteGroup();
-        // Whenever we check or uncheck the boxes, we generate a copy of the new song by calling
-        // Song.getNoteGroupsFromTracks().
-        // Reset the cursor to the zeroth note.
+        // Use the Playback namespace to track the index of the next/prev note to play!!!!!!!!!
         // xxx
     }
     Playback.playNoteAndGoBackwardInTheSong = playNoteAndGoBackwardInTheSong;
@@ -1237,6 +1240,7 @@ var Song;
     Song.reset = reset;
     function invalidateCache() {
         cacheIsValid = false;
+        cachedNoteGroups = null;
     }
     Song.invalidateCache = invalidateCache;
     function addTrack(trackNumber) {
@@ -1291,8 +1295,14 @@ var Song;
     }
     Song.deleteLastGroup = deleteLastGroup;
     function getNoteGroupFromTrack(noteGroupNumber, trackNumber) {
-        // TODO: error check?
-        return tracks[trackNumber][noteGroupNumber];
+        if (trackNumber < 0 || trackNumber >= tracks.length) {
+            return null;
+        }
+        let track = tracks[trackNumber];
+        if (noteGroupNumber < 0 || noteGroupNumber >= track.length) {
+            return null;
+        }
+        return track[noteGroupNumber];
     }
     Song.getNoteGroupFromTrack = getNoteGroupFromTrack;
     // Retrieve the notegroups to play or save to file.
