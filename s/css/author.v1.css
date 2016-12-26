@@ -5,14 +5,14 @@ body {
     margin-left: 20px;
     margin-right: 20px;
 }
-#click {
+#clear {
     width: 120px;
     height: 40px;
     background-color: #999;
     position: relative;
     cursor: pointer;
 }
-#clickText {
+#clearText {
     position: absolute;
     top: 0;
     bottom: 0;

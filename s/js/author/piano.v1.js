@@ -311,6 +311,10 @@
         loadNoteGroups();
         loadSharpsAndFlats();
 
+        $("#clear").click(function() {
+            resetEverything();
+        });
+
         $(document).bind('keyup', function (e) {
             // update our sharps / flats
             if ($sharps.is(":focus")) {
