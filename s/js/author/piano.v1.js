@@ -72,7 +72,7 @@
         221: 66, // ] => D
         220: 68, // \ => E
         //
-        192: 57, // ` => F
+        // 192: 57, // Removed the ` => F mapping, since the Mac w/ TouchBar needs to use this key for ESC
         49: 59, // 1 => G
         50: 61, // 2 => A
         51: 63, // 3 => B
@@ -353,6 +353,7 @@
                 sharpModifier = +1;
             }
 
+
             e.preventDefault();
             switch (e.keyCode) {
                 case 27: // ESC
@@ -361,6 +362,9 @@
                     } else {
                         resetOffset();
                     }
+                    break;
+                case 192: // ~ == SHIFT + `
+                    resetEverything();
                     break;
                 case 8: // BACKSPACE/DEL
                     deleteLastGroup();
