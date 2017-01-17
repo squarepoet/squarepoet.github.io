@@ -20,6 +20,7 @@
     }
 
     var piano = new Instrument('piano');
+    piano.setVolume(0.85);
 
 
     // 90:23, // z => G

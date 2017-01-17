@@ -1,2 +1,2 @@
-open http://localhost:8000
-python -m SimpleHTTPServer
+open http://localhost:8123
+python -m SimpleHTTPServer 8123
