@@ -105,14 +105,14 @@ class NoteGroup {
 }
 // A Note specifies a place on the piano to play. It maps to a MIDI on/off event pair.
 class Note {
+    static compare(a, b) {
+        return a.pianoNote - b.pianoNote; // sort from smallest number to highest number
+    }
     constructor(pianoNote, durationMillis = 1000, velocity = 127) {
         this.pianoNote = pianoNote;
         this.midiNote = pianoNote + 20;
         this.durationMillis = durationMillis;
         this.velocity = velocity;
-    }
-    static compare(a, b) {
-        return a.pianoNote - b.pianoNote; // sort from smallest number to highest number
     }
     toString() {
         return this.pianoNote + '';

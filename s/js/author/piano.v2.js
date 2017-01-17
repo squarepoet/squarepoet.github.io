@@ -86,7 +86,6 @@ var Keyboard;
         219: 64,
         221: 66,
         220: 68,
-        192: 68,
         49: 69,
         50: 71,
         51: 73,
@@ -1011,7 +1010,12 @@ var UI;
             case 116:
                 console.log('F5');
                 break;
+            case 192:
+                console.log('SHIFT + `');
+                resetEverything();
+                break;
             case 27:
+                console.log('ESC');
                 if (e.shiftKey) {
                     resetEverything();
                 }

@@ -14,3 +14,11 @@ MIDIFile (midifile.js)
 * https://github.com/nfroidure/MIDIFile/
 * https://github.com/nfroidure/MIDIEvents/
 * https://github.com/nfroidure/UTF8.js/
+
+# VSCode
+* Piano Author 2 is written in TypeScript.
+  - Install VSCode
+  - Install TypeScript via npm
+    npm install -g typescript
+  - Open VSCode on the root directory, and press SHIFT+CMD+B to run tsc.
+    This will watch for changes to *.ts files and write out *.js files.

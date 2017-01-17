@@ -105,7 +105,7 @@ namespace Keyboard {
         219: 64, // [ => C6
         221: 66, // ] => D
         220: 68, // \ => E
-        192: 68, // ` => E
+        
         49: 69, // 1 => F
         50: 71, // 2 => G
         51: 73, // 3 => A
@@ -1134,7 +1134,12 @@ namespace UI {
             case 116:
                 console.log('F5');
                 break;
+            case 192: // ~ == SHIFT + `
+                console.log('SHIFT + `');
+                resetEverything();
+                break;
             case 27: // ESC
+                console.log('ESC');
                 if (e.shiftKey) {
                     resetEverything();
                 } else {
