@@ -1255,9 +1255,14 @@ namespace UI {
 
     export function setupPianoCanvas() {
         let elem: HTMLCanvasElement = <HTMLCanvasElement>document.getElementById('pianoCanvas');
+        elem.width = 2080; // Retina Display Support
+        elem.height = 300; // Retina Display Support
+        elem.style.width = '1040px'; // Retina Display Support
+        elem.style.height = '150px'; // Retina Display Support
         context2dWidth = elem.width;
         context2dHeight = elem.height;
         context2d = elem.getContext('2d');
+        context2d.scale(2, 2); // Retina Display Support
     }
 
     export function drawPiano() {
