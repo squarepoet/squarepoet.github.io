@@ -840,6 +840,14 @@ var UI;
                 e.clipboardData.setData('text/plain', text);
             }
         });
+        document.querySelector('html').addEventListener('cut', function (e) {
+            e.preventDefault();
+            if (e.clipboardData) {
+                let text = getTextFileFromTracks();
+                e.clipboardData.setData('text/plain', text);
+            }
+            resetEverything(); // Set the text fields to empty strings.
+        });
     }
     UI.setupCopyHandler = setupCopyHandler;
     // TODO: When manually editing, only append and modify the last couple of spans. Don't regenerate the entire thing, for performance!
@@ -959,11 +967,12 @@ var UI;
                 return;
             }
         }
+        // CTRL => FLAT and SHIFT => SHARP
         sharpOrFlatModifier = 0;
         if (e.ctrlKey) {
             sharpOrFlatModifier = -1;
         }
-        if (e.altKey) {
+        if (e.shiftKey) {
             sharpOrFlatModifier = +1;
         }
         e.preventDefault();
@@ -1079,11 +1088,11 @@ var UI;
             LocalStorage.saveSharpsAndFlats();
         }
         else {
-            // Released CTRL or ALT
+            // Released CTRL or SHIFT
             if (e.ctrlKey) {
                 sharpOrFlatModifier = 0;
             }
-            else if (e.altKey) {
+            else if (e.shiftKey) {
                 sharpOrFlatModifier = 0;
             }
         }
@@ -1438,10 +1447,10 @@ function getTextFileFromTracks() {
         noteGroups.forEach((noteGroup) => {
             noteGroupV1Strings.push(noteGroup.toStringV1());
         });
-        return '// ' + noteGroupV1Strings.join(' '); // Melody lines start with two slashes.
+        return noteGroupV1Strings.join(' ');
     }
     else {
-        return '// ' + noteGroups.join(' '); // Melody lines start with two slashes.
+        return noteGroups.join(' ');
     }
 }
 $(function () {
