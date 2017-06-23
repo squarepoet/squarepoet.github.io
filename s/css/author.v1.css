@@ -22,13 +22,6 @@ body {
     padding-top: 10px;
     color: #FBFBFC;
 }
-#clickOverlay {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
-}
 #textarea {
     font-family:Inconsolata, Menlo, Monaco, sans-serif;
     font-size: 16pt;
