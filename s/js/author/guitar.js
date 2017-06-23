@@ -444,6 +444,10 @@ $(function() {
 
         e.preventDefault();
         switch (e.keyCode) {
+            case 192: // ~ == SHIFT + `
+                console.log('SHIFT + `');
+                resetData();
+                break;
             case 27: // ESC
                 if (e.shiftKey) {
                     resetData();
