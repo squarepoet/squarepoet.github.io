@@ -105,7 +105,7 @@ namespace Keyboard {
         219: 64, // [ => C6
         221: 66, // ] => D
         220: 68, // \ => E
-        
+
         49: 69, // 1 => F
         50: 71, // 2 => G
         51: 73, // 3 => A
@@ -121,6 +121,66 @@ namespace Keyboard {
         //
         187: 88 // = => C8
     };
+
+}
+
+namespace MIDIPianoInput {
+
+    let numNotesPressed: number = 0;
+
+    export function setup() {
+        if (navigator['requestMIDIAccess']) {
+            navigator['requestMIDIAccess']({ sysex: false }).then(onMIDISuccess, onMIDIFailure);
+        } else {
+            alert("No MIDI support in your browser.");
+        }
+    }
+
+    function onMIDISuccess(midiAccess) {
+        let midi = midiAccess;
+        var inputs = midi.inputs.values();
+        for (var input = inputs.next(); input && !input.done; input = inputs.next()) {
+            input.value.onmidimessage = onMIDIMessage;
+        }
+    }
+
+    function onMIDIFailure(error) {
+        console.log("No access to MIDI devices or your browser doesn't support WebMIDI API." + error);
+    }
+
+    function onMIDIMessage(message) {
+        var data = message.data; // this gives us our [command/channel, note, velocity] data.
+
+        var cmd = data[0] >> 4;
+        var channel = data[0] & 0xF; // Rightmost 4 bits.
+        var type = data[0] & 0xF0;   // 4 bits in the second right-most position.
+        var note = data[1];
+        var velocity = data[2];
+        var pianoKey = note - 20;
+
+        switch (type) {
+            case 144: // note on
+                console.log("piano key down: " + pianoKey + " velocity: " + velocity);
+                playOneNote(pianoKey, false); // the second parameter (set to false) will bypass any sharp/flat modifiers.
+                numNotesPressed++;
+                if (numNotesPressed > 1) {
+                    Song.mergeLastTwoGroups();
+                }
+                break;
+            case 128: // note off
+                // console.log("piano key up: " + pianoKey);
+                numNotesPressed--;
+                break;
+            case 224: // pitch wheel
+                console.log("pitch wheel"); // data[1] and data[2] indicate the amount of pitch bend. 
+                break;
+            default:
+                // ignore for now
+                // console.log('MIDI data', data);
+                // console.log(`cmd: ${cmd}  channel: ${channel}  type: ${type}  note: ${note}  velocity: ${velocity}`);
+                break;
+        }
+    }
 
 }
 
@@ -275,22 +335,26 @@ namespace LocalStorage {
     }
 }
 
-function playOneNote(pianoKeyBeforeModifiers) {
+function playOneNote(pianoKeyBeforeModifiers, applyModifiers: boolean = true) {
     // get the name of the note we are about to play
     let remainder = pianoKeyBeforeModifiers % 12;
     let whiteKeyNoteIndex = whiteKeys.indexOf(remainder);
     let noteLabel = noteLabels[whiteKeyNoteIndex];
 
-    let modifier = sharpOrFlatModifier;
+    let modifier = 0;
+    if (applyModifiers) {
+        modifier = sharpOrFlatModifier; // The user is holding down SHIFT or CTRL
 
-    // is this note auto-sharped, due to the key signature?
-    if (sharps.indexOf(noteLabel) != -1) {
-        modifier++; // raise the sharp a half-step!
+        // is this note auto-sharped, due to the key signature?
+        if (sharps.indexOf(noteLabel) != -1) {
+            modifier++; // raise the sharp a half-step!
+        }
+        // is this note auto-flatted, due to the key signature?
+        if (flats.indexOf(noteLabel) != -1) {
+            modifier--; // lower the note a half-step!
+        }
     }
-    // is this note auto-flatted, due to the key signature?
-    if (flats.indexOf(noteLabel) != -1) {
-        modifier--; // lower the note a half-step!
-    }
+
 
     let pianoKeyNumber = pianoKeyBeforeModifiers + modifier + (octaveOffset * 12);
     if (pianoKeyNumber < 1 || pianoKeyNumber > 88) {
@@ -898,6 +962,7 @@ function logStatus(msg) {
 }
 
 function go() {
+    MIDIPianoInput.setup();
     UI.setupJQueryDOMReferences();
     LocalStorage.load();
     UI.showNoteGroupsForTracks();
