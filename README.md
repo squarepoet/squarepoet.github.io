@@ -1,4 +1,5 @@
 # squarepoet.github.io
+This repo hosts my authoring tools for making TP and TG songs.
 
 # Authoring Tool
 PencilCode musical library to generate tones (musical.min.js & musical.js)
