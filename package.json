@@ -1,0 +1,24 @@
+{
+  "name": "squarepoet.github.io",
+  "version": "1.0.0",
+  "description": "This repo hosts authoring tools for creating songs for Tiny Piano and Tiny Guitar. I also use it to explore new JavaScript SDKs. Everything in this repo is [MIT Licensed](LICENSE). Enjoy!",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@gitlab.com/sqpt/squarepoet.github.io.git"
+  },
+  "author": "Ron B. Yeh",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://gitlab.com/sqpt/squarepoet.github.io/issues"
+  },
+  "homepage": "https://gitlab.com/sqpt/squarepoet.github.io#readme",
+  "dependencies": {
+    "next": "^9.3.6",
+    "react": "^16.13.1",
+    "react-dom": "^16.13.1"
+  }
+}
