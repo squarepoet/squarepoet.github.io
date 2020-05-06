@@ -11,3 +11,9 @@ When we build, we will output files to `www` which is just a symlink to `../squa
 Those files will be checked into the `master` branch.
 
 When the `master` branch is pushed to GitHub, it will automatically publish to GitHub pages.
+
+
+
+# GitHub Pages
+View deployments here: https://github.com/squarepoet/squarepoet.github.io/deployments
+

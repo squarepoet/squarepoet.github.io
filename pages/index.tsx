@@ -3,10 +3,16 @@ import Link from 'next/link'
 function Page() {
     return (
         <div>
-            <div>Authoring Tools: Piano 1 | Piano 2 | Guitar 1 | Guitar 2</div>
+            <div>Authoring Tools</div>
             <div>
-                <Link href="/about">
-                    <a>About Us</a>
+                <Link href="https://github.com/squarepoet/squarepoet.github.io">
+                    <a>Repository</a>
+                </Link>
+            </div>
+            <div><Link href="/">Piano 1</Link> | <Link href="/">Piano 2</Link> | <Link href="/">Guitar 1</Link> | <Link href="/">Guitar 2</Link></div>
+            <div>
+                <Link href="/about/">
+                    <a>About</a>
                 </Link>
             </div>
         </div>
