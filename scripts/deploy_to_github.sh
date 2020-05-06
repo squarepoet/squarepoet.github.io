@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # First we need to synchronize the two www folders
-rsync -a --exclude '.git' --exclude '.gitignore' --exclude '.nojekyll' www/ ../squarepoet.github.io.www/
+rsync -a --exclude '.git' --exclude '.gitignore' --exclude '.gitkeep' --exclude '.nojekyll' www/ ../squarepoet.github.io.www/
 
 # Next we need to commit and push
 # Do this manually!
