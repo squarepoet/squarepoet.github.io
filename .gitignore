@@ -2,3 +2,4 @@
 node_modules/
 .next
 www/*
+.DS_Store
