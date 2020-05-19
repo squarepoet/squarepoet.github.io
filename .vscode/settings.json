@@ -1,5 +1,7 @@
 {
     "files.exclude": {
-        "www/*": true
+        "node_modules": true,
+        "www": true,
+        ".next": true
     }
 }

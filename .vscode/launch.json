@@ -1,0 +1,13 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "chrome",
+            "request": "launch",
+            "preLaunchTask": "npm: dev",
+            "name": "Next JS Dev",
+            "url": "http://localhost:3000/test/",
+            "webRoot": "${workspaceFolder}"
+        }
+    ]
+}
