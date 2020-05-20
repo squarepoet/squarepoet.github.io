@@ -35,12 +35,6 @@ export default function () {
         }
     });
 
-    useEventListener("keyup", (e) => {
-        if (authoringTool) {
-            authoringTool.onKeyUp(e);
-        }
-    });
-
     useEffect(() => {
         console.log("Rendered! " + Math.random());
         authoringTool.setSharps = setSharps;
@@ -56,6 +50,7 @@ export default function () {
             return guitarTab;
         };
         authoringTool.getGuitarTabTextArea = () => {
+            console.log("Called getGuitarTabTextArea!!!");
             return guitarTabTextArea.current;
         };
         authoringTool.getSharpsInput = () => {
@@ -70,16 +65,28 @@ export default function () {
     });
 
     useEffect(() => {
+        console.log(guitarTab);
         authoringTool.loadNoteGroupsFromGuitarTab(guitarTab);
-        authoringTool.drawGuitar();
+        authoringTool.drawFrets();
         console.log("Page Mounted!");
     }, []);
+
+    function onSharpsChanged(e) {
+        let newVal = e.target.value.toUpperCase();
+        setSharps(newVal);
+        console.log(`sharps changed to [${newVal}]`);
+    }
+
+    function onFlatsChanged(e) {
+        let newVal = e.target.value.toUpperCase();
+        setFlats(newVal);
+        console.log(`flats changed to [${newVal}]`);
+    }
 
     return (
         <>
             <Head>
                 <title>Guitar Author V1</title>
-                {/* <script type="text/javascript" src="/s/j/lodash.min.js"></script> */}
                 <script type="text/javascript" src="/s/j/musical.min.js"></script>
             </Head>
             <div className="hotkeys">
@@ -91,14 +98,14 @@ export default function () {
                 tab &rarr; combine
             </div>
             <div className="sharps-and-flats">
-                sharps: <input ref={sharpsInput} value={sharps} readOnly />
+                sharps: <input ref={sharpsInput} value={sharps} onChange={onSharpsChanged} />
                 <br />
-                flats: <input ref={flatsInput} value={flats} readOnly />
+                flats: <input ref={flatsInput} value={flats} onChange={onFlatsChanged} />
             </div>
             <div className="clear"></div>
             <br />
             <div id="content" className="content">
-                <textarea className="textarea" rows={3} cols={80} value={guitarTab} readOnly />
+                <textarea ref={guitarTabTextArea} className="textarea" rows={3} cols={80} value={guitarTab} readOnly />
                 <canvas ref={guitarCanvas} width="1040" height="280" className="canvas"></canvas>
             </div>
             <style jsx global>{`
@@ -138,6 +145,7 @@ export default function () {
                     border: 1px solid #222;
                     padding: 6px;
                     width: 100px;
+                    color: #ddd;
                 }
             `}</style>
         </>

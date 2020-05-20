@@ -1,4 +1,10 @@
-declare var Instrument: any; // musical.min.js
+declare let Instrument: any; // musical.min.js
+
+const CANVAS_WIDTH = 1040;
+const CANVAS_HEIGHT = 280;
+
+const FRET_DX = 85;
+const FRET_OFFSET = 20;
 
 export default class GuitarAuthorV1 {
     //////////////////////////////////////////////////////////////////////////////////////////////////
@@ -15,12 +21,9 @@ export default class GuitarAuthorV1 {
     public getSharpsInput: () => HTMLInputElement;
     public getFlatsInput: () => HTMLInputElement;
     public getGuitarCanvas: () => HTMLCanvasElement;
-l
+
     //////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-    private FRET_DX: 85;
-    private FRET_OFFSET: 20;
     private noteOffsetForString = [0, 7, 2, 10, 5, 0, 7]; // [X] E B G D A E
 
     private piano = null;
@@ -47,7 +50,7 @@ l
     private fretOffset = 0;
     private stringOffset = 0;
 
-    private noteGroups = [];
+    private noteGroups: string[] = [];
 
     private noteLabels = ["A", "A#", "B", "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#"];
 
@@ -186,28 +189,27 @@ l
     }
 
     saveAndShowData() {
-        var newText = this.noteGroups.join(" ");
-        this.setGuitarTab(newText);
-        this.drawGuitar();
+        let newGuitarTabText = this.noteGroups.join(" ");
+        this.setGuitarTab(newGuitarTabText);
+        this.drawFrets();
     }
 
     // XXXX32 => { 6:'X', 5:'X', 4:'X', 3:'X', 2:'3', 1:'2' }
-    splitNoteGroup(noteGroup) {
-        var result = { 6: "X", 5: "X", 4: "X", 3: "X", 2: "X", 1: "X" };
+    splitNoteGroup(noteGroup: string) {
+        let result = { 6: "X", 5: "X", 4: "X", 3: "X", 2: "X", 1: "X" };
 
         if (noteGroup.length == 6) {
-            //
-            var items = noteGroup.toUpperCase().split("").reverse();
-            for (var s = 1; s <= 6; s++) {
+            let items = noteGroup.toUpperCase().split("").reverse();
+            for (let s = 1; s <= 6; s++) {
                 if (items[s - 1] != "X") {
                     result[s] = items[s - 1];
                 }
             }
         } else {
             // e.g., 3_2
-            var string_fret = noteGroup.split("_");
-            var s = string_fret[0];
-            var f = string_fret[1];
+            let string_fret = noteGroup.split("_");
+            let s: string = string_fret[0];
+            let f = string_fret[1];
             result[s] = f;
         }
 
@@ -218,17 +220,17 @@ l
         console.log(g + " " + arr);
         if (g.length == 6) {
             //
-            var items = g.toUpperCase().split("");
-            for (var i = 0; i < 6; i++) {
+            let items = g.toUpperCase().split("");
+            for (let i = 0; i < 6; i++) {
                 if (items[i] != "X") {
                     arr[i] = items[i];
                 }
             }
         } else {
             // e.g., 3_2
-            var string_fret = g.split("_");
-            var s = string_fret[0];
-            var f = parseInt(string_fret[1]);
+            let string_fret = g.split("_");
+            let s = string_fret[0];
+            let f = parseInt(string_fret[1]);
             if (f > 9) {
                 // Hex!
                 f = f.toString(16).toUpperCase();
@@ -245,10 +247,10 @@ l
             return;
         }
 
-        var lastGroup = this.noteGroups.pop();
-        var lastLastGroup = this.noteGroups.pop();
+        let lastGroup = this.noteGroups.pop();
+        let lastLastGroup = this.noteGroups.pop();
 
-        var mergedNoteGroup = ["X", "X", "X", "X", "X", "X"];
+        let mergedNoteGroup = ["X", "X", "X", "X", "X", "X"];
 
         this.mergeGroupIntoArray(lastLastGroup, mergedNoteGroup);
         this.mergeGroupIntoArray(lastGroup, mergedNoteGroup);
@@ -262,16 +264,17 @@ l
     drawStringsAndFrets(c) {
         // 0th fret
         c.fillStyle = "rgba(255,255,255,0.1)";
-        c.fillRect(0, 0, 30, 280);
+        c.fillRect(0, 0, 30, CANVAS_HEIGHT);
 
-        c.lineWidth = 0.9;
+        c.lineWidth = 1.5;
 
         // 6 strings
-        for (var s = 1; s <= 6; s++) {
+        for (let s = 1; s <= 6; s++) {
             c.beginPath();
-            c.strokeStyle = "rgba(255,255,255, " + 0.25 * s + ")";
+            let opacity = 0.25 * s;
+            c.strokeStyle = `rgba(255,255,255,${opacity})`;
             c.moveTo(0, s * 40);
-            c.lineTo(1040, s * 40);
+            c.lineTo(CANVAS_WIDTH, s * 40);
             c.stroke();
         }
 
@@ -280,8 +283,9 @@ l
         c.strokeStyle = "rgba(255,255,255, 0.5)";
 
         // 11 vertical lines (handling frets 0 => 12)
-        for (var f = 1; f <= 11; f++) {
-            var x = f * this.FRET_DX + this.FRET_OFFSET;
+        for (let f = 1; f <= 11; f++) {
+            let x = f * FRET_DX + FRET_OFFSET;
+            console.log("Draw vertical line at " + FRET_DX);
             c.beginPath();
             c.moveTo(x, 0);
             c.lineTo(x, 280);
@@ -294,19 +298,19 @@ l
             return;
         }
 
-        var lastGroup = this.noteGroups[this.noteGroups.length - 1]; // the last item
-        var items = this.splitNoteGroup(lastGroup);
+        let lastGroup = this.noteGroups[this.noteGroups.length - 1]; // the last item
+        let items = this.splitNoteGroup(lastGroup);
 
-        for (var s = 1; s <= 6; s++) {
-            var f = items[s];
+        for (let s = 1; s <= 6; s++) {
+            let f = items[s];
             if (f == "X") {
                 continue;
             }
             f = parseInt(f);
 
-            var localFretOffset = f == 0 ? 15 : this.FRET_OFFSET - this.FRET_DX / 2;
-            var x = f * this.FRET_DX + localFretOffset;
-            var y = s * 40;
+            let localFretOffset = f == 0 ? 15 : FRET_OFFSET - FRET_DX / 2;
+            let x = f * FRET_DX + localFretOffset;
+            let y = s * 40;
 
             c.beginPath();
             c.arc(x, y, 14, 0, 2 * Math.PI);
@@ -315,19 +319,19 @@ l
         }
     }
 
-    drawGuitar() {
-        let elem:HTMLCanvasElement = this.getGuitarCanvas();
-
+    drawFrets() {
+        let elem: HTMLCanvasElement = this.getGuitarCanvas();
         if (!elem || !elem.getContext) {
             return;
         }
-        var c = elem.getContext("2d");
+        let c = elem.getContext("2d");
         if (!c) {
             return;
         }
+        console.log("Drawing Guitar");
 
         // clear the background
-        c.fillStyle = "#181818";
+        c.fillStyle = "#121212";
         c.fillRect(0, 0, elem.width, elem.height);
 
         this.drawStringsAndFrets(c);
@@ -337,19 +341,19 @@ l
 
     drawKeyLabels(c) {
         c.font = "14px Tahoma";
-        c.fillStyle = "#FFF";
-        c.strokeStyle = "rgba(255,255,255,0.86)";
+        c.fillStyle = "#000";
+        c.strokeStyle = "rgba(255,255,255,0.75)";
         c.lineJoin = "round";
-        c.lineWidth = 7;
+        c.lineWidth = 6;
 
         // draw the note name
-        for (var s = 1; s <= 6; s++) {
-            for (var f = 0; f <= 12; f++) {
-                var localFretOffset = f == 0 ? 10 : 15 - this.FRET_DX / 2;
-                var noteOffset = this.noteOffsetForString[s];
-                var noteLabel = this.noteLabels[(noteOffset + f) % 12];
-                var x = f * this.FRET_DX + localFretOffset;
-                var y = s * 40 + 6;
+        for (let s = 1; s <= 6; s++) {
+            for (let f = 0; f <= 12; f++) {
+                let localFretOffset = f == 0 ? 10 : 15 - FRET_DX / 2;
+                let noteOffset = this.noteOffsetForString[s];
+                let noteLabel = this.noteLabels[(noteOffset + f) % 12];
+                let x = f * FRET_DX + localFretOffset;
+                let y = s * 40 + 6;
                 c.strokeText(noteLabel, x, y);
                 c.fillText(noteLabel, x, y);
             }
@@ -358,20 +362,20 @@ l
         // draw the keyboard labels
         c.font = "14px Consolas";
         c.fillStyle = "#FFF";
-        for (var s = 1; s <= 4; s++) {
-            for (var f = 0; f < 10; f++) {
-                var keyLabel = this.keyboardLabels[s - 1][f];
-                var adjustedFret = f + this.fretOffset;
-                var localFretOffset = adjustedFret == 0 ? 10 : 15 - this.FRET_DX / 2;
-                var x = adjustedFret * this.FRET_DX + localFretOffset;
-                var y = (s + this.stringOffset) * 40 + 21;
+        for (let s = 1; s <= 4; s++) {
+            for (let f = 0; f < 10; f++) {
+                let keyLabel = this.keyboardLabels[s - 1][f];
+                let adjustedFret = f + this.fretOffset;
+                let localFretOffset = adjustedFret == 0 ? 10 : 15 - FRET_DX / 2;
+                let x = adjustedFret * FRET_DX + localFretOffset;
+                let y = (s + this.stringOffset) * 40 + 21;
                 c.fillText(keyLabel, x, y);
             }
         }
     }
 
-    loadNoteGroupsFromGuitarTab(guitarTab:string) {
-        var guitarTabText = guitarTab.trim();
+    loadNoteGroupsFromGuitarTab(guitarTab: string) {
+        let guitarTabText = guitarTab.trim();
         if (guitarTabText == "") {
             this.noteGroups = [];
         } else {
@@ -380,49 +384,51 @@ l
         this.setGuitarTab(this.noteGroups.join(" "));
     }
 
-    play(keyCode, sharpModifier) {
+    play(keyCode, accidental: number) {
         if (!this.keyCodeToFret.hasOwnProperty(keyCode)) {
             return;
         }
 
-        var adjustedFret = this.keyCodeToFret[keyCode] + this.fretOffset;
-        var adjustedString = this.keyCodeToString[keyCode] + this.stringOffset;
+        let adjustedFret = this.keyCodeToFret[keyCode] + this.fretOffset;
+        let adjustedString = this.keyCodeToString[keyCode] + this.stringOffset;
 
-        var noteOffset = this.noteOffsetForString[adjustedString];
-        var noteLabel = this.noteLabels[(noteOffset + adjustedFret) % 12].toLowerCase();
+        let noteOffset = this.noteOffsetForString[adjustedString];
+        let noteLabel = this.noteLabels[(noteOffset + adjustedFret) % 12].toLowerCase();
 
         // is this note auto-sharped, due to the key signature?
         if (this.getSharps().indexOf(noteLabel) != -1) {
-            sharpModifier++; // raise the sharp a half-step!
+            accidental++; // raise the note a half-step!
         }
-        // is this note auto-flatted, due to the key signature?
+        // is this note auto-flattened, due to the key signature?
         if (this.getFlats().indexOf(noteLabel) != -1) {
-            sharpModifier--; // lower the note a half-step!
+            accidental--; // lower the note a half-step!
         }
 
-        adjustedFret += sharpModifier;
+        adjustedFret += accidental;
 
         this.noteGroups.push(adjustedString + "_" + adjustedFret); // push the string onto our array
 
-        var pianoKeyNumber = this.stringToPianoKey[adjustedString] + adjustedFret;
+        let pianoKeyNumber = this.stringToPianoKey[adjustedString] + adjustedFret;
         this.piano.tone({ pitch: this.pianoNote(pianoKeyNumber), duration: 1.0 });
         this.saveAndShowData();
     }
 
     onKeyDown(e: KeyboardEvent) {
-        // if ($sharps.is(":focus") || $flats.is(":focus")) {
-        //     return; // if we are typing in the sharps/flats input, we should ignore the rest of the key handler
-        // }
+        if (this.isFocusedOnSharpsInputElement() || this.isFocusedOnFlatsInputElement()) {
+            return; // if we are typing in the sharps/flats input, we should ignore the rest of the key handler
+        }
 
         if (e.keyCode == 91 || e.keyCode == 93) {
             // CMD KEY on Mac
-            // $text.select();
+            this.getGuitarTabTextArea().select();
         }
 
         if (e.metaKey) {
             if (e.keyCode == 88 || e.keyCode == 67) {
                 // CMD + X or CMD + C
-                setTimeout(this.resetData, 100);
+                setTimeout(() => {
+                    this.resetData();
+                }, 100);
             }
             return;
         }
@@ -431,11 +437,13 @@ l
             return;
         }
 
-        var sharpModifier = 0;
+        let accidental = 0;
         if (e.ctrlKey) {
-            sharpModifier = -1;
+            // FLAT: Lower the note by a half step.
+            accidental = -1;
         } else if (e.shiftKey) {
-            sharpModifier = +1;
+            // SHARP: Raise the note by a half step.
+            accidental = +1;
         }
 
         e.preventDefault();
@@ -464,7 +472,7 @@ l
                 if (this.fretOffset < 0) {
                     this.fretOffset = 0;
                 }
-                this.drawGuitar();
+                this.drawFrets();
                 break;
             case 39: // RIGHT
                 // shift the keyboard offset to the right by 1
@@ -472,7 +480,7 @@ l
                 if (this.fretOffset > 3) {
                     this.fretOffset = 3;
                 }
-                this.drawGuitar();
+                this.drawFrets();
                 break;
             case 38: // UP
                 // shift the keyboard offset up by 1
@@ -480,7 +488,7 @@ l
                 if (this.stringOffset < 0) {
                     this.stringOffset = 0;
                 }
-                this.drawGuitar();
+                this.drawFrets();
                 break;
             case 40: // DOWN
                 // shift the keyboard offset down by 1
@@ -488,25 +496,21 @@ l
                 if (this.stringOffset > 2) {
                     this.stringOffset = 2;
                 }
-                this.drawGuitar();
+                this.drawFrets();
                 break;
             default:
-                this.play(e.keyCode, sharpModifier);
+                this.play(e.keyCode, accidental);
                 break;
         }
     }
 
-    onKeyUp(e: KeyboardEvent) {
-        // update our sharps
+    isFocusedOnSharpsInputElement(): boolean {
         let sharpsInputElement = this.getSharpsInput();
-        if (sharpsInputElement === document.activeElement) {
-            this.setSharps(this.getSharps());
-        }
+        return sharpsInputElement === document.activeElement;
+    }
 
-        // update our flats
+    isFocusedOnFlatsInputElement(): boolean {
         let flatsInputElement = this.getFlatsInput();
-        if (flatsInputElement === document.activeElement) {
-            this.setFlats(this.getFlats());
-        }
+        return flatsInputElement === document.activeElement;
     }
 }
