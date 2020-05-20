@@ -8,16 +8,24 @@ export default function () {
                 <a href="//github.com/squarepoet/squarepoet.github.io">Repository</a>
             </div>
             <div>
-                <Link href="/piano/v1">Piano 1</Link>
+                <Link href="/piano/v1">
+                    <a>Piano 1</a>
+                </Link>
             </div>
             <div>
-                <Link href="/piano/v2">Piano 2</Link>
+                <Link href="/piano/v2">
+                    <a>Piano 2</a>
+                </Link>
             </div>
             <div>
-                <Link href="/guitar/v1">Guitar 1</Link>
+                <Link href="/guitar/v1">
+                    <a>Guitar 1</a>
+                </Link>
             </div>
             <div>
-                <Link href="/guitar/v2">Guitar 2</Link>
+                <Link href="/guitar/v2">
+                    <a>Guitar 2</a>
+                </Link>
             </div>
             <div>
                 <Link href="/about">

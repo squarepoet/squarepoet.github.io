@@ -1,31 +1,79 @@
-import * as React from "react";
+import { useEffect, useState, useRef } from "react";
 import Head from "next/head";
 import GuitarAuthorV1 from "apps/author/guitar/GuitarAuthorV1";
 import createPersistedState from "use-persisted-state";
 import useEventListener from "hooks/useEventListener";
 
+console.log("index.tsx loaded!");
+
 const useGuitarTabState = createPersistedState("guitar_tab");
 const useSharpsState = createPersistedState("sharps");
 const useFlatsState = createPersistedState("flats");
 
+let authoringTool: GuitarAuthorV1 = null;
+
+if (typeof window !== "undefined") {
+    authoringTool = new GuitarAuthorV1();
+}
+
+// This function is called each time we need to update the page.
 export default function () {
-    let authoringTool: GuitarAuthorV1 = null;
+    console.log("Page Function Called");
 
     const [sharps, setSharps] = useSharpsState("");
     const [flats, setFlats] = useFlatsState("");
     const [guitarTab, setGuitarTab] = useGuitarTabState("");
 
-    function start() {
-        if (!authoringTool) {
-            authoringTool = new GuitarAuthorV1();
-        }
-    }
+    const guitarTabTextArea = useRef();
+    const sharpsInput = useRef();
+    const flatsInput = useRef();
+    const guitarCanvas = useRef();
 
     useEventListener("keydown", (e) => {
         if (authoringTool) {
             authoringTool.onKeyDown(e);
         }
     });
+
+    useEventListener("keyup", (e) => {
+        if (authoringTool) {
+            authoringTool.onKeyUp(e);
+        }
+    });
+
+    useEffect(() => {
+        console.log("Rendered! " + Math.random());
+        authoringTool.setSharps = setSharps;
+        authoringTool.setFlats = setFlats;
+        authoringTool.setGuitarTab = setGuitarTab;
+        authoringTool.getSharps = () => {
+            return sharps.toLowerCase();
+        };
+        authoringTool.getFlats = () => {
+            return flats.toLowerCase();
+        };
+        authoringTool.getGuitarTab = () => {
+            return guitarTab;
+        };
+        authoringTool.getGuitarTabTextArea = () => {
+            return guitarTabTextArea.current;
+        };
+        authoringTool.getSharpsInput = () => {
+            return sharpsInput.current;
+        };
+        authoringTool.getFlatsInput = () => {
+            return flatsInput.current;
+        };
+        authoringTool.getGuitarCanvas = () => {
+            return guitarCanvas.current;
+        };
+    });
+
+    useEffect(() => {
+        authoringTool.loadNoteGroupsFromGuitarTab(guitarTab);
+        authoringTool.drawGuitar();
+        console.log("Page Mounted!");
+    }, []);
 
     return (
         <>
@@ -34,9 +82,6 @@ export default function () {
                 {/* <script type="text/javascript" src="/s/j/lodash.min.js"></script> */}
                 <script type="text/javascript" src="/s/j/musical.min.js"></script>
             </Head>
-            <button className="start" onClick={start}>
-                Click to Start
-            </button>
             <div className="hotkeys">
                 shift + esc &rarr; clear
                 <br />
@@ -46,15 +91,15 @@ export default function () {
                 tab &rarr; combine
             </div>
             <div className="sharps-and-flats">
-                sharps: <input id="sharps-text" value={sharps} readOnly />
+                sharps: <input ref={sharpsInput} value={sharps} readOnly />
                 <br />
-                flats: <input id="flats-text" value={flats} readOnly />
+                flats: <input ref={flatsInput} value={flats} readOnly />
             </div>
             <div className="clear"></div>
             <br />
             <div id="content" className="content">
                 <textarea className="textarea" rows={3} cols={80} value={guitarTab} readOnly />
-                <canvas id="guitarCanvas" width="1040" height="280" className="canvas"></canvas>
+                <canvas ref={guitarCanvas} width="1040" height="280" className="canvas"></canvas>
             </div>
             <style jsx global>{`
                 body {

@@ -1,58 +1,58 @@
 declare var Instrument: any; // musical.min.js
 
-let $text = "";
-function setText(t) {
-    console.log("Set Text to " + t);
-    $text = t;
-}
-
-let $sharps = "";
-function setSharps(s) {
-    console.log("Set Sharps to " + s);
-    $sharps = s;
-}
-
-let $flats = "";
-function setFlats(f) {
-    console.log("Set Flats to " + f);
-    $flats = f;
-}
-
 export default class GuitarAuthorV1 {
-    FRET_DX: 85;
-    FRET_OFFSET: 20;
-    noteOffsetForString = [0, 7, 2, 10, 5, 0, 7]; // [X] E B G D A E
+    //////////////////////////////////////////////////////////////////////////////////////////////////
 
-    piano = null;
+    public setSharps: (s: string) => void;
+    public setFlats: (s: string) => void;
+    public setGuitarTab: (s: string) => void;
 
+    public getSharps: () => string;
+    public getFlats: () => string;
+    public getGuitarTab: () => string;
+
+    public getGuitarTabTextArea: () => HTMLTextAreaElement;
+    public getSharpsInput: () => HTMLInputElement;
+    public getFlatsInput: () => HTMLInputElement;
+    public getGuitarCanvas: () => HTMLCanvasElement;
+l
+    //////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+    private FRET_DX: 85;
+    private FRET_OFFSET: 20;
+    private noteOffsetForString = [0, 7, 2, 10, 5, 0, 7]; // [X] E B G D A E
+
+    private piano = null;
+
+    // Only instantiate this on the client. Make sure you never instantiate GuitarAuthorV1 in server side JS!
     constructor() {
-        if (typeof window !== "undefined") {
-            this.piano = new Instrument("piano");
-        }
+        console.log("GuitarAuthorV1 constructor");
+        this.piano = new Instrument("piano");
     }
 
     // Converts a piano note (C4 == 40) to MIDI (C4 == 60)
     // This API expects a negative number to signify MIDI.
-    pianoNote(num) {
+    private pianoNote(num) {
         return -(num + 20);
     }
 
     // which character to type to get the corresponding note
-    keyboardLabels = [
+    private keyboardLabels = [
         ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"],
         ["q", "w", "e", "r", "t", "y", "u", "i", "o", "p"],
         ["a", "s", "d", "f", "g", "h", "j", "k", "l", ";"],
         ["z", "x", "c", "v", "b", "n", "m", ",", ".", "/"],
     ];
-    fretOffset = 0;
-    stringOffset = 0;
+    private fretOffset = 0;
+    private stringOffset = 0;
 
-    noteGroups = [];
+    private noteGroups = [];
 
-    noteLabels = ["A", "A#", "B", "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#"];
+    private noteLabels = ["A", "A#", "B", "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#"];
 
     // The zeroth fret of string 2 corresponds to piano key #39 (B just under Middle C).
-    stringToPianoKey = {
+    private stringToPianoKey = {
         1: 44, // E
         2: 39, // B
         3: 35, // G
@@ -61,7 +61,7 @@ export default class GuitarAuthorV1 {
         6: 20, // E
     };
 
-    keyCodeToFret = {
+    private keyCodeToFret = {
         90: 0, // z
         88: 1, // x
         67: 2, // c
@@ -187,8 +187,7 @@ export default class GuitarAuthorV1 {
 
     saveAndShowData() {
         var newText = this.noteGroups.join(" ");
-        localStorage.text = newText;
-        setText(newText);
+        this.setGuitarTab(newText);
         this.drawGuitar();
     }
 
@@ -262,7 +261,7 @@ export default class GuitarAuthorV1 {
     // 1040 x 280 tall.
     drawStringsAndFrets(c) {
         // 0th fret
-        c.fillStyle = "rgba(0,0,0,0.1)";
+        c.fillStyle = "rgba(255,255,255,0.1)";
         c.fillRect(0, 0, 30, 280);
 
         c.lineWidth = 0.9;
@@ -270,7 +269,7 @@ export default class GuitarAuthorV1 {
         // 6 strings
         for (var s = 1; s <= 6; s++) {
             c.beginPath();
-            c.strokeStyle = "rgba(0, 0, 0, " + 0.25 * s + ")";
+            c.strokeStyle = "rgba(255,255,255, " + 0.25 * s + ")";
             c.moveTo(0, s * 40);
             c.lineTo(1040, s * 40);
             c.stroke();
@@ -278,7 +277,7 @@ export default class GuitarAuthorV1 {
 
         c.beginPath();
         c.lineWidth = 1;
-        c.strokeStyle = "rgba(0, 0, 0, 0.5)";
+        c.strokeStyle = "rgba(255,255,255, 0.5)";
 
         // 11 vertical lines (handling frets 0 => 12)
         for (var f = 1; f <= 11; f++) {
@@ -311,13 +310,14 @@ export default class GuitarAuthorV1 {
 
             c.beginPath();
             c.arc(x, y, 14, 0, 2 * Math.PI);
-            c.fillStyle = "rgba(165,165,0,0.5)";
+            c.fillStyle = "rgba(180,180,0,0.5)";
             c.fill();
         }
     }
 
     drawGuitar() {
-        var elem = document.getElementById("guitarCanvas");
+        let elem:HTMLCanvasElement = this.getGuitarCanvas();
+
         if (!elem || !elem.getContext) {
             return;
         }
@@ -327,7 +327,7 @@ export default class GuitarAuthorV1 {
         }
 
         // clear the background
-        c.fillStyle = "#FFF";
+        c.fillStyle = "#181818";
         c.fillRect(0, 0, elem.width, elem.height);
 
         this.drawStringsAndFrets(c);
@@ -337,7 +337,7 @@ export default class GuitarAuthorV1 {
 
     drawKeyLabels(c) {
         c.font = "14px Tahoma";
-        c.fillStyle = "#777";
+        c.fillStyle = "#FFF";
         c.strokeStyle = "rgba(255,255,255,0.86)";
         c.lineJoin = "round";
         c.lineWidth = 7;
@@ -357,7 +357,7 @@ export default class GuitarAuthorV1 {
 
         // draw the keyboard labels
         c.font = "14px Consolas";
-        c.fillStyle = "#000";
+        c.fillStyle = "#FFF";
         for (var s = 1; s <= 4; s++) {
             for (var f = 0; f < 10; f++) {
                 var keyLabel = this.keyboardLabels[s - 1][f];
@@ -370,30 +370,14 @@ export default class GuitarAuthorV1 {
         }
     }
 
-    loadSharpsAndFlats() {
-        if (!localStorage.sharps) {
-            localStorage.sharps = "";
-        }
-        setSharps(localStorage.sharps);
-
-        if (!localStorage.flats) {
-            localStorage.flats = "";
-        }
-        setFlats(localStorage.flats);
-    }
-
-    loadNoteGroups() {
-        if (!localStorage.text) {
-            localStorage.text = "";
-        }
-
-        var text = localStorage.text.trim();
-        if (text == "") {
+    loadNoteGroupsFromGuitarTab(guitarTab:string) {
+        var guitarTabText = guitarTab.trim();
+        if (guitarTabText == "") {
             this.noteGroups = [];
         } else {
-            this.noteGroups = text.split(" ");
+            this.noteGroups = guitarTabText.split(" ");
         }
-        setText(this.noteGroups.join(" "));
+        this.setGuitarTab(this.noteGroups.join(" "));
     }
 
     play(keyCode, sharpModifier) {
@@ -408,11 +392,11 @@ export default class GuitarAuthorV1 {
         var noteLabel = this.noteLabels[(noteOffset + adjustedFret) % 12].toLowerCase();
 
         // is this note auto-sharped, due to the key signature?
-        if ($sharps.toLowerCase().indexOf(noteLabel) != -1) {
+        if (this.getSharps().indexOf(noteLabel) != -1) {
             sharpModifier++; // raise the sharp a half-step!
         }
         // is this note auto-flatted, due to the key signature?
-        if ($flats.toLowerCase().indexOf(noteLabel) != -1) {
+        if (this.getFlats().indexOf(noteLabel) != -1) {
             sharpModifier--; // lower the note a half-step!
         }
 
@@ -425,17 +409,19 @@ export default class GuitarAuthorV1 {
         this.saveAndShowData();
     }
 
-    onKeyDown(e:KeyboardEvent) {
+    onKeyDown(e: KeyboardEvent) {
         // if ($sharps.is(":focus") || $flats.is(":focus")) {
         //     return; // if we are typing in the sharps/flats input, we should ignore the rest of the key handler
         // }
 
-        if (e.keyCode == 91 || e.keyCode == 93) { // CMD KEY on Mac
+        if (e.keyCode == 91 || e.keyCode == 93) {
+            // CMD KEY on Mac
             // $text.select();
         }
 
         if (e.metaKey) {
-            if (e.keyCode == 88 || e.keyCode == 67) { // CMD + X or CMD + C
+            if (e.keyCode == 88 || e.keyCode == 67) {
+                // CMD + X or CMD + C
                 setTimeout(this.resetData, 100);
             }
             return;
@@ -455,7 +441,7 @@ export default class GuitarAuthorV1 {
         e.preventDefault();
         switch (e.keyCode) {
             case 192: // ~ == SHIFT + `
-                console.log('SHIFT + `');
+                console.log("SHIFT + `");
                 this.resetData();
                 break;
             case 27: // ESC
@@ -508,6 +494,19 @@ export default class GuitarAuthorV1 {
                 this.play(e.keyCode, sharpModifier);
                 break;
         }
-        
+    }
+
+    onKeyUp(e: KeyboardEvent) {
+        // update our sharps
+        let sharpsInputElement = this.getSharpsInput();
+        if (sharpsInputElement === document.activeElement) {
+            this.setSharps(this.getSharps());
+        }
+
+        // update our flats
+        let flatsInputElement = this.getFlatsInput();
+        if (flatsInputElement === document.activeElement) {
+            this.setFlats(this.getFlats());
+        }
     }
 }
