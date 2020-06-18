@@ -1,8 +1,30 @@
 import { AppProps } from "next/app";
-import "../styles/global.css";
+import Layout from "components/layout";
 
-function App({ Component, pageProps }: AppProps) {
-    return <Component {...pageProps} />;
-}
+export default ({ Component, pageProps }: AppProps) => {
+    console.log("Page Component Props:");
+    console.log(pageProps);
 
-export default App;
+    if (!pageProps.title) {
+        pageProps.title = "Default Title";
+    }
+
+    return (
+        <>
+            <Layout title={pageProps.title}>
+                <Component {...pageProps} />
+            </Layout>
+            <style jsx global>{`
+                html,
+                body {
+                    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji",
+                        "Segoe UI Emoji", "Segoe UI Symbol";
+                    background-color: #232323;
+                    color: #bbb;
+                    font-size: 16pt;
+                    line-height: 150%;
+                }
+            `}</style>
+        </>
+    );
+};

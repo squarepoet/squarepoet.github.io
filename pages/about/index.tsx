@@ -1,5 +1,11 @@
-function Page() {
-    return <div>About</div>
+export default () => {
+    return <div>About</div>;
+};
+
+export async function getStaticProps(context) {
+    return {
+        props: {
+            title: "About",
+        },
+    };
 }
-  
-export default Page

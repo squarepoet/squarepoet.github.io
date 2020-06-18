@@ -1,14 +1,14 @@
 import { useEffect, useState, useRef } from "react";
-import Head from "next/head";
 import GuitarAuthorV1 from "apps/author/guitar/GuitarAuthorV1";
+import Shortcuts from "apps/author/guitar/Shortcuts";
 import createPersistedState from "use-persisted-state";
-import useEventListener from "hooks/useEventListener";
+import { useEventListener } from "use-hooks";
+import InputSaved from "components/input-saved";
 
+// SERVER + CLIENT
 console.log("index.tsx loaded!");
 
 const useGuitarTabState = createPersistedState("guitar_tab");
-const useSharpsState = createPersistedState("sharps");
-const useFlatsState = createPersistedState("flats");
 
 let authoringTool: GuitarAuthorV1 = null;
 
@@ -17,95 +17,72 @@ if (typeof window !== "undefined") {
 }
 
 // This function is called each time we need to update the page.
+// SERVER + CLIENT
 export default function () {
     console.log("Page Function Called");
 
-    const [sharps, setSharps] = useSharpsState("");
-    const [flats, setFlats] = useFlatsState("");
     const [guitarTab, setGuitarTab] = useGuitarTabState("");
 
     const guitarTabTextArea = useRef();
-    const sharpsInput = useRef();
-    const flatsInput = useRef();
     const guitarCanvas = useRef();
 
-    useEventListener("keydown", (e) => {
-        if (authoringTool) {
+    if (typeof window !== "undefined") {
+        useEventListener("keydown", (e) => {
             authoringTool.onKeyDown(e);
-        }
-    });
+        });
+    }
 
+    // Called Every Render
     useEffect(() => {
-        console.log("Rendered! " + Math.random());
-        authoringTool.setSharps = setSharps;
-        authoringTool.setFlats = setFlats;
+        console.log("USE EFFECT");
         authoringTool.setGuitarTab = setGuitarTab;
         authoringTool.getSharps = () => {
-            return sharps.toLowerCase();
+            return "";
+            // return sharps.toLowerCase();
         };
         authoringTool.getFlats = () => {
-            return flats.toLowerCase();
+            return "";
+            // return flats.toLowerCase();
         };
         authoringTool.getGuitarTab = () => {
             return guitarTab;
         };
         authoringTool.getGuitarTabTextArea = () => {
-            console.log("Called getGuitarTabTextArea!!!");
             return guitarTabTextArea.current;
         };
         authoringTool.getSharpsInput = () => {
-            return sharpsInput.current;
+            return null;
+            // return sharpsInput.current;
         };
         authoringTool.getFlatsInput = () => {
-            return flatsInput.current;
+            return null;
+            // return flatsInput.current;
         };
         authoringTool.getGuitarCanvas = () => {
             return guitarCanvas.current;
         };
     });
 
+    // Called Once!
     useEffect(() => {
-        console.log(guitarTab);
+        console.log("USE EFFECT ON MOUNT");
         authoringTool.loadNoteGroupsFromGuitarTab(guitarTab);
         authoringTool.drawFrets();
-        console.log("Page Mounted!");
     }, []);
-
-    function onSharpsChanged(e) {
-        let newVal = e.target.value.toUpperCase();
-        setSharps(newVal);
-        console.log(`sharps changed to [${newVal}]`);
-    }
-
-    function onFlatsChanged(e) {
-        let newVal = e.target.value.toUpperCase();
-        setFlats(newVal);
-        console.log(`flats changed to [${newVal}]`);
-    }
 
     return (
         <>
-            <Head>
-                <title>Guitar Author V1</title>
-                <script type="text/javascript" src="/s/j/musical.min.js"></script>
-            </Head>
-            <div className="hotkeys">
-                shift + esc &rarr; clear
-                <br />
-                cmd + c &rarr; copy <br />
-                arrow keys &rarr; adjust
-                <br />
-                tab &rarr; combine
-            </div>
+            {/* <script type="text/javascript" src="/s/j/musical.patched.js"></script> */}
+            <Shortcuts />
             <div className="sharps-and-flats">
-                sharps: <input ref={sharpsInput} value={sharps} onChange={onSharpsChanged} />
+                sharps: <InputSaved persistedStateKey="sharps"/>
                 <br />
-                flats: <input ref={flatsInput} value={flats} onChange={onFlatsChanged} />
+                flats: <InputSaved persistedStateKey="flats"/>
             </div>
             <div className="clear"></div>
             <br />
-            <div id="content" className="content">
-                <textarea ref={guitarTabTextArea} className="textarea" rows={3} cols={80} value={guitarTab} readOnly />
+            <div className="content">
+                <textarea ref={guitarTabTextArea} className="textarea" rows={3} cols={80} defaultValue={guitarTab} readOnly />
                 <canvas ref={guitarCanvas} width="1040" height="280" className="canvas"></canvas>
             </div>
             <style jsx global>{`
@@ -114,19 +91,15 @@ export default function () {
                 }
             `}</style>
             <style jsx>{`
-                div.hotkeys {
-                    float: right;
-                    text-align: right;
-                }
-                div.sharps-and-flats {
+                .sharps-and-flats {
                     margin-right: 40px;
-                    float: right;
+                    float: left;
                     text-align: right;
                 }
-                div.clear {
+                .clear {
                     clear: right;
                 }
-                div.content {
+                .content {
                     width: 100%;
                     text-align: center;
                 }
@@ -134,6 +107,8 @@ export default function () {
                     font-family: Inconsolata, Menlo, Monaco, Courier, monospace;
                     font-size: 16pt;
                     width: 100%;
+                    background-color: #444;
+                    color: #ddd;
                 }
                 .canvas {
                     border: 1px solid rgba(0, 0, 0, 0.2);
@@ -150,4 +125,12 @@ export default function () {
             `}</style>
         </>
     );
+}
+
+export async function getStaticProps(context) {
+    return {
+        props: {
+            title: "Guitar Author V1",
+        },
+    };
 }

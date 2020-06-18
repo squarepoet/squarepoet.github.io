@@ -1,4 +1,17 @@
-declare let Instrument: any; // musical.min.js
+//////////////////////////////////////////////////////////////////////////////////////////////////
+// See: musical.patched.js
+declare class Instrument {
+    constructor(type: string);
+    tone(noteObject: any);
+}
+
+// Converts a piano note (C4 == 40) to MIDI (C4 == 60)
+// The musical.patched.js API expects a negative number to signify MIDI (So -60 is Middle C).
+function convertPianoKeyNumberToNegativeMIDI(num: number) {
+    return -(num + 20);
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
 
 const CANVAS_WIDTH = 1040;
 const CANVAS_HEIGHT = 280;
@@ -6,11 +19,21 @@ const CANVAS_HEIGHT = 280;
 const FRET_DX = 85;
 const FRET_OFFSET = 20;
 
+const NOTE_LABELS = ["A", "A#", "B", "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#"];
+
+// The zeroth fret of string 2 corresponds to piano key #39 (B just under Middle C).
+const STRING_TO_PIANOKEY = {
+    1: 44, // E
+    2: 39, // B
+    3: 35, // G
+    4: 30, // D
+    5: 25, // A
+    6: 20, // E
+};
+
 export default class GuitarAuthorV1 {
     //////////////////////////////////////////////////////////////////////////////////////////////////
 
-    public setSharps: (s: string) => void;
-    public setFlats: (s: string) => void;
     public setGuitarTab: (s: string) => void;
 
     public getSharps: () => string;
@@ -26,19 +49,13 @@ export default class GuitarAuthorV1 {
 
     private noteOffsetForString = [0, 7, 2, 10, 5, 0, 7]; // [X] E B G D A E
 
-    private piano = null;
+    private piano: Instrument = null;
+    private fretOffset = 0;
+    private stringOffset = 0;
 
-    // Only instantiate this on the client. Make sure you never instantiate GuitarAuthorV1 in server side JS!
-    constructor() {
-        console.log("GuitarAuthorV1 constructor");
-        this.piano = new Instrument("piano");
-    }
+    private noteGroups: string[] = [];
 
-    // Converts a piano note (C4 == 40) to MIDI (C4 == 60)
-    // This API expects a negative number to signify MIDI.
-    private pianoNote(num) {
-        return -(num + 20);
-    }
+    constructor() {}
 
     // which character to type to get the corresponding note
     private keyboardLabels = [
@@ -47,22 +64,6 @@ export default class GuitarAuthorV1 {
         ["a", "s", "d", "f", "g", "h", "j", "k", "l", ";"],
         ["z", "x", "c", "v", "b", "n", "m", ",", ".", "/"],
     ];
-    private fretOffset = 0;
-    private stringOffset = 0;
-
-    private noteGroups: string[] = [];
-
-    private noteLabels = ["A", "A#", "B", "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#"];
-
-    // The zeroth fret of string 2 corresponds to piano key #39 (B just under Middle C).
-    private stringToPianoKey = {
-        1: 44, // E
-        2: 39, // B
-        3: 35, // G
-        4: 30, // D
-        5: 25, // A
-        6: 20, // E
-    };
 
     private keyCodeToFret = {
         90: 0, // z
@@ -266,26 +267,26 @@ export default class GuitarAuthorV1 {
         c.fillStyle = "rgba(255,255,255,0.1)";
         c.fillRect(0, 0, 30, CANVAS_HEIGHT);
 
-        c.lineWidth = 1.5;
+        c.lineWidth = 1;
 
-        // 6 strings
+        // 6 strings. Horizontal lines.
         for (let s = 1; s <= 6; s++) {
             c.beginPath();
-            let opacity = 0.25 * s;
+            let opacity = 0.08 * s;
             c.strokeStyle = `rgba(255,255,255,${opacity})`;
             c.moveTo(0, s * 40);
             c.lineTo(CANVAS_WIDTH, s * 40);
             c.stroke();
         }
 
+        // Fret Lines
         c.beginPath();
         c.lineWidth = 1;
-        c.strokeStyle = "rgba(255,255,255, 0.5)";
+        c.strokeStyle = "rgba(255,255,255,0.5)";
 
         // 11 vertical lines (handling frets 0 => 12)
         for (let f = 1; f <= 11; f++) {
             let x = f * FRET_DX + FRET_OFFSET;
-            console.log("Draw vertical line at " + FRET_DX);
             c.beginPath();
             c.moveTo(x, 0);
             c.lineTo(x, 280);
@@ -293,14 +294,37 @@ export default class GuitarAuthorV1 {
         }
     }
 
+    getMostRecentNoteGroup() {
+        let lastGroup = this.noteGroups[this.noteGroups.length - 1]; // the last item
+        let items = this.splitNoteGroup(lastGroup);
+        return items;
+    }
+
+    playMostRecentGroup() {
+        let items = this.getMostRecentNoteGroup();
+        for (let s = 1; s <= 6; s++) {
+            let f = items[s];
+            if (f == "X") {
+                continue;
+            }
+            f = parseInt(f);
+
+            let pianoKeyNumber = STRING_TO_PIANOKEY[s] + f;
+            this.playPianoNote(pianoKeyNumber);
+        }
+    }
+
+    playPianoNote(pianoKeyNumber: number) {
+        this.piano = new Instrument("piano");
+        this.piano.tone({ pitch: convertPianoKeyNumberToNegativeMIDI(pianoKeyNumber), duration: 0.8 });
+    }
+
     drawMostRecentGroup(c) {
         if (this.noteGroups.length == 0) {
             return;
         }
 
-        let lastGroup = this.noteGroups[this.noteGroups.length - 1]; // the last item
-        let items = this.splitNoteGroup(lastGroup);
-
+        let items = this.getMostRecentNoteGroup();
         for (let s = 1; s <= 6; s++) {
             let f = items[s];
             if (f == "X") {
@@ -328,10 +352,9 @@ export default class GuitarAuthorV1 {
         if (!c) {
             return;
         }
-        console.log("Drawing Guitar");
 
         // clear the background
-        c.fillStyle = "#121212";
+        c.fillStyle = "#131313";
         c.fillRect(0, 0, elem.width, elem.height);
 
         this.drawStringsAndFrets(c);
@@ -341,8 +364,6 @@ export default class GuitarAuthorV1 {
 
     drawKeyLabels(c) {
         c.font = "14px Tahoma";
-        c.fillStyle = "#000";
-        c.strokeStyle = "rgba(255,255,255,0.75)";
         c.lineJoin = "round";
         c.lineWidth = 6;
 
@@ -351,24 +372,28 @@ export default class GuitarAuthorV1 {
             for (let f = 0; f <= 12; f++) {
                 let localFretOffset = f == 0 ? 10 : 15 - FRET_DX / 2;
                 let noteOffset = this.noteOffsetForString[s];
-                let noteLabel = this.noteLabels[(noteOffset + f) % 12];
+                let noteLabel = NOTE_LABELS[(noteOffset + f) % 12];
+                if (noteLabel === "C") {
+                    c.fillStyle = "#F55";
+                } else {
+                    c.fillStyle = "#FFF";
+                }
                 let x = f * FRET_DX + localFretOffset;
                 let y = s * 40 + 6;
-                c.strokeText(noteLabel, x, y);
                 c.fillText(noteLabel, x, y);
             }
         }
 
         // draw the keyboard labels
-        c.font = "14px Consolas";
-        c.fillStyle = "#FFF";
+        c.font = "15px Hack, Consolas, Courier";
+        c.fillStyle = "#FF4";
         for (let s = 1; s <= 4; s++) {
             for (let f = 0; f < 10; f++) {
                 let keyLabel = this.keyboardLabels[s - 1][f];
                 let adjustedFret = f + this.fretOffset;
-                let localFretOffset = adjustedFret == 0 ? 10 : 15 - FRET_DX / 2;
+                let localFretOffset = adjustedFret == 0 ? 10 : 15 - FRET_DX * 0.5;
                 let x = adjustedFret * FRET_DX + localFretOffset;
-                let y = (s + this.stringOffset) * 40 + 21;
+                let y = (s + this.stringOffset) * 40 + 22;
                 c.fillText(keyLabel, x, y);
             }
         }
@@ -381,6 +406,7 @@ export default class GuitarAuthorV1 {
         } else {
             this.noteGroups = guitarTabText.split(" ");
         }
+        console.log(this.noteGroups.join("*"));
         this.setGuitarTab(this.noteGroups.join(" "));
     }
 
@@ -390,10 +416,11 @@ export default class GuitarAuthorV1 {
         }
 
         let adjustedFret = this.keyCodeToFret[keyCode] + this.fretOffset;
+        console.log("Adjusted Fret " + adjustedFret);
         let adjustedString = this.keyCodeToString[keyCode] + this.stringOffset;
 
         let noteOffset = this.noteOffsetForString[adjustedString];
-        let noteLabel = this.noteLabels[(noteOffset + adjustedFret) % 12].toLowerCase();
+        let noteLabel = NOTE_LABELS[(noteOffset + adjustedFret) % 12].toLowerCase();
 
         // is this note auto-sharped, due to the key signature?
         if (this.getSharps().indexOf(noteLabel) != -1) {
@@ -408,8 +435,10 @@ export default class GuitarAuthorV1 {
 
         this.noteGroups.push(adjustedString + "_" + adjustedFret); // push the string onto our array
 
-        let pianoKeyNumber = this.stringToPianoKey[adjustedString] + adjustedFret;
-        this.piano.tone({ pitch: this.pianoNote(pianoKeyNumber), duration: 1.0 });
+        let pianoKeyNumber = STRING_TO_PIANOKEY[adjustedString] + adjustedFret;
+
+        this.playPianoNote(pianoKeyNumber);
+
         this.saveAndShowData();
     }
 
@@ -448,6 +477,9 @@ export default class GuitarAuthorV1 {
 
         e.preventDefault();
         switch (e.keyCode) {
+            case 32: // SPACEBAR
+                this.playMostRecentGroup();
+                break;
             case 192: // ~ == SHIFT + `
                 console.log("SHIFT + `");
                 this.resetData();

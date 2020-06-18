@@ -16,15 +16,16 @@
     "license": "MIT",
     "homepage": "https://squarepoet.github.io",
     "dependencies": {
-        "next": "^9.4.0",
-        "react": "^16.13.1",
-        "react-dom": "^16.13.1",
-        "tone": "^13.8.25",
-        "use-persisted-state": "^0.3.0"
+        "next": "latest",
+        "react": "latest",
+        "react-dom": "latest",
+        "tone": "latest",
+        "use-hooks": "latest",
+        "use-persisted-state": "latest"
     },
     "devDependencies": {
-        "@types/node": "^13.13.5",
-        "@types/react": "^16.9.35",
-        "typescript": "^3.8.3"
+        "@types/node": "latest",
+        "@types/react": "latest",
+        "typescript": "latest"
     }
 }

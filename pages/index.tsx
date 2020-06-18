@@ -35,3 +35,11 @@ export default function () {
         </div>
     );
 }
+
+export async function getStaticProps(context) {
+    return {
+        props: {
+            title: "FOOBAR",
+        },
+    };
+}

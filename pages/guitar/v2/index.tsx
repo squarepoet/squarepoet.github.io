@@ -1,16 +1,13 @@
 import * as React from "react";
-import Head from "next/head";
-import Layout from "components/layout";
 
-function Page() {
-    return (
-        <Layout>
-            <Head>
-                <title>Guitar V2</title>
-            </Head>
-            <div>Guitar V2</div>
-        </Layout>
-    );
+export default () => {
+    return <div>Guitar V2</div>;
+};
+
+export async function getStaticProps(context) {
+    return {
+        props: {
+            title: "Guitar Author V2",
+        },
+    };
 }
-
-export default Page;

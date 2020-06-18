@@ -1,6 +1,4 @@
 import * as React from "react";
-import Head from "next/head";
-import Layout from "../../../components/layout";
 
 // class CanvasComponent extends React.Component {
 //     componentDidMount() {
@@ -35,15 +33,57 @@ import Layout from "../../../components/layout";
 //     }
 // }
 
-function Page() {
+export default () => {
     return (
-        <Layout>
-            <Head>
-                <title>Piano V1</title>
-            </Head>
-            <div>Piano V1</div>
-        </Layout>
+        <>
+            <div>
+                shift &rarr; sharp &nbsp;&nbsp;&nbsp;&nbsp; ctrl &rarr; flat &nbsp;&nbsp;&nbsp;&nbsp; shift + esc &rarr; clear
+                <br /> up/down &rarr; +/- octave &nbsp;&nbsp;&nbsp;&nbsp; tab &rarr; combine &nbsp;&nbsp;&nbsp;&nbsp; cmd + c &rarr; copy
+                <style jsx>
+                    {`
+                        div {
+                            float: right;
+                        }
+                    `}
+                </style>
+            </div>
+            <div>
+                sharps: <input id="sharps-text" /> flats: <input id="flats-text" />
+                <style jsx>{`
+                    div {
+                        float: right;
+                        margin-right: 20px;
+                    }
+                `}</style>
+            </div>
+            <div id="clear">
+                <div id="clearText">Clear</div>
+            </div>
+            <br />
+            <div id="content">
+                <textarea id="textarea" rows={5} cols={80}></textarea>
+                <canvas id="pianoCanvas" width="1040" height="150"></canvas>
+                <style jsx>{`
+                    div {
+                        width: 100%;
+                        text-align: center;
+                    }
+                    canvas {
+                        border: 1px solid #444;
+                    }
+                    textarea {
+                        width: 1040px;
+                    }
+                `}</style>
+            </div>
+        </>
     );
-}
+};
 
-export default Page;
+export async function getStaticProps(context) {
+    return {
+        props: {
+            title: "Piano Author V1",
+        },
+    };
+}
