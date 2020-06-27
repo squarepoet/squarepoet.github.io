@@ -35,12 +35,12 @@ function setFlats(text: string) {
 
 function getSharps() {
     let sharpsInput = document.getElementById("sharps-text") as HTMLInputElement;
-    return sharpsInput.value;
+    return sharpsInput.value.toLowerCase();
 }
 
 function getFlats() {
     let flatsInput = document.getElementById("flats-text") as HTMLInputElement;
-    return flatsInput.value;
+    return flatsInput.value.toLowerCase();
 }
 
 function isFocusedInSharpsOrFlatsInput() {
@@ -441,15 +441,8 @@ export default (function () {
             }
         },
 
+        // update our sharps / flats
         keyup: (e) => {
-            // update our sharps / flats
-            // if ($sharps.is(":focus")) {
-            //     sharps = $sharps.val().toLowerCase();
-            //     localStorage.sharps = sharps;
-            // } else if ($flats.is(":focus")) {
-            //     flats = $flats.val().toLowerCase();
-            //     localStorage.flats = flats;
-            // }
             localStorage.sharps = getSharps();
             localStorage.flats = getFlats();
         },
