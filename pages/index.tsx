@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-export default function () {
+export default () => {
     return (
         <div>
             <div>Authoring Tools</div>
@@ -34,12 +34,12 @@ export default function () {
             </div>
         </div>
     );
-}
+};
 
 export async function getStaticProps(context) {
     return {
         props: {
-            title: "FOOBAR",
+            title: "SQPT",
         },
     };
 }

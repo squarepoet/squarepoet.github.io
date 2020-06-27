@@ -1,9 +1,9 @@
-import { useEffect, useState, useRef } from "react";
-import GuitarAuthorV1 from "apps/author/guitar/GuitarAuthorV1";
+import GuitarAuthorV1 from "apps/author/guitar/app";
 import Shortcuts from "apps/author/guitar/Shortcuts";
-import createPersistedState from "use-persisted-state";
-import { useEventListener } from "use-hooks";
 import InputSaved from "components/input-saved";
+import { useEffect, useRef, useState } from "react";
+import { useEventListener } from "use-hooks";
+import createPersistedState from "use-persisted-state";
 
 // SERVER + CLIENT
 console.log("index.tsx loaded!");
@@ -75,9 +75,9 @@ export default function () {
             {/* <script type="text/javascript" src="/s/j/musical.patched.js"></script> */}
             <Shortcuts />
             <div className="sharps-and-flats">
-                sharps: <InputSaved persistedStateKey="sharps"/>
+                sharps: <InputSaved persistedStateKey="sharps" />
                 <br />
-                flats: <InputSaved persistedStateKey="flats"/>
+                flats: <InputSaved persistedStateKey="flats" />
             </div>
             <div className="clear"></div>
             <br />

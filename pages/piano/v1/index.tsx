@@ -1,80 +1,58 @@
-import * as React from "react";
-
-// class CanvasComponent extends React.Component {
-//     componentDidMount() {
-//         this.updateCanvas();
-//     }
-//     componentDidUpdate() {
-//         this.updateCanvas();
-//     }
-//     updateCanvas() {
-//         const cvs: any = this.refs.canvas;
-//         const ctx = cvs.getContext("2d");
-//         ctx.clearRect(0, 0, 1000, 1000);
-//         ctx.fillStyle = "#FDFDFD";
-//         this.drawRect({ ctx, x: 0, y: 0, width: 50, height: 50 });
-//         this.drawRect({ ctx, x: 950, y: 950, width: 50, height: 50 });
-//     }
-//     render() {
-//         return (
-//             <div>
-//                 <canvas ref="canvas" width={1000} height={1000}></canvas>
-//                 <style jsx>{`
-//                     canvas {
-//                         border: 1px solid red;
-//                     }
-//                 `}</style>
-//             </div>
-//         );
-//     }
-//     drawRect(props) {
-//         const { ctx, x, y, width, height } = props;
-//         ctx.fillRect(x, y, width, height);
-//     }
-// }
+import PianoAuthorV1, { CANVAS_HEIGHT, CANVAS_WIDTH } from "apps/author/piano/v1/app";
+import KeyboardShortcuts from "apps/author/piano/v1/KeyboardShortcuts";
+import SharpsAndFlats from "apps/author/piano/v1/SharpsAndFlats";
+import React, { useEffect, useState } from "react";
+import { useEventListener } from "use-hooks";
 
 export default () => {
+    if (typeof window !== "undefined") {
+        useEventListener("keydown", (e) => {
+            PianoAuthorV1.keydown(e);
+        });
+        useEventListener("keyup", (e) => {
+            PianoAuthorV1.keyup(e);
+        });
+    }
+
+    useEffect(() => {
+        PianoAuthorV1.start();
+    }, []);
+
     return (
         <>
             <div>
-                shift &rarr; sharp &nbsp;&nbsp;&nbsp;&nbsp; ctrl &rarr; flat &nbsp;&nbsp;&nbsp;&nbsp; shift + esc &rarr; clear
-                <br /> up/down &rarr; +/- octave &nbsp;&nbsp;&nbsp;&nbsp; tab &rarr; combine &nbsp;&nbsp;&nbsp;&nbsp; cmd + c &rarr; copy
-                <style jsx>
-                    {`
+                <KeyboardShortcuts />
+                <SharpsAndFlats />
+                <div>
+                    <style jsx>{`
                         div {
-                            float: right;
+                            clear: both;
                         }
-                    `}
-                </style>
-            </div>
-            <div>
-                sharps: <input id="sharps-text" /> flats: <input id="flats-text" />
-                <style jsx>{`
-                    div {
-                        float: right;
-                        margin-right: 20px;
-                    }
-                `}</style>
-            </div>
-            <div id="clear">
-                <div id="clearText">Clear</div>
-            </div>
-            <br />
-            <div id="content">
-                <textarea id="textarea" rows={5} cols={80}></textarea>
-                <canvas id="pianoCanvas" width="1040" height="150"></canvas>
-                <style jsx>{`
-                    div {
-                        width: 100%;
-                        text-align: center;
-                    }
-                    canvas {
-                        border: 1px solid #444;
-                    }
-                    textarea {
-                        width: 1040px;
-                    }
-                `}</style>
+                    `}</style>
+                </div>
+                <br />
+                <div id="content">
+                    <textarea id="textarea" rows={8} cols={100}></textarea>
+                    <canvas id="pianoCanvas" width={CANVAS_WIDTH} height={CANVAS_HEIGHT}></canvas>
+                    <style jsx>{`
+                        div {
+                            width: 100%;
+                            text-align: center;
+                        }
+                        textarea {
+                            font-family: Hack, Inconsolata, Menlo, Monaco, monospace;
+                            font-size: 16pt;
+                            box-sizing: border-box;
+                            border: none;
+                            width: 1044px;
+                        }
+                        canvas {
+                            border: 2px solid #444;
+                            width: 1040px;
+                            height: 150px;
+                        }
+                    `}</style>
+                </div>
             </div>
         </>
     );
