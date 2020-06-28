@@ -19,7 +19,7 @@
         "next": "latest",
         "react": "latest",
         "react-dom": "latest",
-        "tone": "latest",
+        "tone": "^14.7.12",
         "use-hooks": "latest",
         "use-persisted-state": "latest"
     },

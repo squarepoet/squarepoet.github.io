@@ -1,15 +1,25 @@
+import * as Tone from "tone";
+
 export const CANVAS_WIDTH: number = 2080;
 export const CANVAS_HEIGHT: number = 300;
 
+let piano: Instrument = null;
+
+// TODO: Extract this out into a reusable piano / guitar player.
 class Instrument {
-    constructor(name: string) {
+    synth: Tone.Synth;
+
+    constructor() {
         console.log("Instrument Created!");
+        this.synth = new Tone.Synth().toMaster();
     }
-    setVolume(vol: number) {
-        console.log("Set Volume to " + vol);
-    }
-    tone(note: any) {
-        console.log("Play Pitch " + note.pitch + " for duration " + note.duration);
+    play(pianoKeyNumber: number) {
+        const twelfth_root_of_2 = 1.0594630943592953;
+        const hertz = 440 * Math.pow(twelfth_root_of_2, pianoKeyNumber - 49);
+        this.synth.volume.value = -10; // TODO: Figure out a good volume curve. EQ! :-)
+        // +16 for key 1
+        // -20 for key 88
+        this.synth.triggerAttackRelease(hertz, 0.4);
     }
 }
 
@@ -136,15 +146,6 @@ export default (function () {
 
     // which character to type to get the corresponding white key
     var keyboardLabels = ["z", "x", "c", "v", "b", "n", "m", ",", ".", "/", "a", "s", "d", "f", "g", "h", "j", "k", "l", ";", "r", "t", "y", "u", "i", "o", "p", "4", "5", "6", "7", "8", "9", "0", "-", "="];
-
-    // Converts a piano note (C4 == 40) to MIDI (C4 == 60)
-    // This API expects a negative number to signify MIDI.
-    function pianoNote(num) {
-        return -(num + 20);
-    }
-
-    var piano = new Instrument("piano");
-    piano.setVolume(0.85);
 
     // 90:23, // z => G
     // 88:25, // x => A
@@ -361,10 +362,10 @@ export default (function () {
             }
 
             noteGroups.push(pianoKeyNumber + ""); // push the string onto our array
-            piano.tone({
-                pitch: pianoNote(pianoKeyNumber),
-                duration: 1.0,
-            });
+            if (!piano) {
+                piano = new Instrument();
+            }
+            piano.play(pianoKeyNumber);
             saveAndShowData();
         }
     }
