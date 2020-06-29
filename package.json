@@ -21,7 +21,8 @@
         "react-dom": "latest",
         "tone": "^14.7.12",
         "use-hooks": "latest",
-        "use-persisted-state": "latest"
+        "use-persisted-state": "latest",
+        "worker-loader": "^2.0.0"
     },
     "devDependencies": {
         "@types/node": "latest",
