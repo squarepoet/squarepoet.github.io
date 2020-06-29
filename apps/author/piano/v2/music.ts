@@ -1,5 +1,6 @@
 // A song can contain multiple tracks (e.g., multi-track MIDI files).
 
+// TODO: Track is currently not used anywhere.
 // A track is just a series of NoteGroups.
 class Track extends Array<NoteGroup> {
     // NOTHING YET
