@@ -1,8 +1,10 @@
+import Preloader from "apps/author/piano/v1/preloader";
 import * as Tone from "tone";
 
 export const CANVAS_WIDTH: number = 2080;
 export const CANVAS_HEIGHT: number = 300;
 
+let preloader: Preloader = null;
 let piano: Instrument = null;
 
 // TODO: Extract this out into a reusable piano / guitar player.
@@ -38,7 +40,8 @@ class Instrument {
             release: 1,
             baseUrl: "/s/m/grand/",
             onload: function (buffers: any) {
-                console.log("ONLOAD:");
+                console.log("ONLOAD");
+                console.log(buffers);
             },
         };
 
@@ -453,6 +456,36 @@ export default (function () {
         },
 
         keydown: (e) => {
+            if (!preloader) {
+                preloader = new Preloader([
+                    "/s/m/grand/4.mp3",
+                    "/s/m/grand/16.mp3",
+                    "/s/m/grand/28.mp3",
+                    "/s/m/grand/30.mp3",
+                    "/s/m/grand/32.mp3",
+                    "/s/m/grand/35.mp3",
+                    "/s/m/grand/37.mp3",
+                    "/s/m/grand/39.mp3",
+                    "/s/m/grand/40.mp3",
+                    "/s/m/grand/42.mp3",
+                    "/s/m/grand/44.mp3",
+                    "/s/m/grand/45.mp3",
+                    "/s/m/grand/47.mp3",
+                    "/s/m/grand/49.mp3",
+                    "/s/m/grand/52.mp3",
+                    "/s/m/grand/57.mp3",
+                    "/s/m/grand/61.mp3",
+                    "/s/m/grand/64.mp3",
+                    "/s/m/grand/69.mp3",
+                    "/s/m/grand/76.mp3",
+                    "/s/m/grand/83.mp3",
+                    "/s/m/grand/88.mp3",
+                ]);
+            }
+            if (!piano) {
+                piano = new Instrument();
+            }
+
             if (isFocusedInSharpsOrFlatsInput()) {
                 return; // if we are typing in the sharps/flats input, we should ignore the rest of the key handler
             }
@@ -483,6 +516,9 @@ export default (function () {
 
             e.preventDefault();
             switch (e.keyCode) {
+                case 32: // SPACE
+                    console.log("DO NOTHING ON SPACE");
+                    break;
                 case 27: // ESC
                     if (e.shiftKey) {
                         resetEverything();
@@ -508,9 +544,6 @@ export default (function () {
                     drawPiano();
                     break;
                 default:
-                    if (!piano) {
-                        piano = new Instrument();
-                    }
                     play(e.keyCode, sharpModifier);
                     break;
             }

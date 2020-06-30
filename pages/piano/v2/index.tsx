@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useEventListener } from "use-hooks";
 
 let worker;
+let preloader;
 
 function onPianoClockWorkerMessage(e) {
     // console.log(new Date().getTime());
@@ -9,7 +10,17 @@ function onPianoClockWorkerMessage(e) {
 
 export default () => {
     if (typeof window !== "undefined") {
-        useEventListener("keydown", (e) => {});
+        useEventListener("keydown", (e: KeyboardEvent) => {
+            if (e.keyCode == 32) {
+                // SPACE
+            } else if (e.keyCode == 70) {
+                // F
+            } else if (e.keyCode == 68) {
+                // D
+            } else {
+                console.log(e.keyCode);
+            }
+        });
         useEventListener("keyup", (e) => {});
     }
 

@@ -3,6 +3,8 @@
         "node_modules": true,
         "www": true,
         ".next": true,
-        ".vscode":true
-    }
+        ".vscode": true
+    },
+
+    "window.title": "${rootName} ${separator} ${activeFolderMedium} ${separator} ${activeEditorShort}"
 }

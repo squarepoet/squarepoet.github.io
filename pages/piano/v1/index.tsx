@@ -45,11 +45,15 @@ export default () => {
                             box-sizing: border-box;
                             border: none;
                             width: 1044px;
+                            display: block;
+                            margin: 0 auto;
                         }
                         canvas {
                             border: 2px solid #444;
                             width: 1040px;
                             height: 150px;
+                            display: block;
+                            margin: 0 auto;
                         }
                     `}</style>
                 </div>

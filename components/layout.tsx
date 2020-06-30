@@ -51,7 +51,10 @@ export default ({ title, children }: LayoutProps) => {
                 }
 
                 footer {
-                    text-align: right;
+                    text-align: left;
+                    position: absolute;
+                    bottom: 0;
+                    right: 0;
                 }
             `}</style>
         </>
