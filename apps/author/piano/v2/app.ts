@@ -11,7 +11,7 @@ declare let Instrument: any;
 const TIME_BETWEEN_NOTEGROUPS = 250;
 const TIME_THRESHOLD_FOR_GROUPING_NEARBY_NOTES = 0; // Adjust this for parsing MIDI recordings of piano performances (i.e., imprecise timing).
 
-const WORKER_URL = "/s/js/author/piano.v2.worker.js";
+const WORKER_URL = "/s/j/piano/v2/clock.worker.js";
 
 // Support multi track MIDI songs.
 // When we compose by hand, stick everything in track 0.
@@ -988,20 +988,6 @@ function logStatus(msg) {
     $currentStatus.text(msg);
 }
 
-function go() {
-    MIDIPianoInput.setup();
-    UI.setupJQueryDOMReferences();
-    LocalStorage.load();
-    UI.showNoteGroupsForTracks();
-    UI.setupKeyHandlers();
-    UI.setupMouseHandlers();
-    UI.setupFileChooser();
-    UI.setupCopyHandler();
-    UI.setupPianoCanvas();
-    UI.setupPianoMouseHandlers();
-    UI.drawPiano();
-}
-
 namespace UI {
     let $sharps, $flats;
     let $toggle_v1, $toggle_v2;
@@ -1715,8 +1701,21 @@ function getTextFileFromTracks(): string {
     }
 }
 
-$(function () {
-    go();
-});
+// Once the DOM is ready, call new App().go()
+class App {
+    go() {
+        MIDIPianoInput.setup();
+        UI.setupJQueryDOMReferences();
+        LocalStorage.load();
+        UI.showNoteGroupsForTracks();
+        UI.setupKeyHandlers();
+        UI.setupMouseHandlers();
+        UI.setupFileChooser();
+        UI.setupCopyHandler();
+        UI.setupPianoCanvas();
+        UI.setupPianoMouseHandlers();
+        UI.drawPiano();
+    }
+}
 
-export {};
+export default App;

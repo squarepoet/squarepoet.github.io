@@ -96,7 +96,14 @@ class Instrument {
 
         let noteName = Tone.Frequency(pianoKeyNumber + 20, "midi").toNote();
         console.log("Play " + noteName);
-        this.sampler.triggerAttackRelease(noteName, 0.4);
+
+        // TEST OUT PLAYING MULTIPLE NOTES!
+        // An Array Works
+
+        let noteName5th = Tone.Frequency(pianoKeyNumber + 20 + 7, "midi").toNote();
+        console.log("Play " + noteName5th);
+
+        this.sampler.triggerAttackRelease([noteName, noteName5th], 0.45);
     }
 }
 
