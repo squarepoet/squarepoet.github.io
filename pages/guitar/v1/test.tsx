@@ -7,12 +7,15 @@ export default () => {
     const [inputValue, setInputValue] = useTestState("");
 
     let handleClick = (e) => {
+        console.log("handleClick");
     };
 
     let onInputChanged = (e) => {
+        console.log("onInputChanged");
     };
 
     let onKeyUp = (e) => {
+        console.log("onKeyUp");
     };
 
     return (

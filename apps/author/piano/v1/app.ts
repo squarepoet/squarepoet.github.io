@@ -1,111 +1,12 @@
-import Preloader from "apps/author/piano/v1/preloader";
+import Preloader from "apps/author/piano/v1/Preloader";
+import Piano from "apps/shared/tone/Piano";
 import * as Tone from "tone";
 
 export const CANVAS_WIDTH: number = 2080;
 export const CANVAS_HEIGHT: number = 300;
 
 let preloader: Preloader = null;
-let piano: Instrument = null;
-
-// TODO: Extract this out into a reusable piano / guitar player.
-// Synth Version. Sounds Terrible. :-)
-// class Instrument {
-//     synth: Tone.Synth;
-
-//     constructor() {
-//         console.log("Instrument Created!");
-//         this.synth = new Tone.Synth().toMaster();
-//     }
-//     play(pianoKeyNumber: number) {
-//         const twelfth_root_of_2 = 1.0594630943592953;
-//         const hertz = 440 * Math.pow(twelfth_root_of_2, pianoKeyNumber - 49);
-//         this.synth.volume.value = -10; // TODO: Figure out a good volume curve. EQ! :-)
-//         // +16 for key 1
-//         // -20 for key 88
-//         this.synth.triggerAttackRelease(hertz, 0.4);
-//     }
-// }
-
-// TODO: Extract this out into a library.
-// See also view-source:https://tonejs.github.io/examples/sampler.html
-// Do they use really long files? 16 seconds, in fact! How do I affect the attack and release?
-class Instrument {
-    ready: boolean = false;
-
-    sampler: Tone.Sampler;
-
-    constructor() {
-        console.log("New Instrument");
-        let config: any = {
-            release: 1,
-            baseUrl: "/s/m/grand/",
-            onload: function (buffers: any) {
-                console.log("ONLOAD");
-                console.log(buffers);
-            },
-        };
-
-        this.sampler = new Tone.Sampler(
-            {
-                C1: "4.mp3",
-                C2: "16.mp3",
-                C3: "28.mp3",
-                D3: "30.mp3",
-                E3: "32.mp3",
-                G3: "35.mp3",
-                A3: "37.mp3",
-                B3: "39.mp3",
-                C4: "40.mp3",
-                D4: "42.mp3",
-                E4: "44.mp3",
-                F4: "45.mp3",
-                G4: "47.mp3",
-                A4: "49.mp3",
-                C5: "52.mp3",
-                F5: "57.mp3",
-                A5: "61.mp3",
-                C6: "64.mp3",
-                F6: "69.mp3",
-                C7: "76.mp3",
-                G7: "83.mp3",
-                C8: "88.mp3",
-            },
-            config
-        ).toDestination();
-
-        console.log("Calling Tone.start!");
-        Tone.start().then(() => {
-            this.ready = true;
-            console.log("Tone is Ready!");
-        });
-    }
-
-    // 1 to 88
-    play(pianoKeyNumber: number) {
-        // let letters = ["C", "D", "E", "F", "G", "A", "B"];
-        // let noteIndexForKey = key => {
-        //     return (key + 8) % 12;
-        // };
-
-        // TODO: FIX THIS SHIT!!!
-        if (!this.ready) {
-            console.log("TONE IS NOT READY YET");
-            console.log("TRY AGAIN");
-            return;
-        }
-
-        let noteName = Tone.Frequency(pianoKeyNumber + 20, "midi").toNote();
-        console.log("Play " + noteName);
-
-        // TEST OUT PLAYING MULTIPLE NOTES!
-        // An Array Works
-
-        let noteName5th = Tone.Frequency(pianoKeyNumber + 20 + 7, "midi").toNote();
-        console.log("Play " + noteName5th);
-
-        this.sampler.triggerAttackRelease([noteName, noteName5th], 0.45);
-    }
-}
+let piano: Piano = null;
 
 function setTextArea(text: string) {
     let textArea = document.getElementById("textarea");
@@ -446,7 +347,7 @@ export default (function () {
             }
 
             noteGroups.push(pianoKeyNumber + ""); // push the string onto our array
-            piano.play(pianoKeyNumber);
+            piano.play(pianoKeyNumber, 0.4, 0.8);
             saveAndShowData();
         }
     }
@@ -490,7 +391,8 @@ export default (function () {
                 ]);
             }
             if (!piano) {
-                piano = new Instrument();
+                piano = new Piano();
+                piano.initWebAudio();
             }
 
             if (isFocusedInSharpsOrFlatsInput()) {

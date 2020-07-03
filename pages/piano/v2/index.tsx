@@ -1,5 +1,5 @@
-import PianoAuthorV2 from "apps/author/piano/v2/app";
-import { Note, NoteGroup, Track } from "apps/author/piano/v2/music";
+import PianoAuthorV2 from "apps/author/piano/v2/App";
+import { Note, NoteGroup, Track } from "apps/author/piano/v2/Music";
 import React, { useEffect, useState } from "react";
 import { useEventListener } from "use-hooks";
 

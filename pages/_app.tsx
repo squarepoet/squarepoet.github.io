@@ -1,4 +1,4 @@
-import Layout from "components/layout";
+import Layout from "components/Layout";
 import { AppProps } from "next/app";
 
 export default ({ Component, pageProps }: AppProps) => {
@@ -10,10 +10,8 @@ export default ({ Component, pageProps }: AppProps) => {
     }
 
     return (
-        <>
-            <Layout title={pageProps.title}>
-                <Component {...pageProps} />
-            </Layout>
-        </>
+        <Layout title={pageProps.title}>
+            <Component {...pageProps} />
+        </Layout>
     );
 };

@@ -1,3 +1,5 @@
+import Piano from "apps/shared/tone/Piano";
+
 import { Note, NoteGroup } from "./music";
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -39,7 +41,7 @@ let noteLabels = ["a", "b", "c", "d", "e", "f", "g"];
 
 let sharpOrFlatModifier = 0;
 
-let pianoInstrument = new Instrument("piano"); // musical.js
+let piano = new Piano();
 
 // Converts a piano note (C4 == 40) to MIDI (C4 == 60)
 function p2m(pianoNote) {
@@ -397,7 +399,7 @@ function playOneNote(pianoKeyBeforeModifiers, applyModifiers: boolean = true) {
     let trackLength = Song.addNoteGroupToTrack(new NoteGroup(new Note(pianoKeyNumber)), t);
     UI.setCheckedState(t, true);
 
-    playMIDINote(p2m(pianoKeyNumber));
+    playPianoNote(pianoKeyNumber);
 
     Highlight.setTrackAndNoteGroup(t, trackLength - 1);
     saveAndShowData();
@@ -416,12 +418,9 @@ function displaySongInfo(params) {
     $("#song-info").text(`Num Tracks: ${params.numTracks} | Duration: ${duration} secs`);
 }
 
-function playMIDINote(midiNoteNum, velocity = 127.0) {
-    pianoInstrument.tone({
-        pitch: -midiNoteNum, // This API expects negative numbers to indicate MIDI notes. Positive numbers indicate audio tone frequency (Hz).
-        duration: 1.0, // 0.125, 0.25, 0.5, 1.0, 2.0
-        velocity: velocity / 127.0,
-    });
+function playPianoNote(pianoKeyNumber, velocity = 127.0) {
+    let duration = 1.0; // 0.125, 0.25, 0.5, 1.0, 2.0;
+    piano.play(pianoKeyNumber, duration, velocity / 127.0);
 }
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -964,7 +963,7 @@ namespace Playback {
             return;
         }
         for (let note of noteGroup.notes) {
-            playMIDINote(note.midiNote, note.velocity);
+            playPianoNote(m2p(note.midiNote), note.velocity);
         }
         let $noteGroup = $(`#t${t}_n${n}`);
         $noteGroup.addClass("played-note");
@@ -1150,6 +1149,10 @@ namespace UI {
     }
 
     function onKeyDownHandler(e) {
+        if (!piano.isInitialized) {
+            piano.initWebAudio();
+        }
+
         if ($sharps.is(":focus") || $flats.is(":focus")) {
             return; // if we are typing in the sharps/flats input, we should ignore the rest of the key handler
         }

@@ -1,17 +1,4 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////
-// See: musical.patched.js
-declare class Instrument {
-    constructor(type: string);
-    tone(noteObject: any);
-}
-
-// Converts a piano note (C4 == 40) to MIDI (C4 == 60)
-// The musical.patched.js API expects a negative number to signify MIDI (So -60 is Middle C).
-function convertPianoKeyNumberToNegativeMIDI(num: number) {
-    return -(num + 20);
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////////////
 
 const CANVAS_WIDTH = 1040;
 const CANVAS_HEIGHT = 280;
@@ -49,7 +36,7 @@ export default class GuitarAuthorV1 {
 
     private noteOffsetForString = [0, 7, 2, 10, 5, 0, 7]; // [X] E B G D A E
 
-    private piano: Instrument = null;
+    private piano: any = null;
     private fretOffset = 0;
     private stringOffset = 0;
 
@@ -315,8 +302,9 @@ export default class GuitarAuthorV1 {
     }
 
     playPianoNote(pianoKeyNumber: number) {
-        this.piano = new Instrument("piano");
-        this.piano.tone({ pitch: convertPianoKeyNumberToNegativeMIDI(pianoKeyNumber), duration: 0.8 });
+        let duration = 0.8;
+        console.log("PLAY " + pianoKeyNumber);
+        // TODO
     }
 
     drawMostRecentGroup(c) {

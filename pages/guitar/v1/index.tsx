@@ -1,6 +1,6 @@
-import GuitarAuthorV1 from "apps/author/guitar/app";
-import Shortcuts from "apps/author/guitar/Shortcuts";
-import InputSaved from "components/input-saved";
+import GuitarAuthorV1 from "apps/author/guitar/v1/App";
+import Shortcuts from "apps/author/guitar/v1/Shortcuts";
+import InputSaved from "components/InputSaved";
 import { useEffect, useRef, useState } from "react";
 import { useEventListener } from "use-hooks";
 import createPersistedState from "use-persisted-state";
@@ -10,10 +10,10 @@ console.log("index.tsx loaded!");
 
 const useGuitarTabState = createPersistedState("guitar_tab");
 
-let authoringTool: GuitarAuthorV1 = null;
+let app: GuitarAuthorV1 = null;
 
 if (typeof window !== "undefined") {
-    authoringTool = new GuitarAuthorV1();
+    app = new GuitarAuthorV1();
 }
 
 // This function is called each time we need to update the page.
@@ -28,37 +28,37 @@ export default function () {
 
     if (typeof window !== "undefined") {
         useEventListener("keydown", (e) => {
-            authoringTool.onKeyDown(e);
+            app.onKeyDown(e);
         });
     }
 
     // Called Every Render
     useEffect(() => {
         console.log("USE EFFECT");
-        authoringTool.setGuitarTab = setGuitarTab;
-        authoringTool.getSharps = () => {
+        app.setGuitarTab = setGuitarTab;
+        app.getSharps = () => {
             return "";
             // return sharps.toLowerCase();
         };
-        authoringTool.getFlats = () => {
+        app.getFlats = () => {
             return "";
             // return flats.toLowerCase();
         };
-        authoringTool.getGuitarTab = () => {
+        app.getGuitarTab = () => {
             return guitarTab;
         };
-        authoringTool.getGuitarTabTextArea = () => {
+        app.getGuitarTabTextArea = () => {
             return guitarTabTextArea.current;
         };
-        authoringTool.getSharpsInput = () => {
+        app.getSharpsInput = () => {
             return null;
             // return sharpsInput.current;
         };
-        authoringTool.getFlatsInput = () => {
+        app.getFlatsInput = () => {
             return null;
             // return flatsInput.current;
         };
-        authoringTool.getGuitarCanvas = () => {
+        app.getGuitarCanvas = () => {
             return guitarCanvas.current;
         };
     });
@@ -66,13 +66,12 @@ export default function () {
     // Called Once!
     useEffect(() => {
         console.log("USE EFFECT ON MOUNT");
-        authoringTool.loadNoteGroupsFromGuitarTab(guitarTab);
-        authoringTool.drawFrets();
+        app.loadNoteGroupsFromGuitarTab(guitarTab);
+        app.drawFrets();
     }, []);
 
     return (
         <>
-            {/* <script type="text/javascript" src="/s/j/musical.patched.js"></script> */}
             <Shortcuts />
             <div className="sharps-and-flats">
                 sharps: <InputSaved persistedStateKey="sharps" />

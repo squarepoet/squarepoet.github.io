@@ -1,4 +1,4 @@
-import { Spacer20px } from "components/spacer";
+import { Spacer20px } from "components/Spacer";
 import React, { useEffect, useState } from "react";
 
 export default () => {

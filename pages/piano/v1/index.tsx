@@ -1,4 +1,4 @@
-import PianoAuthorV1, { CANVAS_HEIGHT, CANVAS_WIDTH } from "apps/author/piano/v1/app";
+import PianoAuthorV1, { CANVAS_HEIGHT, CANVAS_WIDTH } from "apps/author/piano/v1/App";
 import KeyboardShortcuts from "apps/author/piano/v1/KeyboardShortcuts";
 import SharpsAndFlats from "apps/author/piano/v1/SharpsAndFlats";
 import React, { useEffect, useState } from "react";
