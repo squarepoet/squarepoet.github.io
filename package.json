@@ -16,9 +16,11 @@
     "license": "MIT",
     "homepage": "https://squarepoet.github.io",
     "dependencies": {
+        "fomantic-ui": "^2.8.6",
         "next": "latest",
         "react": "latest",
         "react-dom": "latest",
+        "semantic-ui-react": "^0.88.2",
         "tone": "latest",
         "use-hooks": "latest",
         "use-persisted-state": "latest",

@@ -479,7 +479,7 @@ export default class GuitarAuthorV1 {
                     this.resetOffsets();
                 }
                 break;
-            case 8: // BACKSPACE/DEL
+            case 8: // BACKSPACE
                 this.deleteLastGroup();
                 break;
             case 9: // TAB

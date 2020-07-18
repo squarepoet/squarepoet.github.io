@@ -1,3 +1,5 @@
+import "semantic/dist/semantic.css";
+
 import Layout from "components/Layout";
 import { AppProps } from "next/app";
 
