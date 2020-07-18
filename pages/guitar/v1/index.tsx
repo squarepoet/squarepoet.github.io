@@ -26,6 +26,9 @@ export default function () {
     const guitarTabTextArea = useRef();
     const guitarCanvas = useRef();
 
+    const sharpsInput = useRef();
+    const flatsInput = useRef();
+
     if (typeof window !== "undefined") {
         useEventListener("keydown", (e) => {
             app.onKeyDown(e);
@@ -34,7 +37,7 @@ export default function () {
 
     // Called Every Render
     useEffect(() => {
-        console.log("USE EFFECT");
+        console.log("USE EFFECT on every render!");
         app.setGuitarTab = setGuitarTab;
         app.getSharps = () => {
             return "";
@@ -50,13 +53,19 @@ export default function () {
         app.getGuitarTabTextArea = () => {
             return guitarTabTextArea.current;
         };
-        app.getSharpsInput = () => {
-            return null;
-            // return sharpsInput.current;
+        app.isFocusedOnSharpsInput = () => {
+            if (sharpsInput && sharpsInput.current) {
+                return (sharpsInput.current as any).hasFocus();
+            } else {
+                return false;
+            }
         };
-        app.getFlatsInput = () => {
-            return null;
-            // return flatsInput.current;
+        app.isFocusedOnFlatsInput = () => {
+            if (flatsInput && flatsInput.current) {
+                return (flatsInput.current as any).hasFocus();
+            } else {
+                return false;
+            }
         };
         app.getGuitarCanvas = () => {
             return guitarCanvas.current;
@@ -65,7 +74,9 @@ export default function () {
 
     // Called Once!
     useEffect(() => {
-        console.log("USE EFFECT ON MOUNT");
+        console.log("Local Storage is currently:");
+        console.log(localStorage);
+
         app.loadNoteGroupsFromGuitarTab(guitarTab);
         app.drawFrets();
     }, []);
@@ -74,9 +85,8 @@ export default function () {
         <>
             <Shortcuts />
             <div className="sharps-and-flats">
-                sharps: <InputSaved persistedStateKey="sharps" />
-                <br />
-                flats: <InputSaved persistedStateKey="flats" />
+                <InputSaved ref={sharpsInput} label="sharps" persistedStateKey="guitar_sharps" />
+                <InputSaved ref={flatsInput} label="flats" persistedStateKey="guitar_flats" />
             </div>
             <div className="clear"></div>
             <br />

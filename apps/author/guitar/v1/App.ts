@@ -28,9 +28,9 @@ export default class GuitarAuthorV1 {
     public getGuitarTab: () => string;
 
     public getGuitarTabTextArea: () => HTMLTextAreaElement;
-    public getSharpsInput: () => HTMLInputElement;
-    public getFlatsInput: () => HTMLInputElement;
     public getGuitarCanvas: () => HTMLCanvasElement;
+    public isFocusedOnSharpsInput: () => boolean;
+    public isFocusedOnFlatsInput: () => boolean;
 
     //////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -431,7 +431,7 @@ export default class GuitarAuthorV1 {
     }
 
     onKeyDown(e: KeyboardEvent) {
-        if (this.isFocusedOnSharpsInputElement() || this.isFocusedOnFlatsInputElement()) {
+        if (this.isFocusedOnSharpsInput() || this.isFocusedOnFlatsInput()) {
             return; // if we are typing in the sharps/flats input, we should ignore the rest of the key handler
         }
 
@@ -522,15 +522,5 @@ export default class GuitarAuthorV1 {
                 this.play(e.keyCode, accidental);
                 break;
         }
-    }
-
-    isFocusedOnSharpsInputElement(): boolean {
-        let sharpsInputElement = this.getSharpsInput();
-        return sharpsInputElement === document.activeElement;
-    }
-
-    isFocusedOnFlatsInputElement(): boolean {
-        let flatsInputElement = this.getFlatsInput();
-        return flatsInputElement === document.activeElement;
     }
 }

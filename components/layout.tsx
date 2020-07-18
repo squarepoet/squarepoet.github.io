@@ -7,6 +7,13 @@ type LayoutProps = {
     children: React.ReactNode;
 };
 
+/*
+<footer onMouseDown={openSquarePoet}></footer>
+function openSquarePoet() {
+    window.location.href = "https://www.squarepoet.com";
+}
+*/
+
 export default ({ title, children }: LayoutProps) => {
     return (
         <>
@@ -53,8 +60,8 @@ export default ({ title, children }: LayoutProps) => {
                 footer {
                     text-align: left;
                     position: absolute;
-                    bottom: 0;
-                    right: 0;
+                    bottom: 10px;
+                    right: 10px;
                 }
             `}</style>
         </>

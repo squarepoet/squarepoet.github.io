@@ -19,10 +19,10 @@
         "next": "latest",
         "react": "latest",
         "react-dom": "latest",
-        "tone": "^14.7.12",
+        "tone": "latest",
         "use-hooks": "latest",
         "use-persisted-state": "latest",
-        "worker-loader": "^2.0.0"
+        "worker-loader": "latest"
     },
     "devDependencies": {
         "@types/node": "latest",
