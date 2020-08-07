@@ -114,3 +114,5 @@ export default class Piano {
 //         this.synth.triggerAttackRelease(hertz, 0.4);
 //     }
 // }
+
+export { PianoType };

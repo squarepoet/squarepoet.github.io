@@ -1,6 +1,5 @@
 import Preloader from "apps/author/piano/v1/Preloader";
 import Piano from "apps/shared/tone/Piano";
-import * as Tone from "tone";
 
 export const CANVAS_WIDTH: number = 2080;
 export const CANVAS_HEIGHT: number = 300;

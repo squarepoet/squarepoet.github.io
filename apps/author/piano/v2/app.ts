@@ -1,6 +1,6 @@
 import Piano from "apps/shared/tone/Piano";
 
-import { Note, NoteGroup } from "./music";
+import { Note, NoteGroup } from "./Music";
 
 /////////////////////////////////////////////////////////////////////////////////
 // declare types that are defined in 3rd party libraries
@@ -1022,6 +1022,7 @@ namespace UI {
     export function setupCopyHandler() {
         document.querySelector("html").addEventListener("copy", function (e: ClipboardEvent) {
             e.preventDefault();
+            console.log("COPY");
             if (e.clipboardData) {
                 let text = getTextFileFromTracks();
                 e.clipboardData.setData("text/plain", text);
@@ -1029,6 +1030,7 @@ namespace UI {
         });
         document.querySelector("html").addEventListener("cut", function (e: ClipboardEvent) {
             e.preventDefault();
+            console.log("CUT");
             if (e.clipboardData) {
                 let text = getTextFileFromTracks();
                 e.clipboardData.setData("text/plain", text);
@@ -1159,7 +1161,7 @@ namespace UI {
 
         let keyCode = e.keyCode;
 
-        // e.metaKey => CMD (91 is LEFT CMD & 93 is RIGHT COMD)
+        // e.metaKey => CMD (91 is LEFT CMD & 93 is RIGHT CMD)
         if (e.metaKey) {
             if (keyCode == 37 || keyCode == 39) {
                 // DO NOTHING. Fall through so that we can do CMD + LEFT ARROW and CMD + RIGHT ARROW.

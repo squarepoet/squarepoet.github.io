@@ -1,4 +1,8 @@
+import Piano, { PianoType } from "apps/shared/tone/Piano";
+
 //////////////////////////////////////////////////////////////////////////////////////////////////
+
+let piano: Piano = null;
 
 const CANVAS_WIDTH = 1040;
 const CANVAS_HEIGHT = 280;
@@ -42,7 +46,28 @@ export default class GuitarAuthorV1 {
 
     private noteGroups: string[] = [];
 
-    constructor() {}
+    constructor() {
+        this.setupCopyHandler();
+    }
+
+    // Originally From Piano Author V2. We should probably merge it somehow!
+    setupCopyHandler() {
+        document.querySelector("html").addEventListener("copy", (e: ClipboardEvent) => {
+            e.preventDefault();
+            if (e.clipboardData) {
+                e.clipboardData.setData("text/plain", this.getNoteGroupsAsSpaceDelimitedString());
+            }
+        });
+        document.querySelector("html").addEventListener("cut", (e: ClipboardEvent) => {
+            e.preventDefault();
+            if (e.clipboardData) {
+                e.clipboardData.setData("text/plain", this.getNoteGroupsAsSpaceDelimitedString());
+            }
+            setTimeout(() => {
+                this.resetData();
+            }, 100);
+        });
+    }
 
     // which character to type to get the corresponding note
     private keyboardLabels = [
@@ -177,9 +202,16 @@ export default class GuitarAuthorV1 {
     }
 
     saveAndShowData() {
-        let newGuitarTabText = this.noteGroups.join(" ");
-        this.setGuitarTab(newGuitarTabText);
+        this.updateGuitarTabInTextArea();
         this.drawFrets();
+    }
+
+    updateGuitarTabInTextArea() {
+        this.setGuitarTab(this.getNoteGroupsAsSpaceDelimitedString());
+    }
+
+    getNoteGroupsAsSpaceDelimitedString() {
+        return this.noteGroups.join(" ");
     }
 
     // XXXX32 => { 6:'X', 5:'X', 4:'X', 3:'X', 2:'3', 1:'2' }
@@ -218,7 +250,7 @@ export default class GuitarAuthorV1 {
             // e.g., 3_2
             let string_fret = g.split("_");
             let s = string_fret[0];
-            let f = parseInt(string_fret[1]);
+            let f: number | string = parseInt(string_fret[1]);
             if (f > 9) {
                 // Hex!
                 f = f.toString(16).toUpperCase();
@@ -288,6 +320,11 @@ export default class GuitarAuthorV1 {
     }
 
     playMostRecentGroup() {
+        if (this.noteGroups.length === 0) {
+            console.log("No note groups to play.");
+            return;
+        }
+
         let items = this.getMostRecentNoteGroup();
         for (let s = 1; s <= 6; s++) {
             let f = items[s];
@@ -304,7 +341,31 @@ export default class GuitarAuthorV1 {
     playPianoNote(pianoKeyNumber: number) {
         let duration = 0.8;
         console.log("PLAY " + pianoKeyNumber);
-        // TODO
+
+        piano.play(pianoKeyNumber, 0.4 /* seconds */, 0.8 /* volume */);
+
+        /*
+        TONE JS RIGHT HERE 
+        COPY THE WAVETABLE SYNTHESIS FROM MUSICAL.JS????
+        NEXT............
+
+        See: https://tonejs.github.io/examples/oscillator
+
+        Test Oscillator
+        WTF is partials??? It it what we are looking for?
+
+        Integrate it into 
+import Piano from "apps/shared/tone/Piano";
+        */
+        /*
+
+const osc = new Tone.Oscillator("F3").toDestination().start();
+setInterval(() => {
+	// generate 8 random partials
+	osc.partials = new Array(8).map(() => 0);
+}, 1000);
+
+        */
     }
 
     drawMostRecentGroup(c) {
@@ -394,8 +455,7 @@ export default class GuitarAuthorV1 {
         } else {
             this.noteGroups = guitarTabText.split(" ");
         }
-        console.log(this.noteGroups.join("*"));
-        this.setGuitarTab(this.noteGroups.join(" "));
+        this.updateGuitarTabInTextArea();
     }
 
     play(keyCode, accidental: number) {
@@ -435,19 +495,32 @@ export default class GuitarAuthorV1 {
             return; // if we are typing in the sharps/flats input, we should ignore the rest of the key handler
         }
 
-        if (e.keyCode == 91 || e.keyCode == 93) {
-            // CMD KEY on Mac
-            this.getGuitarTabTextArea().select();
+        if (!piano) {
+            piano = new Piano(PianoType.Sampled_1);
+            piano.initWebAudio();
         }
 
+        // CMD KEY on Mac
+        // if (e.keyCode == 91 || e.keyCode == 93) {
+        //     DO NOTHING, because our COPY/CUT handlers are defined in setupCopyHandler().
+        // }
+        //
+        // if (e.metaKey) {
+        //     CMD + X or CMD + C
+        //     if (e.keyCode == 88 || e.keyCode == 67) {
+        //         DO NOTHING
+        //     }
+        //     return;
+        // }
+
+        // e.metaKey => CMD (91 is LEFT CMD & 93 is RIGHT CMD)
         if (e.metaKey) {
-            if (e.keyCode == 88 || e.keyCode == 67) {
-                // CMD + X or CMD + C
-                setTimeout(() => {
-                    this.resetData();
-                }, 100);
+            if (e.keyCode == 37 || e.keyCode == 39) {
+                // DO NOTHING. Fall through so that we can do CMD + LEFT ARROW and CMD + RIGHT ARROW.
+            } else {
+                // Ignore when we have the CMD pressed down, so that we can use the browser's hotkeys.
+                return;
             }
-            return;
         }
 
         if (e.altKey) {
