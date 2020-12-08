@@ -1,6 +1,7 @@
 import Piano from "apps/shared/tone/Piano";
+import throttle from "lodash.throttle";
 
-import { Note, NoteGroup } from "./Music";
+import { Note, NoteGroup, Track } from "./Music";
 
 /////////////////////////////////////////////////////////////////////////////////
 // declare types that are defined in 3rd party libraries
@@ -12,8 +13,6 @@ declare let Instrument: any;
 
 const TIME_BETWEEN_NOTEGROUPS = 250;
 const TIME_THRESHOLD_FOR_GROUPING_NEARBY_NOTES = 0; // Adjust this for parsing MIDI recordings of piano performances (i.e., imprecise timing).
-
-const WORKER_URL = "/s/j/piano/v2/clock.worker.js";
 
 // Support multi track MIDI songs.
 // When we compose by hand, stick everything in track 0.
@@ -803,13 +802,46 @@ namespace MIDI {
 
 ///////////////////////////////////////////////////////////////////////////
 
+class FakeWorkerClock {
+    isRunning = false;
+    interval = null;
+    delay = 10; // ms between ticks
+
+    public onmessage: Function;
+    public postMessage(msg: string) {
+        let self = this;
+        switch (msg) {
+            case "start":
+                console.log("Piano Clock Worker Started");
+                if (!isRunning) {
+                    isRunning = true;
+                    interval = setInterval(function () {
+                        if (self.onmessage) {
+                            self.onmessage("tick");
+                        }
+                    }, delay);
+                }
+                break;
+            case "stop":
+            default:
+                console.log("Piano Clock Worker Stopped");
+                clearInterval(interval);
+                isRunning = false;
+                break;
+        }
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////
+
 namespace Playback {
     // All times are in milliseconds.
     let currSongTime = 0; // What time is our playhead pointing to?
     let baseSongTime = 0; // What time did our playhead point to when we started or resumed the song?
     let clockStartTime = 0;
 
-    let clock = new Worker(WORKER_URL);
+    let clock = new FakeWorkerClock();
+    // let clock = new Worker("./clock.worker.js", { type: "module" });
     let clockIsTicking = false;
 
     clock.onmessage = function (e) {
@@ -933,11 +965,11 @@ namespace Playback {
         }
     }
 
-    export const playNoteAndGoBackwardInTheSong = _.throttle(function () {
+    export const playNoteAndGoBackwardInTheSong = throttle(function () {
         playNoteAndAdvanceInDirection(-1);
     }, 150 /* ms */);
 
-    export const playNoteAndGoForwardInTheSong = _.throttle(function () {
+    export const playNoteAndGoForwardInTheSong = throttle(function () {
         playNoteAndAdvanceInDirection(+1);
     }, 150 /* ms */);
 
@@ -972,12 +1004,12 @@ namespace Playback {
         }, 400);
     }
 
-    export const playAndGoBackwardOnCurrentTrack = _.throttle(function () {
+    export const playAndGoBackwardOnCurrentTrack = throttle(function () {
         playCurrentNoteGroup();
         Highlight.prevNoteGroup();
     }, 150 /* ms */);
 
-    export const playAndGoForwardOnCurrentTrack = _.throttle(function () {
+    export const playAndGoForwardOnCurrentTrack = throttle(function () {
         playCurrentNoteGroup();
         Highlight.nextNoteGroup();
     }, 150 /* ms */);

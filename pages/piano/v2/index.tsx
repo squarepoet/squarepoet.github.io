@@ -1,17 +1,18 @@
 import PianoAuthorV2 from "apps/author/piano/v2/App";
 import { Note, NoteGroup, Track } from "apps/author/piano/v2/Music";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useEventListener } from "use-hooks";
 
 let app: PianoAuthorV2;
-let worker;
 let preloader;
 
-function onPianoClockWorkerMessage(e) {
-    // console.log(new Date().getTime());
-}
+// function onPianoClockWorkerMessage(e) {
+//     console.log(new Date().getTime());
+// }
 
-export default () => {
+const Page = () => {
+    // const workerRef = useRef<Worker>();
+
     if (typeof window !== "undefined") {
         useEventListener("keydown", (e: KeyboardEvent) => {
             if (e.keyCode == 32) {
@@ -31,9 +32,13 @@ export default () => {
         app = new PianoAuthorV2();
         app.go();
 
-        worker = new Worker("/s/j/piano/v2/clock.worker.js");
-        worker.postMessage("start");
-        worker.addEventListener("message", onPianoClockWorkerMessage);
+        // workerRef.current = new Worker("./clock.worker.js", { type: "module" });
+        // workerRef.current.postMessage("start");
+        // workerRef.current.addEventListener("message", onPianoClockWorkerMessage);
+
+        // return () => {
+        //     workerRef.current?.terminate();
+        // };
     }, []);
 
     return (
@@ -49,10 +54,10 @@ export default () => {
                 </a>
             </div>
             <div className="version-div">
-                <div className="version-toggle" id="toggle_v1" href="#">
+                <div className="version-toggle" id="toggle_v1">
                     V1
                 </div>
-                <div className="version-toggle" id="toggle_v2" href="#">
+                <div className="version-toggle" id="toggle_v2">
                     V2
                 </div>
             </div>
@@ -337,6 +342,8 @@ export default () => {
         </>
     );
 };
+
+export default Page;
 
 export async function getStaticProps(context) {
     return {

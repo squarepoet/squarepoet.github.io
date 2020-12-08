@@ -3,7 +3,7 @@ import "semantic/dist/semantic.css";
 import Layout from "components/Layout";
 import { AppProps } from "next/app";
 
-export default ({ Component, pageProps }: AppProps) => {
+const App = ({ Component, pageProps }: AppProps) => {
     console.log("Page Component Props:");
     console.log(pageProps);
 
@@ -17,3 +17,5 @@ export default ({ Component, pageProps }: AppProps) => {
         </Layout>
     );
 };
+
+export default App;

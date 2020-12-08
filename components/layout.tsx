@@ -14,7 +14,7 @@ function openSquarePoet() {
 }
 */
 
-export default ({ title, children }: LayoutProps) => {
+const Layout = ({ title, children }: LayoutProps) => {
     return (
         <>
             <Head>
@@ -67,3 +67,5 @@ export default ({ title, children }: LayoutProps) => {
         </>
     );
 };
+
+export default Layout;

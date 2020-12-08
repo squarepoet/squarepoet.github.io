@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 
-export default () => {
+const Page = () => {
     return (
         <>
             <div>
@@ -21,3 +21,4 @@ export default () => {
         </>
     );
 };
+export default Page;
