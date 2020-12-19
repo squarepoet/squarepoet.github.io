@@ -1,3 +1,4 @@
+import Preloader from "apps/author/piano/v1/Preloader";
 import * as Tone from "tone";
 
 enum PianoType {
@@ -11,6 +12,7 @@ enum PianoType {
 export default class Piano {
     type: PianoType;
     instrument: Tone.Synth | Tone.FMSynth | Tone.AMSynth | Tone.Sampler = null; // Tone.Instrument
+    preloader: Preloader = null;
 
     constructor(pianoType?: PianoType) {
         if (typeof pianoType === "undefined") {
@@ -25,46 +27,104 @@ export default class Piano {
             console.log("Tone is Ready!");
         });
 
+        let baseURL = "";
+        let samplesMap;
+
         if (!this.instrument) {
             switch (this.type) {
                 case PianoType.Sampled_1:
-                case PianoType.Sampled_2:
-                    const config: any = {
-                        release: 1,
-                        baseUrl: "/s/m/grand/",
-                        onload: function (buffers: any) {
-                            console.log("ONLOAD");
-                            console.log(buffers);
-                        },
+                    if (!this.preloader) {
+                        this.preloader = new Preloader([
+                            "/s/m/grand/4.mp3",
+                            "/s/m/grand/16.mp3",
+                            "/s/m/grand/28.mp3",
+                            "/s/m/grand/30.mp3",
+                            "/s/m/grand/32.mp3",
+                            "/s/m/grand/35.mp3",
+                            "/s/m/grand/37.mp3",
+                            "/s/m/grand/39.mp3",
+                            "/s/m/grand/40.mp3",
+                            "/s/m/grand/42.mp3",
+                            "/s/m/grand/44.mp3",
+                            "/s/m/grand/45.mp3",
+                            "/s/m/grand/47.mp3",
+                            "/s/m/grand/49.mp3",
+                            "/s/m/grand/52.mp3",
+                            "/s/m/grand/57.mp3",
+                            "/s/m/grand/61.mp3",
+                            "/s/m/grand/64.mp3",
+                            "/s/m/grand/69.mp3",
+                            "/s/m/grand/76.mp3",
+                            "/s/m/grand/83.mp3",
+                            "/s/m/grand/88.mp3",
+                        ]);
+                    }
+                    baseURL = "/s/m/grand/";
+                    samplesMap = {
+                        C1: "4.mp3",
+                        C2: "16.mp3",
+                        C3: "28.mp3",
+                        D3: "30.mp3",
+                        E3: "32.mp3",
+                        G3: "35.mp3",
+                        A3: "37.mp3",
+                        B3: "39.mp3",
+                        C4: "40.mp3",
+                        D4: "42.mp3",
+                        E4: "44.mp3",
+                        F4: "45.mp3",
+                        G4: "47.mp3",
+                        A4: "49.mp3",
+                        C5: "52.mp3",
+                        F5: "57.mp3",
+                        A5: "61.mp3",
+                        C6: "64.mp3",
+                        F6: "69.mp3",
+                        C7: "76.mp3",
+                        G7: "83.mp3",
+                        C8: "88.mp3",
                     };
-
-                    this.instrument = new Tone.Sampler(
-                        {
-                            C1: "4.mp3",
-                            C2: "16.mp3",
-                            C3: "28.mp3",
-                            D3: "30.mp3",
-                            E3: "32.mp3",
-                            G3: "35.mp3",
-                            A3: "37.mp3",
-                            B3: "39.mp3",
-                            C4: "40.mp3",
-                            D4: "42.mp3",
-                            E4: "44.mp3",
-                            F4: "45.mp3",
-                            G4: "47.mp3",
-                            A4: "49.mp3",
-                            C5: "52.mp3",
-                            F5: "57.mp3",
-                            A5: "61.mp3",
-                            C6: "64.mp3",
-                            F6: "69.mp3",
-                            C7: "76.mp3",
-                            G7: "83.mp3",
-                            C8: "88.mp3",
-                        },
-                        config
-                    ).toDestination();
+                    this.setupSamplerInstrument(baseURL, samplesMap);
+                    break;
+                case PianoType.Sampled_2:
+                    if (!this.preloader) {
+                        this.preloader = new Preloader([
+                            "/s/m/bright/4.mp3",
+                            "/s/m/bright/11.mp3",
+                            "/s/m/bright/16.mp3",
+                            "/s/m/bright/23.mp3",
+                            "/s/m/bright/28.mp3",
+                            "/s/m/bright/35.mp3",
+                            "/s/m/bright/40.mp3",
+                            "/s/m/bright/47.mp3",
+                            "/s/m/bright/52.mp3",
+                            "/s/m/bright/59.mp3",
+                            "/s/m/bright/64.mp3",
+                            "/s/m/bright/71.mp3",
+                            "/s/m/bright/76.mp3",
+                            "/s/m/bright/83.mp3",
+                            "/s/m/bright/88.mp3",
+                        ]);
+                    }
+                    baseURL = "/s/m/bright/";
+                    samplesMap = {
+                        C1: "4.mp3",
+                        G1: "11.mp3",
+                        C2: "16.mp3",
+                        G2: "23.mp3",
+                        C3: "28.mp3",
+                        G3: "35.mp3",
+                        C4: "40.mp3",
+                        G4: "47.mp3",
+                        C5: "52.mp3",
+                        G5: "59.mp3",
+                        C6: "64.mp3",
+                        G6: "71.mp3",
+                        C7: "76.mp3",
+                        G7: "83.mp3",
+                        C8: "88.mp3",
+                    };
+                    this.setupSamplerInstrument(baseURL, samplesMap);
                     break;
                 case PianoType.FM:
                     this.instrument = new Tone.FMSynth().toDestination();
@@ -77,6 +137,19 @@ export default class Piano {
                     break;
             }
         }
+    }
+
+    setupSamplerInstrument(baseURL: string, samplesMap: any) {
+        const config: any = {
+            release: 1,
+            baseUrl: baseURL,
+            onload: function (buffers: any) {
+                console.log("Audio Buffers Loaded!");
+                console.log(buffers);
+            },
+        };
+
+        this.instrument = new Tone.Sampler(samplesMap, config).toDestination();
     }
 
     get isInitialized(): boolean {

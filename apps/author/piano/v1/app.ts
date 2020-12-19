@@ -1,19 +1,23 @@
-import Preloader from "apps/author/piano/v1/Preloader";
-import Piano from "apps/shared/tone/Piano";
+import Piano, { PianoType } from "apps/shared/tone/Piano";
 
 export const CANVAS_WIDTH: number = 2080;
 export const CANVAS_HEIGHT: number = 300;
 
-let preloader: Preloader = null;
 let piano: Piano = null;
 
+console.log("/piano/v1/App.ts Loaded");
+
 function setTextArea(text: string) {
-    let textArea = document.getElementById("textarea");
-    textArea.innerText = text;
+    let textArea: HTMLTextAreaElement = document.getElementById("textarea") as HTMLTextAreaElement;
+    textArea.value = text;
 }
 
 function selectTextArea() {
     (document.getElementById("textarea") as HTMLTextAreaElement).select();
+}
+
+function copyTextArea() {
+    document.execCommand("copy");
 }
 
 function setSharps(text: string) {
@@ -48,18 +52,6 @@ function isFocusedInSharpsOrFlatsInput() {
     }
 
     return false;
-}
-
-function getCanvasContext() {
-    let elem: HTMLCanvasElement = document.getElementById("pianoCanvas") as HTMLCanvasElement;
-    if (!elem || !elem.getContext) {
-        return null;
-    }
-    let c = elem.getContext("2d");
-    if (!c) {
-        return null;
-    }
-    return c;
 }
 
 let keyCodeToPianoKey = {
@@ -131,6 +123,8 @@ export default (function () {
     // which character to type to get the corresponding white key
     var keyboardLabels = ["z", "x", "c", "v", "b", "n", "m", ",", ".", "/", "a", "s", "d", "f", "g", "h", "j", "k", "l", ";", "r", "t", "y", "u", "i", "o", "p", "4", "5", "6", "7", "8", "9", "0", "-", "="];
 
+    let canvasRef: React.MutableRefObject<HTMLCanvasElement> = null;
+
     // 90:23, // z => G
     // 88:25, // x => A
     // 67:27, // c => B
@@ -161,6 +155,7 @@ export default (function () {
     }
 
     function saveAndShowData() {
+        console.log(noteGroups);
         var newText = noteGroups.join(" ");
         localStorage.text = newText;
         setTextArea(newText);
@@ -243,11 +238,16 @@ export default (function () {
     }
 
     function drawPiano() {
-        // FIXME: Should get the ref via React JS!
-        let c = getCanvasContext();
+        const elem: HTMLCanvasElement = canvasRef.current;
+        if (!elem.getContext) {
+            return;
+        }
+        const c = elem.getContext("2d");
         if (!c) {
             return;
         }
+
+        c.scale(2, 2); // Support retina displays by drawing @ 2x resolution.
 
         // clear the background
         c.fillStyle = "#444";
@@ -257,6 +257,8 @@ export default (function () {
         drawBlackKeys(c);
         drawKeyLabels(c);
         drawMostRecentGroup(c);
+
+        c.setTransform(1, 0, 0, 1, 0, 0); // Undo the c.scale(2, 2). Reset the transform with the identity matrix.
     }
 
     function drawKeyLabels(c) {
@@ -272,7 +274,7 @@ export default (function () {
                 var whiteKeyIndex = octave * 7 + whiteKeyNoteIndex;
                 var noteLabel = noteLabels[whiteKeyNoteIndex];
                 if (noteLabel == "c") {
-                    c.font = "bold 13px Tahoma";
+                    c.font = "bold 13px Tahoma"; // bold every C note.
                 } else {
                     c.font = "13px Tahoma";
                 }
@@ -346,51 +348,25 @@ export default (function () {
             }
 
             noteGroups.push(pianoKeyNumber + ""); // push the string onto our array
-            piano.play(pianoKeyNumber, 0.4, 0.8);
+            // const durationInSeconds = 0.4;
+            const durationInSeconds = 0.7;
+            const volume = 0.88;
+            piano.play(pianoKeyNumber, durationInSeconds, volume);
             saveAndShowData();
         }
     }
 
     return {
-        start: () => {
+        start: (cRef: React.MutableRefObject<HTMLCanvasElement>) => {
+            canvasRef = cRef;
             loadNoteGroups();
             loadSharpsAndFlats();
-            let c = getCanvasContext();
-            if (c) {
-                c.scale(2, 2); // Support Retina Displays by Drawing @ 2x resolution.
-            }
             drawPiano();
         },
 
         keydown: (e) => {
-            if (!preloader) {
-                preloader = new Preloader([
-                    "/s/m/grand/4.mp3",
-                    "/s/m/grand/16.mp3",
-                    "/s/m/grand/28.mp3",
-                    "/s/m/grand/30.mp3",
-                    "/s/m/grand/32.mp3",
-                    "/s/m/grand/35.mp3",
-                    "/s/m/grand/37.mp3",
-                    "/s/m/grand/39.mp3",
-                    "/s/m/grand/40.mp3",
-                    "/s/m/grand/42.mp3",
-                    "/s/m/grand/44.mp3",
-                    "/s/m/grand/45.mp3",
-                    "/s/m/grand/47.mp3",
-                    "/s/m/grand/49.mp3",
-                    "/s/m/grand/52.mp3",
-                    "/s/m/grand/57.mp3",
-                    "/s/m/grand/61.mp3",
-                    "/s/m/grand/64.mp3",
-                    "/s/m/grand/69.mp3",
-                    "/s/m/grand/76.mp3",
-                    "/s/m/grand/83.mp3",
-                    "/s/m/grand/88.mp3",
-                ]);
-            }
             if (!piano) {
-                piano = new Piano();
+                piano = new Piano(PianoType.Sampled_2);
                 piano.initWebAudio();
             }
 
@@ -404,9 +380,10 @@ export default (function () {
             }
 
             if (e.metaKey) {
+                // CMD + X or CMD + C
                 if (e.keyCode == 88 || e.keyCode == 67) {
-                    // CMD + X or CMD + C
-                    setTimeout(resetEverything, 100);
+                    copyTextArea();
+                    setTimeout(resetEverything, 10);
                 }
                 return;
             }

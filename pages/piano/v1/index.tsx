@@ -1,10 +1,19 @@
 import PianoAuthorV1, { CANVAS_HEIGHT, CANVAS_WIDTH } from "apps/author/piano/v1/App";
 import KeyboardShortcuts from "apps/author/piano/v1/KeyboardShortcuts";
 import SharpsAndFlats from "apps/author/piano/v1/SharpsAndFlats";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useEventListener } from "use-hooks";
 
-export default () => {
+const showXY = (e) => {
+    const currentTargetRect = e.currentTarget.getBoundingClientRect();
+    const x = e.pageX - currentTargetRect.left;
+    const y = e.pageY - currentTargetRect.top;
+    console.log("Clicked at " + x + ", " + y); // 0, 0 is at the top left corner of the piano canvas.
+};
+
+const Page = () => {
+    const canvasRef = useRef(null);
+
     if (typeof window !== "undefined") {
         useEventListener("keydown", (e) => {
             PianoAuthorV1.keydown(e);
@@ -15,7 +24,7 @@ export default () => {
     }
 
     useEffect(() => {
-        PianoAuthorV1.start();
+        PianoAuthorV1.start(canvasRef);
     }, []);
 
     return (
@@ -33,7 +42,7 @@ export default () => {
                 <br />
                 <div id="content">
                     <textarea id="textarea" rows={8} cols={100}></textarea>
-                    <canvas id="pianoCanvas" width={CANVAS_WIDTH} height={CANVAS_HEIGHT}></canvas>
+                    <canvas id="pianoCanvas" ref={canvasRef} width={CANVAS_WIDTH} height={CANVAS_HEIGHT} onClick={showXY}></canvas>
                     <style jsx>{`
                         div {
                             width: 100%;
@@ -61,6 +70,8 @@ export default () => {
         </>
     );
 };
+
+export default Page;
 
 export async function getStaticProps(context) {
     return {

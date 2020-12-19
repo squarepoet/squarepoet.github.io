@@ -418,7 +418,7 @@ function displaySongInfo(params) {
 }
 
 function playPianoNote(pianoKeyNumber, velocity = 127.0) {
-    let duration = 1.0; // 0.125, 0.25, 0.5, 1.0, 2.0;
+    const duration = 1.0; // 0.125, 0.25, 0.5, 1.0, 2.0;
     piano.play(pianoKeyNumber, duration, velocity / 127.0);
 }
 

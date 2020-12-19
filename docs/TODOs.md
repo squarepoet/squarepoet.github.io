@@ -5,12 +5,30 @@
 
 # NEXT
 
+-   [ ] Piano.V1: Piano.ts should preload the samples in a programmatic way with less repetition of the baseURL and audio file names.
+-   [ ] Piano.V1: Right now, we need to hit space to preload the sounds. Can we preload by hitting any space?
+
+# Piano TODOs
+
+## V1
+
+-   [ ] Either revert to using musical.js, or play mp3s via Howler/Tone, or make Tone.js sound like a piano!
+
+## V2
+
+-   [ ] X
+
+# Other TODOs
+
 -   [ ] guitar/v1/App.ts has some BUGs.
+
     -   [ ] Press letter A right after the page is loaded. ERROR. We try to play a note, but Tone.js's mp3 buffers aren't yet loaded.
     -   [ ]
 
-# TODOs
-
+-   [ ] Need to support Workers in Next.js
+        https://github.com/GoogleChromeLabs/worker-plugin
+        https://github.com/koheitakumi/nextjs-typescript-comlink
+        https://github.com/vercel/next.js/tree/canary/examples/with-web-worker
 -   [ ] usePersistedState might cause a React error if something is wrong while loading the state as JSON. I had to call localStorage.clear()
 -   [ ] npm i lodash for piano v1/v2
 -   [ ] BUG: When I first load the page, the text area isn't populated correctly. ★★★★★
@@ -21,6 +39,7 @@
 
 # DONE
 
+-   [x] BUG in Piano V1: When I CMD+X to cut the text from the main text area, it disables the text area. WTF!
 -   [x] BUG: When I CMD+X on the Guitar Author V1, it doesn't cut to the clipboard! However, COPY works fine. :-P ???
 -   [x] BUG: Sharps and Flats don't update if I delete!
 -   [x] How do I import modules with absolute URLs? I don't like seeing all the dots and slashes.
