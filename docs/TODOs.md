@@ -5,14 +5,21 @@
 
 # NEXT
 
--   [ ] Piano.V1: Piano.ts should preload the samples in a programmatic way with less repetition of the baseURL and audio file names.
--   [ ] Piano.V1: Right now, we need to hit space to preload the sounds. Can we preload by hitting any space?
+-   [x] Revert to using musical.js. Rewrite it in TS!
+    -   [x] Include RONYEH's patch!
+-   [ ] Make Tone.js sound more like a piano!
+    -   [x] See: https://keithwhor.com/music/
+        -   [x] Sounds like an electric piano, but has some clipping noise.
+    -   [ ] https://github.com/nbrosowsky/tonejs-instruments
+        -   [ ] I took his samples.
 
 # Piano TODOs
 
 ## V1
 
--   [ ] Either revert to using musical.js, or play mp3s via Howler/Tone, or make Tone.js sound like a piano!
+-   [ ] Piano.V1: The first note you hit will be Synth tones. It will auto switch to Sampler tones once everything is preloaded. SWEET!
+-   [ ] Piano.V1: Piano.ts should preload the samples in a programmatic way with less repetition of the baseURL and audio file names.
+-   [ ] Piano.V1: Right now, we need to hit space to preload the sounds. Can we preload by hitting any space?
 
 ## V2
 

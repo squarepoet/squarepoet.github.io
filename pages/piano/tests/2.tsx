@@ -1,21 +1,32 @@
-// Do some tests with Tone.js here.
+// Do some tests with Musical.js here.
 
-import SimplePiano from "components/piano/SimplePiano";
+import Musical from "apps/shared/musical/Musical";
 import React, { useEffect, useState } from "react";
 
-// TODO
-// - Click a button to run the test
-//
-// + Play a melody
-// + Play a polysynth
-// + Any other features I learn...
+var inst;
 
-export default () => {
+const Page = () => {
+    useEffect(() => {
+        // One Time
+    }, []);
+
+    function onClickStartMusicalJS() {
+        inst = new Musical.Instrument("piano");
+    }
+    function onClickPlaySomething() {
+        inst.tone("C");
+        inst.tone("E");
+        inst.tone("G");
+    }
+
     return (
         <div>
-            <h1>A Simple Piano Demo #2</h1>
-            <SimplePiano />
-            <div>That was the demo!</div>
+            <h1>Piano Demo #2 – Musical JS</h1>
+            <button onClick={onClickStartMusicalJS}>START MUSICAL.JS</button>
+            <br></br>
+            <button onClick={onClickPlaySomething}>Play Something</button>
         </div>
     );
 };
+
+export default Page;

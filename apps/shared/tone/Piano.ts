@@ -11,7 +11,7 @@ enum PianoType {
 
 export default class Piano {
     type: PianoType;
-    instrument: Tone.Synth | Tone.FMSynth | Tone.AMSynth | Tone.Sampler = null; // Tone.Instrument
+    instrument: Tone.PolySynth | Tone.Synth | Tone.FMSynth | Tone.AMSynth | Tone.Sampler = null; // Tone.Instrument
     preloader: Preloader = null;
 
     constructor(pianoType?: PianoType) {
@@ -127,13 +127,13 @@ export default class Piano {
                     this.setupSamplerInstrument(baseURL, samplesMap);
                     break;
                 case PianoType.FM:
-                    this.instrument = new Tone.FMSynth().toDestination();
+                    this.instrument = new Tone.PolySynth(Tone.FMSynth).toDestination();
                     break;
                 case PianoType.AM:
-                    this.instrument = new Tone.AMSynth().toDestination();
+                    this.instrument = new Tone.PolySynth(Tone.AMSynth).toDestination();
                     break;
                 default:
-                    this.instrument = new Tone.Synth().toDestination();
+                    this.instrument = new Tone.PolySynth(Tone.Synth).toDestination();
                     break;
             }
         }
@@ -156,21 +156,33 @@ export default class Piano {
         return this.instrument !== null;
     }
 
-    // TODO: Support number[] for playing chords!
     play(pianoKeyNumber: number, durationInSeconds: number = 0, velocity: number = 1.0) {
-        console.log("PLAY " + pianoKeyNumber);
         let noteName = Tone.Frequency(pianoKeyNumber + 20, "midi").toNote();
         console.log("Play " + pianoKeyNumber + " <=> " + noteName);
 
         if (durationInSeconds <= 0) {
             this.instrument.triggerAttack(noteName, 0, velocity);
         } else {
-            this.instrument.triggerAttackRelease(noteName, durationInSeconds, "+0", velocity);
+            // this.instrument.triggerAttackRelease(noteName, "4n");
+            this.instrument.triggerAttackRelease(noteName, durationInSeconds);
+            // this.instrument.triggerAttackRelease(noteName, durationInSeconds, 0 /* time from now */, velocity);
         }
     }
 
     stop(pianoKeyNumber: number) {
-        this.instrument.triggerRelease(0);
+        let noteName = Tone.Frequency(pianoKeyNumber + 20, "midi").toNote();
+        console.log("TRIGGER RELEASE " + pianoKeyNumber + " / " + noteName);
+        this.instrument.triggerRelease(noteName);
+    }
+
+    stopAllNotes() {
+        console.log(this.type);
+        if (this.type === PianoType.Sampled_1 || this.type === PianoType.Sampled_2) {
+            console.log("stopAllNotes!");
+            (this.instrument as Tone.Sampler).releaseAll(Tone.now());
+        } else {
+            console.log("NOT IMPLEMENTED FOR SYNTHS: TRIGGER RELEASE ALL");
+        }
     }
 }
 
