@@ -1,7 +1,14 @@
 import React from "react";
 
+import { Button } from "@material-ui/core";
+
 const Page = () => {
-    return <div>Guitar Author V2</div>;
+    return (
+        <>
+            <div>Guitar Author V2</div>
+            <Button color="primary">Hello Material UI</Button>
+        </>
+    );
 };
 
 export default Page;

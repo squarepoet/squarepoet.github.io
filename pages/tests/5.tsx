@@ -1,5 +1,5 @@
-// Test Semantic UI
-import { Button, Input, Loader } from "semantic-ui-react";
+// Test Material UI
+// TODO
 
 export default () => {
     const onClickButton1 = () => {
