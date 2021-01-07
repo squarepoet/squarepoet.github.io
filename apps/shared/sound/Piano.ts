@@ -13,6 +13,7 @@ export default class Piano {
     type: PianoType;
     instrument: Tone.PolySynth | Tone.Synth | Tone.FMSynth | Tone.AMSynth | Tone.Sampler = null; // Tone.Instrument
     preloader: Preloader = null;
+    private isReady: boolean = false;
 
     constructor(pianoType?: PianoType) {
         if (typeof pianoType === "undefined") {
@@ -128,12 +129,15 @@ export default class Piano {
                     break;
                 case PianoType.FM:
                     this.instrument = new Tone.PolySynth(Tone.FMSynth).toDestination();
+                    this.isReady = true;
                     break;
                 case PianoType.AM:
                     this.instrument = new Tone.PolySynth(Tone.AMSynth).toDestination();
+                    this.isReady = true;
                     break;
                 default:
                     this.instrument = new Tone.PolySynth(Tone.Synth).toDestination();
+                    this.isReady = true;
                     break;
             }
         }
@@ -143,9 +147,8 @@ export default class Piano {
         const config: any = {
             release: 1,
             baseUrl: baseURL,
-            onload: function (buffers: any) {
-                console.log("Audio Buffers Loaded!");
-                console.log(buffers);
+            onload: (buffers: any) => {
+                this.isReady = true;
             },
         };
 
@@ -153,7 +156,7 @@ export default class Piano {
     }
 
     get isInitialized(): boolean {
-        return this.instrument !== null;
+        return this.instrument !== null && this.isReady;
     }
 
     play(pianoKeyNumber: number, durationInSeconds: number = 0, velocity: number = 1.0) {

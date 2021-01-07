@@ -5,8 +5,6 @@ export const CANVAS_HEIGHT: number = 300;
 
 let piano: Piano = null;
 
-console.log("/piano/v1/App.ts Loaded");
-
 function setTextArea(text: string) {
     let textArea: HTMLTextAreaElement = document.getElementById("textarea") as HTMLTextAreaElement;
     textArea.value = text;
@@ -357,17 +355,23 @@ export default (function () {
     }
 
     return {
-        start: (cRef: React.MutableRefObject<HTMLCanvasElement>) => {
+        startUI: (cRef: React.MutableRefObject<HTMLCanvasElement>) => {
             canvasRef = cRef;
             loadNoteGroups();
             loadSharpsAndFlats();
             drawPiano();
         },
 
+        startAudio: () => {
+            console.log("START AUDIO");
+            piano = new Piano(PianoType.Sampled_1);
+            piano.initWebAudio();
+        },
+
         keydown: (e) => {
-            if (!piano) {
-                piano = new Piano(PianoType.Sampled_2);
-                piano.initWebAudio();
+            if (!piano || !piano.isInitialized) {
+                console.log("Piano is not initialized.");
+                return;
             }
 
             if (isFocusedInSharpsOrFlatsInput()) {
