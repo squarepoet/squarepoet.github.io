@@ -1,8 +1,10 @@
 import React from "react";
 
-export default () => {
-    return <div>Guitar V2</div>;
+const Page = () => {
+    return <div>Guitar Author V2</div>;
 };
+
+export default Page;
 
 export async function getStaticProps(context) {
     return {

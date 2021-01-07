@@ -1,6 +1,6 @@
 // Do some tests with Musical.js here.
 
-import Musical from "apps/shared/musical/Musical";
+import Musical from "apps/shared/sound/Musical";
 import React, { useEffect, useState } from "react";
 
 var inst;

@@ -1,6 +1,6 @@
 // Do some tests with Tone.js here.
 
-import Piano, { PianoType } from "apps/shared/tone/Piano";
+import Piano, { PianoType } from "apps/shared/sound/Piano";
 import React, { useEffect, useState } from "react";
 
 let tone;

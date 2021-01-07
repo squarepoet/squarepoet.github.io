@@ -1,4 +1,4 @@
-import Piano from "apps/shared/tone/Piano";
+import Piano from "apps/shared/sound/Piano";
 import React, { useEffect, useState } from "react";
 
 // A dirt simple piano that uses Tone.js

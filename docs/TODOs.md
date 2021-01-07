@@ -5,6 +5,8 @@
 
 # NEXT
 
+-   [ ] Globally check if web audio is initialized. If not, show a overlay that says press any key to dismiss and start web audio session.
+
 -   [x] Revert to using musical.js. Rewrite it in TS!
     -   [x] Include RONYEH's patch!
 -   [ ] Make Tone.js sound more like a piano!

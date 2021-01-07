@@ -1,4 +1,4 @@
-import Piano from "apps/shared/tone/Piano";
+import Piano from "apps/shared/sound/Piano";
 import throttle from "lodash.throttle";
 
 import { Note, NoteGroup, Track } from "./Music";

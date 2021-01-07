@@ -1,4 +1,4 @@
-import Piano, { PianoType } from "apps/shared/tone/Piano";
+import Piano, { PianoType } from "apps/shared/sound/Piano";
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -496,6 +496,7 @@ setInterval(() => {
         }
 
         if (!piano) {
+            console.log("Init Web Audio");
             piano = new Piano(PianoType.Sampled_1);
             piano.initWebAudio();
         }

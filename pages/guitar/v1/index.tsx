@@ -18,7 +18,7 @@ if (typeof window !== "undefined") {
 
 // This function is called each time we need to update the page.
 // SERVER + CLIENT
-export default function () {
+const Page = () => {
     console.log("Page Function Called");
 
     const [guitarTab, setGuitarTab] = useGuitarTabState("");
@@ -134,7 +134,9 @@ export default function () {
             `}</style>
         </>
     );
-}
+};
+
+export default Page;
 
 export async function getStaticProps(context) {
     return {

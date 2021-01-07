@@ -1,4 +1,4 @@
-import Preloader from "apps/author/piano/v1/Preloader";
+import Preloader from "apps/shared/sound/Preloader";
 import * as Tone from "tone";
 
 enum PianoType {
