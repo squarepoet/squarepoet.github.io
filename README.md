@@ -29,25 +29,12 @@ View deployments here: https://github.com/squarepoet/squarepoet.github.io/deploy
 
 -   We render pages in React JS, and export static HTML files via Next.js
 
-## Fomantic UI (fork of Semantic UI)
+## Tone.js & Musical.js
 
-```
-yarn add fomantic-ui --ignore-scripts
-yarn --cwd node_modules/fomantic-ui run install
-```
-
-## Tone.js
-
--   We use Tone.js for all the sounds.
-
-## Musical.js by PencilCode
-
--   Previously, we used the `musical` library to generate piano tones.
--   https://github.com/PencilCode/musical.js
--   It actually sounds better than Tone.js's default synths.
--   Can we learn something from it? It does some wavetable synthesis with parameters from Google Chrome Labs.
-
----
+-   We use Tone.js or Musical.js for all the sounds.
+-   Musical actually sounds better than Tone.js's default synths.
+    -   https://github.com/PencilCode/musical.js
+    -   Can we learn something from it? It does some wavetable synthesis with parameters from Google Chrome Labs.
 
 ---
 

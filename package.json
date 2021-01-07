@@ -16,15 +16,15 @@
     "license": "MIT",
     "homepage": "https://squarepoet.github.io",
     "dependencies": {
-        "lodash.throttle": "^4.1.1",
+        "lodash.throttle": "latest",
         "next": "latest",
         "react": "latest",
         "react-dom": "latest",
-        "semantic-ui-react": "latest",
         "tone": "latest",
         "use-hooks": "latest",
         "use-persisted-state": "latest",
-        "worker-plugin": "latest"
+        "worker-plugin": "latest",
+        "@material-ui/core": "latest"
     },
     "devDependencies": {
         "@types/node": "latest",
