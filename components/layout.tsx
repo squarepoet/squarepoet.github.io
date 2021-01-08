@@ -28,7 +28,7 @@ const Layout = ({ title, children }: LayoutProps) => {
                 </nav>
             </header>
             <main>{children}</main>
-            <footer>&copy; 2020 SquarePoet</footer>
+            <footer>&copy; 2021 SquarePoet</footer>
             <style jsx global>{`
                 html,
                 body {
