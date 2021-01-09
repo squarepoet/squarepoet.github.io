@@ -5,10 +5,9 @@
 
 # NEXT
 
--   [x] Globally check if web audio is initialized. If not, show a overlay that says press any key to dismiss and start web audio session.
--   [ ] Make Tone.js sound more like a piano w/ better pianoteq samples!
-
 # Piano TODOs
+
+-   [ ] Work on Making Piano V2 work again!
 
 ## V1
 
@@ -18,7 +17,7 @@
 
 ## V2
 
--   [ ] X
+-   [ ] Make Tone.js sound more like a piano w/ better pianoteq samples!
 
 # Other TODOs
 
@@ -37,10 +36,12 @@
 -   [ ] When I refresh or go to a URL directly, it gets a 404! Something about routing?
     -   [x] This does NOT happen on surge or GitHub pages! We need to configure something with the test server!
 -   [ ] Add trailing slash on about/ page and other similar pages.
--   [ ] Add a simple component toolbar that persists between pages!
 
 # DONE
 
+-   [x] Piano V1 is DONE for now
+-   [x] Add a simple component toolbar that persists between pages!
+-   [x] Globally check if web audio is initialized. If not, show a overlay that says press any key to dismiss and start web audio session.
 -   [x] Revert to using musical.js. Rewrite it in TS!
     -   [x] Include RONYEH's patch!
 -   [x] Make Tone.js sound more like a piano!

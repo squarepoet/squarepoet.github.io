@@ -28,9 +28,9 @@ const PreloadDialog = (props) => {
     }
 
     useEffect(() => {
-        console.log("MOUNT");
+        // MOUNT
         return () => {
-            console.log("UNMOUNT");
+            // UNMOUNT
         };
     }, []);
 
