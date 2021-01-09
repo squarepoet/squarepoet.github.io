@@ -173,6 +173,21 @@ export default (function () {
         }
     }
 
+    function callFunctionForEachNoteInMostRecentNoteGroup(fcn: Function) {
+        if (noteGroups.length === 0) {
+            return;
+        }
+        const lastGroup = noteGroups[noteGroups.length - 1];
+        if (lastGroup.length == 0) {
+            return;
+        }
+        const notes = lastGroup.split(".");
+        for (const i in notes) {
+            const pianoKeyNumber = parseInt(notes[i]);
+            fcn(pianoKeyNumber);
+        }
+    }
+
     function drawWhiteKeys(c) {
         c.strokeStyle = "#000";
         c.lineWidth = 0.2;
@@ -205,20 +220,10 @@ export default (function () {
     }
 
     function drawMostRecentGroup(c) {
-        if (noteGroups.length === 0) {
-            return;
-        }
-        const lastGroup = noteGroups[noteGroups.length - 1];
-        if (lastGroup.length == 0) {
-            return;
-        }
+        const drawPianoKeyForNumber = (pianoKeyNumber: number) => {
+            const remainder = pianoKeyNumber % 12;
 
-        const notes = lastGroup.split(".");
-        for (let i in notes) {
-            const n = parseInt(notes[i]);
-            const remainder = n % 12;
-
-            let octaveIndex = Math.floor((n - 1) / 12);
+            let octaveIndex = Math.floor((pianoKeyNumber - 1) / 12);
 
             c.beginPath();
             if (blackKeys.includes(remainder)) {
@@ -235,7 +240,8 @@ export default (function () {
             }
             c.fillStyle = "#BB0";
             c.fill();
-        }
+        };
+        callFunctionForEachNoteInMostRecentNoteGroup(drawPianoKeyForNumber);
     }
 
     function drawPiano() {
@@ -356,24 +362,13 @@ export default (function () {
         }
     }
 
-    // There is code here that duplicates drawMostRecentGroup()
-    // I should reduce code copying!
     function playMostRecentNoteGroup() {
-        if (noteGroups.length === 0) {
-            return;
-        }
-        const lastGroup = noteGroups[noteGroups.length - 1];
-        if (lastGroup.length == 0) {
-            return;
-        }
-
-        const notes = lastGroup.split(".");
-        for (let i in notes) {
-            const pianoKeyNumber = parseInt(notes[i]);
+        const playPianoKey = (pianoKeyNumber: number) => {
             const durationInSeconds = 0.7;
             const volume = 0.88;
             piano.play(pianoKeyNumber, durationInSeconds, volume);
-        }
+        };
+        callFunctionForEachNoteInMostRecentNoteGroup(playPianoKey);
     }
 
     return {
