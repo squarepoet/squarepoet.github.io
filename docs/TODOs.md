@@ -5,15 +5,8 @@
 
 # NEXT
 
--   [ ] Globally check if web audio is initialized. If not, show a overlay that says press any key to dismiss and start web audio session.
-
--   [x] Revert to using musical.js. Rewrite it in TS!
-    -   [x] Include RONYEH's patch!
--   [ ] Make Tone.js sound more like a piano!
-    -   [x] See: https://keithwhor.com/music/
-        -   [x] Sounds like an electric piano, but has some clipping noise.
-    -   [ ] https://github.com/nbrosowsky/tonejs-instruments
-        -   [ ] I took his samples.
+-   [x] Globally check if web audio is initialized. If not, show a overlay that says press any key to dismiss and start web audio session.
+-   [ ] Make Tone.js sound more like a piano w/ better pianoteq samples!
 
 # Piano TODOs
 
@@ -48,6 +41,13 @@
 
 # DONE
 
+-   [x] Revert to using musical.js. Rewrite it in TS!
+    -   [x] Include RONYEH's patch!
+-   [x] Make Tone.js sound more like a piano!
+    -   [x] See: https://keithwhor.com/music/
+        -   [x] Sounds like an electric piano, but has some clipping noise.
+    -   [x] https://github.com/nbrosowsky/tonejs-instruments
+        -   [x] I took his samples, but I should really make my own from pianoteq!
 -   [x] BUG in Piano V1: When I CMD+X to cut the text from the main text area, it disables the text area. WTF!
 -   [x] BUG: When I CMD+X on the Guitar Author V1, it doesn't cut to the clipboard! However, COPY works fine. :-P ???
 -   [x] BUG: Sharps and Flats don't update if I delete!

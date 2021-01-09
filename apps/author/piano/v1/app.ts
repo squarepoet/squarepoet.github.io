@@ -363,8 +363,7 @@ export default (function () {
         },
 
         startAudio: () => {
-            console.log("START AUDIO");
-            piano = new Piano(PianoType.Sampled_1);
+            piano = new Piano();
             piano.initWebAudio();
         },
 

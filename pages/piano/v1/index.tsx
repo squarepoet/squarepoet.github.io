@@ -27,7 +27,6 @@ const Page = () => {
     }
 
     function startAudio() {
-        console.log("Start Audio");
         PianoAuthorV1.startAudio();
         setShowPreloadDialog(false);
     }
