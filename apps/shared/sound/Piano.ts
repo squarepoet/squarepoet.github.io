@@ -8,19 +8,18 @@ enum PianoType {
     AM,
     Sampled_1,
     Sampled_2,
+    Electric_1, // Musical.js
 }
 
 enum AudioSDKType {
     Tone,
     Musical,
-    /* Howler? */
 }
 
-//const AUDIO_SDK: AudioSDKType = AudioSDKType.Musical;
-const AUDIO_SDK: AudioSDKType = AudioSDKType.Tone;
-const PIANO_TYPE: PianoType = PianoType.Sampled_2;
+const PIANO_TYPE: PianoType = PianoType.Sampled_1;
 
 class Piano {
+    sdk: AudioSDKType;
     type: PianoType = PianoType.Basic;
     instrument: Tone.PolySynth | Tone.Synth | Tone.FMSynth | Tone.AMSynth | Tone.Sampler | Musical.Instrument = null; // Tone.Instrument or Musical.Instrument
     private isReady: boolean = false;
@@ -36,11 +35,13 @@ class Piano {
 
     initWebAudio() {
         if (!this.instrument) {
-            if (AUDIO_SDK === AudioSDKType.Musical) {
+            if (this.type === PianoType.Electric_1) {
+                this.sdk = AudioSDKType.Musical;
                 console.log("Start Musical.js");
                 this.instrument = new Musical.Instrument("piano");
                 this.isReady = true;
             } else {
+                this.sdk = AudioSDKType.Tone;
                 console.log("Start Tone.js");
                 Tone.start().then(() => {
                     console.log("Tone is Ready!");
@@ -76,8 +77,9 @@ class Piano {
     }
 
     play(pianoKeyNumber: number, durationInSeconds: number = 0, velocity: number = 1.0) {
-        if (AUDIO_SDK === AudioSDKType.Tone) {
-            let noteName = Tone.Frequency(pianoKeyNumber + 20, "midi").toNote();
+        if (this.sdk === AudioSDKType.Tone) {
+            // Tone.js
+            const noteName = Tone.Frequency(pianoKeyNumber + 20, "midi").toNote();
             console.log("Play " + pianoKeyNumber + " <=> " + noteName);
 
             if (durationInSeconds <= 0) {
@@ -88,13 +90,14 @@ class Piano {
                 // this.instrument.triggerAttackRelease(noteName, durationInSeconds, 0 /* time from now */, velocity);
             }
         } else {
+            // Musical.js
             // numerically (in Hz), or with midi numbers (as negative integers).
             this.instrument.tone(-(pianoKeyNumber + 20)); // Musical.js accepts negative MIDI numbers 60 == Middle C (pianoKeyNumber === 40)
         }
     }
 
     stop(pianoKeyNumber: number) {
-        let noteName = Tone.Frequency(pianoKeyNumber + 20, "midi").toNote();
+        const noteName = Tone.Frequency(pianoKeyNumber + 20, "midi").toNote();
         console.log("TRIGGER RELEASE " + pianoKeyNumber + " / " + noteName);
         this.instrument.triggerRelease(noteName);
     }
@@ -166,7 +169,7 @@ class Piano {
         // Get absolute URLs for mp3 sample files to preload.
         const filesToPreload = [];
         for (const keyName in this.samplesMap) {
-            let fileName = this.samplesMap[keyName];
+            const fileName = this.samplesMap[keyName];
             console.log(this.baseURL + fileName);
             filesToPreload.push(this.baseURL + fileName);
         }

@@ -107,19 +107,19 @@ let keyCodeToPianoKey = {
 };
 
 export default (function () {
-    var $text, $sharps, $flats;
-    var sharps = ""; // the string value of the $sharps input
-    var flats = "";
-    var noteGroups = [];
-    var octaveOffset = 0;
+    let $text, $sharps, $flats;
+    let sharps = ""; // the string value of the $sharps input
+    let flats = "";
+    let noteGroups: string[] = [];
+    let octaveOffset = 0;
 
     // piano key numbers % 12
-    var blackKeys = [2, -1, 5, 7, -1, 10, 0]; // -1 is for the spaces where there are no black keys
-    var whiteKeys = [1, 3, 4, 6, 8, 9, 11];
-    var noteLabels = ["a", "b", "c", "d", "e", "f", "g"];
+    let blackKeys = [2, -1, 5, 7, -1, 10, 0]; // -1 is for the spaces where there are no black keys
+    let whiteKeys = [1, 3, 4, 6, 8, 9, 11];
+    let noteLabels = ["a", "b", "c", "d", "e", "f", "g"];
 
     // which character to type to get the corresponding white key
-    var keyboardLabels = ["z", "x", "c", "v", "b", "n", "m", ",", ".", "/", "a", "s", "d", "f", "g", "h", "j", "k", "l", ";", "r", "t", "y", "u", "i", "o", "p", "4", "5", "6", "7", "8", "9", "0", "-", "="];
+    let keyboardLabels = ["z", "x", "c", "v", "b", "n", "m", ",", ".", "/", "a", "s", "d", "f", "g", "h", "j", "k", "l", ";", "r", "t", "y", "u", "i", "o", "p", "4", "5", "6", "7", "8", "9", "0", "-", "="];
 
     let canvasRef: React.MutableRefObject<HTMLCanvasElement> = null;
 
@@ -154,7 +154,7 @@ export default (function () {
 
     function saveAndShowData() {
         console.log(noteGroups);
-        var newText = noteGroups.join(" ");
+        let newText = noteGroups.join(" ");
         localStorage.text = newText;
         setTextArea(newText);
         drawPiano();
@@ -162,7 +162,7 @@ export default (function () {
 
     function mergeLastTwoGroups() {
         if (noteGroups.length >= 2) {
-            var merged = noteGroups.pop() + "." + noteGroups.pop();
+            let merged = noteGroups.pop() + "." + noteGroups.pop();
 
             let arr = merged.split("."); // Piano numbers are separated by a period. Turn it into an array of numbers.
             let set = new Set(arr); // Remove duplicates.
@@ -178,7 +178,7 @@ export default (function () {
         c.lineWidth = 0.2;
         c.fillStyle = "#FFF";
 
-        for (var k = 0; k < 52; k++) {
+        for (let k = 0; k < 52; k++) {
             c.fillRect(k * 20, 0, 20, 120);
             c.strokeRect(k * 20, 0, 20, 120);
         }
@@ -190,8 +190,8 @@ export default (function () {
     function drawBlackKeys(c) {
         c.fillStyle = "#323232";
 
-        for (var octave = 0; octave < 7; octave++) {
-            for (var key = 0; key < 7; key++) {
+        for (let octave = 0; octave < 7; octave++) {
+            for (let key = 0; key < 7; key++) {
                 if (key == 1 || key == 4) {
                     continue; // skip B# and E#
                 }
@@ -205,27 +205,30 @@ export default (function () {
     }
 
     function drawMostRecentGroup(c) {
-        var lastGroup = noteGroups.slice(-1); // array of the last item
+        if (noteGroups.length === 0) {
+            return;
+        }
+        const lastGroup = noteGroups[noteGroups.length - 1];
         if (lastGroup.length == 0) {
             return;
         }
 
-        var notes = lastGroup[0].split(".");
-        for (var i in notes) {
-            var n = notes[i];
-            var remainder = n % 12;
+        const notes = lastGroup.split(".");
+        for (let i in notes) {
+            const n = parseInt(notes[i]);
+            const remainder = n % 12;
 
-            var octaveIndex = Math.floor((n - 1) / 12);
+            let octaveIndex = Math.floor((n - 1) / 12);
 
             c.beginPath();
             if (blackKeys.includes(remainder)) {
                 // is it a black key?
-                var blackKeyIndex = octaveIndex * 7 + blackKeys.indexOf(remainder);
+                let blackKeyIndex = octaveIndex * 7 + blackKeys.indexOf(remainder);
                 // black keys are 16px wide
                 c.arc(blackKeyIndex * 20 + 20, 60, 6, 0, 2 * Math.PI, false);
             } else {
                 // if white, we map it to one of the 52 white keys
-                var whiteKeyIndex = octaveIndex * 7 + whiteKeys.indexOf(remainder);
+                let whiteKeyIndex = octaveIndex * 7 + whiteKeys.indexOf(remainder);
 
                 // white keys are 20px wide
                 c.arc(whiteKeyIndex * 20 + 10, 96, 7, 0, 2 * Math.PI, false);
@@ -264,13 +267,13 @@ export default (function () {
 
         // draw the piano key numbers for the white keys
         // also draw the note name
-        for (var k = 1; k <= 88; k++) {
-            var remainder = k % 12;
+        for (let k = 1; k <= 88; k++) {
+            let remainder = k % 12;
             if (whiteKeys.includes(remainder)) {
-                var octave = Math.floor(k / 12);
-                var whiteKeyNoteIndex = whiteKeys.indexOf(remainder);
-                var whiteKeyIndex = octave * 7 + whiteKeyNoteIndex;
-                var noteLabel = noteLabels[whiteKeyNoteIndex];
+                let octave = Math.floor(k / 12);
+                let whiteKeyNoteIndex = whiteKeys.indexOf(remainder);
+                let whiteKeyIndex = octave * 7 + whiteKeyNoteIndex;
+                let noteLabel = noteLabels[whiteKeyNoteIndex];
                 if (noteLabel == "c") {
                     c.font = "bold 13px Tahoma"; // bold every C note.
                 } else {
@@ -289,9 +292,9 @@ export default (function () {
         c.textAlign = "center";
 
         // draw the current character to press, under the correct key!
-        var offset = (octaveOffset + 2) * 7 - 4; // start on D (key 18)
-        var len = keyboardLabels.length;
-        for (var i = 0; i < len; i++) {
+        let offset = (octaveOffset + 2) * 7 - 4; // start on D (key 18)
+        let len = keyboardLabels.length;
+        for (let i = 0; i < len; i++) {
             c.fillText(keyboardLabels[i], (i + offset) * 20 + 10, 140);
         }
     }
@@ -315,7 +318,7 @@ export default (function () {
             localStorage.text = "";
         }
 
-        var text = localStorage.text.trim();
+        let text = localStorage.text.trim();
         if (text == "") {
             noteGroups = [];
         } else {
@@ -327,9 +330,9 @@ export default (function () {
     function play(keyCode, sharpModifier) {
         if (keyCodeToPianoKey.hasOwnProperty(keyCode)) {
             // get the name of the note we are about to play
-            var remainder = keyCodeToPianoKey[keyCode] % 12;
-            var whiteKeyNoteIndex = whiteKeys.indexOf(remainder);
-            var noteLabel = noteLabels[whiteKeyNoteIndex];
+            let remainder = keyCodeToPianoKey[keyCode] % 12;
+            let whiteKeyNoteIndex = whiteKeys.indexOf(remainder);
+            let noteLabel = noteLabels[whiteKeyNoteIndex];
 
             // is this note auto-sharped, due to the key signature?
             if (sharps.indexOf(noteLabel) != -1) {
@@ -340,17 +343,36 @@ export default (function () {
                 sharpModifier--; // lower the note a half-step!
             }
 
-            var pianoKeyNumber = keyCodeToPianoKey[keyCode] + sharpModifier + octaveOffset * 12;
+            let pianoKeyNumber = keyCodeToPianoKey[keyCode] + sharpModifier + octaveOffset * 12;
             if (pianoKeyNumber < 1 || pianoKeyNumber > 88) {
                 return;
             }
 
             noteGroups.push(pianoKeyNumber + ""); // push the string onto our array
-            // const durationInSeconds = 0.4;
             const durationInSeconds = 0.7;
             const volume = 0.88;
             piano.play(pianoKeyNumber, durationInSeconds, volume);
             saveAndShowData();
+        }
+    }
+
+    // There is code here that duplicates drawMostRecentGroup()
+    // I should reduce code copying!
+    function playMostRecentNoteGroup() {
+        if (noteGroups.length === 0) {
+            return;
+        }
+        const lastGroup = noteGroups[noteGroups.length - 1];
+        if (lastGroup.length == 0) {
+            return;
+        }
+
+        const notes = lastGroup.split(".");
+        for (let i in notes) {
+            const pianoKeyNumber = parseInt(notes[i]);
+            const durationInSeconds = 0.7;
+            const volume = 0.88;
+            piano.play(pianoKeyNumber, durationInSeconds, volume);
         }
     }
 
@@ -395,7 +417,7 @@ export default (function () {
                 return;
             }
 
-            var sharpModifier = 0;
+            let sharpModifier = 0;
             if (e.ctrlKey) {
                 sharpModifier = -1;
             } else if (e.shiftKey) {
@@ -405,7 +427,8 @@ export default (function () {
             e.preventDefault();
             switch (e.keyCode) {
                 case 32: // SPACE
-                    console.log("DO NOTHING ON SPACE");
+                    // play the most recent note group
+                    playMostRecentNoteGroup();
                     break;
                 case 27: // ESC
                     if (e.shiftKey) {
