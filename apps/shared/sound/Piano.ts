@@ -16,7 +16,7 @@ enum AudioSDKType {
     Musical,
 }
 
-const PIANO_TYPE: PianoType = PianoType.Sampled_1;
+const PIANO_TYPE: PianoType = PianoType.Electric_1;
 
 class Piano {
     sdk: AudioSDKType;
