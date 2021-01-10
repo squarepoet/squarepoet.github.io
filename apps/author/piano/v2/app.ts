@@ -3,12 +3,72 @@ import throttle from "lodash.throttle";
 
 import { Note, NoteGroup, Track } from "./Music";
 
+// TODO: Replace lodash.includes
+
+//
+
+//
+
+//
+
+// Set up a dummy jQuery $ function
+const $ = (arg) => {
+    console.log(`jQuery called with arg [${arg}]`);
+    const retVal = {
+        html: (htmlArg) => {
+            console.log(`jQuery.html called with [${htmlArg}]`);
+        },
+        change: (changeArg) => {
+            console.log(`jQuery.change called with [${changeArg}]`);
+        },
+        val: (valArg) => {
+            console.log(`jQuery.val called with [${valArg}]`);
+        },
+        addClass: (addClassArg) => {
+            console.log(`jQuery.addClass called with [${addClassArg}]`);
+        },
+        removeClass: (removeClassArg) => {
+            console.log(`jQuery.removeClass called with [${removeClassArg}]`);
+        },
+        prop: (propArg1, propArg2) => {
+            console.log(`jQuery.prop called with [${propArg1}] [${propArg2}]`);
+        },
+        bind: (bindArg1, bindArg2) => {
+            console.log(`jQuery.bind called with [${bindArg1}] [${bindArg2}]`);
+            return retVal; // support chaining
+        },
+        click: (clickArg) => {
+            console.log(`jQuery.click called with [${clickArg}]`);
+        },
+        mouseup: (mouseupArg) => {
+            console.log(`jQuery.mouseup called with [${mouseupArg}]`);
+        },
+        mousedown: (mousedownArg) => {
+            console.log(`jQuery.mousedown called with [${mousedownArg}]`);
+        },
+        mouseover: (mouseoverArg) => {
+            console.log(`jQuery.mouseover called with [${mouseoverArg}]`);
+        },
+    };
+    return retVal;
+};
+
+// Set up a dummy / stub DragDrop
+const DragDrop = (arg1, arg2) => {
+    console.log(`DragDrop called with [${arg1}][${arg2}]`);
+};
+
+// Set up a dummy / stub lodash
+const _ = {
+    includes: (a1, a2) => {
+        console.log(`lodash.includes called with [${a1}] [${a2}]`);
+        return false;
+    },
+};
+
 /////////////////////////////////////////////////////////////////////////////////
 // declare types that are defined in 3rd party libraries
-declare let $: any;
-declare let _: any;
-declare let DragDrop: any;
-declare let Instrument: any;
+// TODO
 /////////////////////////////////////////////////////////////////////////////////
 
 const TIME_BETWEEN_NOTEGROUPS = 250;
