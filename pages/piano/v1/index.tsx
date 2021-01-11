@@ -34,7 +34,7 @@ const Page = () => {
             {showPreloadDialog ? <PreloadDialog initialOpenState={showPreloadDialog} preloadNow={startAudio} /> : null}
             <div>
                 <KeyboardShortcuts />
-                <SharpsAndFlats />
+                <SharpsAndFlats style={{ border: "2px solid red", float: "left" }} />
                 <div>
                     <style jsx>{`
                         div {

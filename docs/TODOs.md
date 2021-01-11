@@ -7,8 +7,10 @@
 
 # Piano TODOs
 
+-   [ ] V2: Make interaction between JS/CSS and HTML/DOM more React-like rather than jQuery like!
+-   [x] V2: Share some components with V2, for example: sharps/flats.
+    -   [x] V1 vs V2 lay out the sharps/flats div differently. Let them customize the css? float: right|left;
 -   [x] Sharps / Flats Don't Update in V1
--   [ ] Work on Making Piano V2 work again!
 
 ## V1
 

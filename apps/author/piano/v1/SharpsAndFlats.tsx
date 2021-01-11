@@ -1,16 +1,21 @@
 import React, { useEffect, useState } from "react";
 
-const Page = () => {
+// Accept some CSS from my parent, for customization purposes.
+// float: right | left;
+
+const Page = (props) => {
     return (
         <>
-            <div>
-                sharps: <input id="sharps-text" />
-                <br />
-                flats: <input id="flats-text" />
+            <div className="sharps-and-flats" style={props.style}>
+                <div>
+                    sharps: <input id="sharps-text" />
+                </div>
+                <div>
+                    flats: <input id="flats-text" />
+                </div>
             </div>
             <style jsx>{`
-                div {
-                    float: left;
+                div.sharps-and-flats {
                     margin-right: 20px;
                     text-align: right;
                 }
@@ -21,4 +26,5 @@ const Page = () => {
         </>
     );
 };
+
 export default Page;

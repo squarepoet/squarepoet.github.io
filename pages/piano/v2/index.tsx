@@ -1,3 +1,4 @@
+import SharpsAndFlats from "apps/author/piano/v1/SharpsAndFlats";
 import PianoAuthorV2 from "apps/author/piano/v2/App";
 import { Note, NoteGroup, Track } from "apps/author/piano/v2/Music";
 import PreloadDialog from "components/dialogs/Preload";
@@ -67,14 +68,7 @@ const Page = () => {
                 <br />
                 up/down &rarr; +/- octave &nbsp;&nbsp;&nbsp;&nbsp; tab &rarr; combine &nbsp;&nbsp;&nbsp;&nbsp; cmd + c &rarr; copy
             </div>
-            <div className="sharps-and-flats">
-                <div>
-                    sharps: <input id="sharps-text" />
-                </div>
-                <div>
-                    flats: <input id="flats-text" />
-                </div>
-            </div>
+            <SharpsAndFlats style={{ border: "2px solid blue", float: "right" }} />
             <div id="content" className="content">
                 <div id="tracks"></div>
                 <canvas id="pianoCanvas" width="1040" height="150"></canvas>
