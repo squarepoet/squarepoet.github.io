@@ -29,11 +29,13 @@ class Piano {
     private samplesMap: any;
     private baseURL: string = "";
 
+    // Only call this from a user gesture, so we can call this.initWebAudio()!
     constructor() {
         this.type = PIANO_TYPE;
+        this.initWebAudio();
     }
 
-    initWebAudio() {
+    private initWebAudio() {
         if (!this.instrument) {
             if (this.type === PianoType.Electric_1) {
                 this.sdk = AudioSDKType.Musical;

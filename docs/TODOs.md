@@ -7,6 +7,7 @@
 
 # Piano TODOs
 
+-   [x] Sharps / Flats Don't Update in V1
 -   [ ] Work on Making Piano V2 work again!
 
 ## V1

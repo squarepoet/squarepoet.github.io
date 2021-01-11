@@ -1,9 +1,8 @@
+import Utils from "apps/shared/dom/Utils";
 import Piano from "apps/shared/sound/Piano";
 import throttle from "lodash.throttle";
 
 import { Note, NoteGroup, Track } from "./Music";
-
-// TODO: Replace lodash.includes
 
 //
 
@@ -58,14 +57,6 @@ const DragDrop = (arg1, arg2) => {
     console.log(`DragDrop called with [${arg1}][${arg2}]`);
 };
 
-// Set up a dummy / stub lodash
-const _ = {
-    includes: (a1, a2) => {
-        console.log(`lodash.includes called with [${a1}] [${a2}]`);
-        return false;
-    },
-};
-
 /////////////////////////////////////////////////////////////////////////////////
 // declare types that are defined in 3rd party libraries
 // TODO
@@ -100,7 +91,7 @@ let noteLabels = ["a", "b", "c", "d", "e", "f", "g"];
 
 let sharpOrFlatModifier = 0;
 
-let piano = new Piano();
+let piano = null;
 
 // Converts a piano note (C4 == 40) to MIDI (C4 == 60)
 function p2m(pianoNote) {
@@ -478,6 +469,10 @@ function displaySongInfo(params) {
 }
 
 function playPianoNote(pianoKeyNumber, velocity = 127.0) {
+    if (piano === null) {
+        console.log("playPianoNote: Piano has not been initialized.");
+        return;
+    }
     const duration = 1.0; // 0.125, 0.25, 0.5, 1.0, 2.0;
     piano.play(pianoKeyNumber, duration, velocity / 127.0);
 }
@@ -1080,12 +1075,19 @@ function logStatus(msg) {
 }
 
 namespace UI {
+    const sharpsElementID = "sharps-text";
+    const flatsElementID = "flats-text";
+
     let $sharps, $flats;
     let $toggle_v1, $toggle_v2;
 
     export function updateSharpsAndFlats() {
         $sharps.val(sharps);
         $flats.val(flats);
+    }
+
+    function isFocusedOnSharpsOrFlatsInput() {
+        return Utils.isFocusedOnElementWithID(sharpsElementID) || Utils.isFocusedOnElementWithID(flatsElementID);
     }
 
     export function updateVersionToggle() {
@@ -1238,17 +1240,13 @@ namespace UI {
         DragDrop("html", handlers);
     }
 
-    export function setupKeyHandlers() {
-        $(document).bind("keydown", onKeyDownHandler).bind("keyup", onKeyUpHandler);
-    }
-
-    function onKeyDownHandler(e) {
-        if (!piano.isInitialized) {
-            piano.initWebAudio();
-        }
-
-        if ($sharps.is(":focus") || $flats.is(":focus")) {
-            return; // if we are typing in the sharps/flats input, we should ignore the rest of the key handler
+    export function onKeyDownHandler(e) {
+        if (!piano) {
+            console.log("onKeyDownHandler: Piano has not been initialized.");
+            return;
+        } else if (isFocusedOnSharpsOrFlatsInput()) {
+            // If we are typing in the sharps/flats input, we should ignore the rest of the key handler.
+            return;
         }
 
         let keyCode = e.keyCode;
@@ -1374,12 +1372,10 @@ namespace UI {
         }
     }
 
-    function onKeyUpHandler(e) {
+    export function onKeyUpHandler(e) {
         // update our sharps / flats
-        if ($sharps.is(":focus")) {
+        if (isFocusedOnSharpsOrFlatsInput()) {
             sharps = $sharps.val().toLowerCase();
-            LocalStorage.saveSharpsAndFlats();
-        } else if ($flats.is(":focus")) {
             flats = $flats.val().toLowerCase();
             LocalStorage.saveSharpsAndFlats();
         } else {
@@ -1506,7 +1502,7 @@ namespace UI {
         // also draw the note name
         for (let k = 1; k <= 88; k++) {
             let remainder = k % 12;
-            if (_.includes(whiteKeys, remainder)) {
+            if (whiteKeys.includes(remainder)) {
                 let octave = Math.floor(k / 12);
                 let whiteKeyNoteIndex = whiteKeys.indexOf(remainder);
                 let whiteKeyIndex = octave * 7 + whiteKeyNoteIndex;
@@ -1553,7 +1549,7 @@ namespace UI {
             let octaveIndex = Math.floor((n.pianoNote - 1) / 12);
 
             c.beginPath();
-            if (_.includes(blackKeys, remainder)) {
+            if (blackKeys.includes(remainder)) {
                 // is it a black key?
                 let blackKeyIndex = octaveIndex * 7 + blackKeys.indexOf(remainder);
                 // black keys are 16px wide
@@ -1800,18 +1796,29 @@ function getTextFileFromTracks(): string {
 
 // Once the DOM is ready, call new App().go()
 class App {
-    go() {
+    constructor() {
         MIDIPianoInput.setup();
         UI.setupJQueryDOMReferences();
         LocalStorage.load();
         UI.showNoteGroupsForTracks();
-        UI.setupKeyHandlers();
         UI.setupMouseHandlers();
         UI.setupFileChooser();
         UI.setupCopyHandler();
         UI.setupPianoCanvas();
         UI.setupPianoMouseHandlers();
         UI.drawPiano();
+    }
+
+    startAudio() {
+        piano = new Piano();
+    }
+
+    onKeyUp(e) {
+        UI.onKeyUpHandler(e);
+    }
+
+    onKeyDown(e) {
+        UI.onKeyDownHandler(e);
     }
 }
 

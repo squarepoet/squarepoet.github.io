@@ -1,5 +1,6 @@
 import PianoAuthorV2 from "apps/author/piano/v2/App";
 import { Note, NoteGroup, Track } from "apps/author/piano/v2/Music";
+import PreloadDialog from "components/dialogs/Preload";
 import React, { useEffect, useRef, useState } from "react";
 import { useEventListener } from "use-hooks";
 
@@ -11,26 +12,8 @@ let preloader;
 // }
 
 const Page = () => {
-    // const workerRef = useRef<Worker>();
-
-    if (typeof window !== "undefined") {
-        useEventListener("keydown", (e: KeyboardEvent) => {
-            if (e.keyCode == 32) {
-                // SPACE
-            } else if (e.keyCode == 70) {
-                // F
-            } else if (e.keyCode == 68) {
-                // D
-            } else {
-                console.log(e.keyCode);
-            }
-        });
-        useEventListener("keyup", (e) => {});
-    }
-
     useEffect(() => {
         app = new PianoAuthorV2();
-        app.go();
 
         // workerRef.current = new Worker("./clock.worker.js", { type: "module" });
         // workerRef.current.postMessage("start");
@@ -41,8 +24,26 @@ const Page = () => {
         // };
     }, []);
 
+    // const workerRef = useRef<Worker>();
+    const [showPreloadDialog, setShowPreloadDialog] = useState(true);
+
+    if (typeof window !== "undefined") {
+        useEventListener("keydown", (e: KeyboardEvent) => {
+            app.onKeyDown(e);
+        });
+        useEventListener("keyup", (e: KeyboardEvent) => {
+            app.onKeyUp(e);
+        });
+    }
+
+    function startAudio() {
+        app.startAudio();
+        setShowPreloadDialog(false);
+    }
+
     return (
         <>
+            {showPreloadDialog ? <PreloadDialog initialOpenState={showPreloadDialog} preloadNow={startAudio} /> : null}
             <div className="download-div">
                 Save as{" "}
                 <a id="download_midi_link" href="data:text/plain;base64,Tm90aGluZw==" download="song.mid">
