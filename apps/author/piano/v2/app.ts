@@ -376,7 +376,7 @@ namespace LocalStorage {
         if (songVersion !== 1 && songVersion !== 2) {
             songVersion = 1;
         }
-        UI.updateVersionToggle();
+        // UI.updateVersionToggle();
     }
 
     function loadTracks() {
@@ -425,6 +425,7 @@ namespace LocalStorage {
         localStorage.setItem("flats", flats);
     }
 
+    // TODO
     export function saveVersionToggle() {
         localStorage.setItem("song_version", songVersion + "");
     }
@@ -1100,15 +1101,15 @@ namespace UI {
         return Utils.isFocusedOnElementWithID(sharpsElementID) || Utils.isFocusedOnElementWithID(flatsElementID);
     }
 
-    export function updateVersionToggle() {
-        $toggle_v1.removeClass("selected");
-        $toggle_v2.removeClass("selected");
-        if (songVersion === 1) {
-            $toggle_v1.addClass("selected");
-        } else {
-            $toggle_v2.addClass("selected");
-        }
-    }
+    // export function updateVersionToggle() {
+    //     $toggle_v1.removeClass("selected");
+    //     $toggle_v2.removeClass("selected");
+    //     if (songVersion === 1) {
+    //         $toggle_v1.addClass("selected");
+    //     } else {
+    //         $toggle_v2.addClass("selected");
+    //     }
+    // }
 
     export function setupJQueryDOMReferences() {
         $toggle_v1 = $("#toggle_v1");
@@ -1203,13 +1204,13 @@ namespace UI {
         $toggle_v1.click(() => {
             songVersion = 1;
             LocalStorage.saveVersionToggle();
-            UI.updateVersionToggle();
+            // UI.updateVersionToggle();
         });
 
         $toggle_v2.click(() => {
             songVersion = 2;
             LocalStorage.saveVersionToggle();
-            UI.updateVersionToggle();
+            // UI.updateVersionToggle();
         });
 
         // When we hover over the Download MIDI | TEXT links, we update

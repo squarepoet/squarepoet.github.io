@@ -4,6 +4,7 @@ import { Note, NoteGroup, Track } from "apps/author/piano/v2/Music";
 import VersionToggle from "apps/author/piano/v2/VersionToggle";
 import PreloadDialog from "components/dialogs/Preload";
 import React, { useEffect, useRef, useState } from "react";
+import { useSelector } from "react-redux";
 import { useEventListener } from "use-hooks";
 
 let app: PianoAuthorV2;
@@ -43,9 +44,12 @@ const Page = () => {
         setShowPreloadDialog(false);
     }
 
+    const songVersion = useSelector((state) => state.songVersion);
+
     return (
         <>
             {showPreloadDialog ? <PreloadDialog initialOpenState={showPreloadDialog} preloadNow={startAudio} /> : null}
+            <div>{songVersion}</div>
             <div className="download-div">
                 Save as{" "}
                 <a id="download_midi_link" href="data:text/plain;base64,Tm90aGluZw==" download="song.mid">
