@@ -36,6 +36,10 @@ const $ = (arg) => {
             console.log(`jQuery.bind called with [${bindArg1}] [${bindArg2}]`);
             return retVal; // support chaining
         },
+        unbind: (unbindArg) => {
+            console.log(`jQuery.unbind called with [${unbindArg}]`);
+            return retVal; // support chaining
+        },
         click: (clickArg) => {
             console.log(`jQuery.click called with [${clickArg}]`);
         },
@@ -47,6 +51,12 @@ const $ = (arg) => {
         },
         mouseover: (mouseoverArg) => {
             console.log(`jQuery.mouseover called with [${mouseoverArg}]`);
+        },
+        mousemove: (mousemoveArg) => {
+            console.log(`jQuery.mousemove called with [${mousemoveArg}]`);
+        },
+        text: (textArg) => {
+            console.log(`jQuery.text called with [${textArg}]`);
         },
     };
     return retVal;

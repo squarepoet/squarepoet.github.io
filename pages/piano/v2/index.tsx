@@ -1,6 +1,7 @@
-import SharpsAndFlats from "apps/author/piano/v1/SharpsAndFlats";
+import SharpsAndFlats from "apps/author/piano/shared/SharpsAndFlats";
 import PianoAuthorV2 from "apps/author/piano/v2/App";
 import { Note, NoteGroup, Track } from "apps/author/piano/v2/Music";
+import VersionToggle from "apps/author/piano/v2/VersionToggle";
 import PreloadDialog from "components/dialogs/Preload";
 import React, { useEffect, useRef, useState } from "react";
 import { useEventListener } from "use-hooks";
@@ -55,20 +56,13 @@ const Page = () => {
                     TEXT
                 </a>
             </div>
-            <div className="version-div">
-                <div className="version-toggle" id="toggle_v1">
-                    V1
-                </div>
-                <div className="version-toggle" id="toggle_v2">
-                    V2
-                </div>
-            </div>
+            <VersionToggle />
             <div className="shortcuts">
                 ctrl &rarr; flat &nbsp;&nbsp;&nbsp;&nbsp; alt &rarr; sharp &nbsp;&nbsp;&nbsp;&nbsp; shift + esc &rarr; clear
                 <br />
                 up/down &rarr; +/- octave &nbsp;&nbsp;&nbsp;&nbsp; tab &rarr; combine &nbsp;&nbsp;&nbsp;&nbsp; cmd + c &rarr; copy
             </div>
-            <SharpsAndFlats style={{ border: "2px solid blue", float: "right" }} />
+            <SharpsAndFlats style={{ float: "right" }} />
             <div id="content" className="content">
                 <div id="tracks"></div>
                 <canvas id="pianoCanvas" width="1040" height="150"></canvas>
@@ -110,10 +104,6 @@ const Page = () => {
                 .download-div {
                     float: left;
                     margin: 3px 0px;
-                }
-                .version-div {
-                    float: left;
-                    margin-left: 8px;
                 }
                 .shortcuts {
                     float: right;
@@ -166,6 +156,11 @@ const Page = () => {
 
                 #filechooserlabel {
                     cursor: pointer;
+                }
+
+                #tracks {
+                    border: 2px solid red;
+                    min-height: 40px;
                 }
 
                 .track-container {
@@ -306,19 +301,6 @@ const Page = () => {
                 .played-note {
                     animation-name: played-note-animation;
                     animation-duration: 0.4s;
-                }
-
-                .version-toggle {
-                    float: left;
-                    background-color: #eee;
-                    color: #777;
-                    padding: 3px 15px;
-                    cursor: pointer;
-                }
-
-                .version-toggle.selected {
-                    color: #333;
-                    background-color: #cdedff;
                 }
 
                 /* tweak the margins on half-width display */

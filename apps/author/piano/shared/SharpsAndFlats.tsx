@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 
-// Accept some CSS from my parent, for customization purposes.
-// float: right | left;
+// Accept CSS via props.style to allow the parent component to customize this component.
+// For example:
+//      float: ("right" | "left");
 
 const Page = (props) => {
     return (
