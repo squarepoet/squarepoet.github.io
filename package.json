@@ -16,19 +16,23 @@
     "license": "MIT",
     "homepage": "https://squarepoet.github.io",
     "dependencies": {
+        "@material-ui/core": "latest",
+        "@reduxjs/toolkit": "^1.5.0",
         "lodash.throttle": "latest",
         "next": "latest",
         "react": "latest",
         "react-dom": "latest",
+        "react-redux": "^7.2.2",
+        "react-useinterval": "^1.0.2",
         "tone": "latest",
         "use-hooks": "latest",
         "use-persisted-state": "latest",
-        "worker-plugin": "latest",
-        "@material-ui/core": "latest"
+        "worker-plugin": "latest"
     },
     "devDependencies": {
         "@types/node": "latest",
         "@types/react": "latest",
+        "redux-devtools": "^3.7.0",
         "typescript": "latest"
     }
 }

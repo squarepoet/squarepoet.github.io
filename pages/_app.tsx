@@ -1,5 +1,7 @@
+import { useStore } from "apps/shared/redux/Store";
 import Layout from "components/Layout";
 import { AppProps } from "next/app";
+import { Provider } from "react-redux";
 
 const App = ({ Component, pageProps }: AppProps) => {
     console.log("Page Component Props:");
@@ -9,10 +11,14 @@ const App = ({ Component, pageProps }: AppProps) => {
         pageProps.title = "Default Title";
     }
 
+    const store = useStore(pageProps.initialReduxState);
+
     return (
-        <Layout title={pageProps.title}>
-            <Component {...pageProps} />
-        </Layout>
+        <Provider store={store}>
+            <Layout title={pageProps.title}>
+                <Component {...pageProps} />
+            </Layout>
+        </Provider>
     );
 };
 

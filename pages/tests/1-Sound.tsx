@@ -9,7 +9,7 @@ let piano;
 const Page = () => {
     useEffect(() => {
         // One Time
-        piano = new Piano(PianoType.Sampled_1);
+        piano = new Piano();
     }, []);
 
     function onClickStart() {

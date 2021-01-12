@@ -1,7 +1,7 @@
+import SharpsAndFlats from "apps/author/piano/shared/SharpsAndFlats";
 import PianoAuthorV1 from "apps/author/piano/v1/App";
 import KeyboardShortcuts from "apps/author/piano/v1/KeyboardShortcuts";
 import NotesAndPiano from "apps/author/piano/v1/NotesAndPiano";
-import SharpsAndFlats from "apps/author/piano/v1/SharpsAndFlats";
 import Piano, { PianoType } from "apps/shared/sound/Piano";
 import PreloadDialog from "components/dialogs/Preload";
 import React, { useEffect, useRef, useState } from "react";
@@ -34,7 +34,7 @@ const Page = () => {
             {showPreloadDialog ? <PreloadDialog initialOpenState={showPreloadDialog} preloadNow={startAudio} /> : null}
             <div>
                 <KeyboardShortcuts />
-                <SharpsAndFlats style={{ border: "2px solid red", float: "left" }} />
+                <SharpsAndFlats style={{ float: "left" }} />
                 <div>
                     <style jsx>{`
                         div {
