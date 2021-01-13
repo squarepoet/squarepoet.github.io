@@ -4,19 +4,19 @@ import { Note, NoteGroup, Track } from "apps/author/piano/v2/Music";
 import VersionToggle from "apps/author/piano/v2/VersionToggle";
 import PreloadDialog from "components/dialogs/Preload";
 import React, { useEffect, useRef, useState } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useEventListener } from "use-hooks";
-
-let app: PianoAuthorV2;
-let preloader;
 
 // function onPianoClockWorkerMessage(e) {
 //     console.log(new Date().getTime());
 // }
 
 const Page = () => {
+    const dispatch = useDispatch();
+
     useEffect(() => {
-        app = new PianoAuthorV2();
+        PianoAuthorV2.reduxDispatch = dispatch;
+        PianoAuthorV2.start();
 
         // workerRef.current = new Worker("./clock.worker.js", { type: "module" });
         // workerRef.current.postMessage("start");
@@ -32,19 +32,24 @@ const Page = () => {
 
     if (typeof window !== "undefined") {
         useEventListener("keydown", (e: KeyboardEvent) => {
-            app.onKeyDown(e);
+            PianoAuthorV2.onKeyDown(e);
         });
         useEventListener("keyup", (e: KeyboardEvent) => {
-            app.onKeyUp(e);
+            PianoAuthorV2.onKeyUp(e);
         });
     }
 
     function startAudio() {
-        app.startAudio();
+        PianoAuthorV2.startAudio();
         setShowPreloadDialog(false);
     }
 
     const songVersion = useSelector((state) => state.songVersion);
+
+    // Subscribe to changes in songVersion
+    useEffect(() => {
+        PianoAuthorV2.saveSongVersionToLocalStorage(songVersion);
+    }, [songVersion]);
 
     return (
         <>

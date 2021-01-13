@@ -1,4 +1,6 @@
+import Constants from "apps/shared/Constants";
 import Utils from "apps/shared/dom/Utils";
+import Actions from "apps/shared/redux/Actions";
 import Piano from "apps/shared/sound/Piano";
 import throttle from "lodash.throttle";
 
@@ -84,8 +86,6 @@ let $currentStatus = null;
 let sharps = ""; // the string value of the $sharps input
 let flats = "";
 let octaveOffset = 0;
-
-let songVersion = 1;
 
 // jQuery references to the DOM
 let $download_midi_link = null;
@@ -369,14 +369,15 @@ namespace LocalStorage {
     }
 
     function loadVersionToggle() {
+        console.log("LOAD VERSION TOGGLE");
         if (!localStorage.getItem("song_version")) {
             localStorage.setItem("song_version", "1");
         }
-        songVersion = parseInt(localStorage.getItem("song_version"));
-        if (songVersion !== 1 && songVersion !== 2) {
+        let songVersion = parseInt(localStorage.getItem("song_version"));
+        if (songVersion < Constants.MIN_SONG_VERSION || songVersion > Constants.MAX_SONG_VERSION) {
             songVersion = 1;
         }
-        // UI.updateVersionToggle();
+        App.reduxDispatch({ type: Actions.Toggle.SongVersionFormat, payload: { songVersion: songVersion } });
     }
 
     function loadTracks() {
@@ -425,8 +426,7 @@ namespace LocalStorage {
         localStorage.setItem("flats", flats);
     }
 
-    // TODO
-    export function saveVersionToggle() {
+    export function saveVersionToggle(songVersion: number) {
         localStorage.setItem("song_version", songVersion + "");
     }
 }
@@ -1090,7 +1090,7 @@ namespace UI {
     const flatsElementID = "flats-text";
 
     let $sharps, $flats;
-    let $toggle_v1, $toggle_v2;
+    // let $toggle_v1, $toggle_v2;
 
     export function updateSharpsAndFlats() {
         $sharps.val(sharps);
@@ -1101,19 +1101,9 @@ namespace UI {
         return Utils.isFocusedOnElementWithID(sharpsElementID) || Utils.isFocusedOnElementWithID(flatsElementID);
     }
 
-    // export function updateVersionToggle() {
-    //     $toggle_v1.removeClass("selected");
-    //     $toggle_v2.removeClass("selected");
-    //     if (songVersion === 1) {
-    //         $toggle_v1.addClass("selected");
-    //     } else {
-    //         $toggle_v2.addClass("selected");
-    //     }
-    // }
-
     export function setupJQueryDOMReferences() {
-        $toggle_v1 = $("#toggle_v1");
-        $toggle_v2 = $("#toggle_v2");
+        // $toggle_v1 = $("#toggle_v1");
+        // $toggle_v2 = $("#toggle_v2");
         $sharps = $("#sharps-text");
         $flats = $("#flats-text");
         $currentStatus = $("#current-status");
@@ -1129,7 +1119,7 @@ namespace UI {
             e.preventDefault();
             console.log("COPY");
             if (e.clipboardData) {
-                let text = getTextFileFromTracks();
+                const text = getTextFileFromTracks();
                 e.clipboardData.setData("text/plain", text);
             }
         });
@@ -1137,7 +1127,7 @@ namespace UI {
             e.preventDefault();
             console.log("CUT");
             if (e.clipboardData) {
-                let text = getTextFileFromTracks();
+                const text = getTextFileFromTracks();
                 e.clipboardData.setData("text/plain", text);
             }
             resetEverything(); // Set the text fields to empty strings.
@@ -1201,18 +1191,6 @@ namespace UI {
     export function setupMouseHandlers() {
         Playback.setupButtons();
 
-        $toggle_v1.click(() => {
-            songVersion = 1;
-            LocalStorage.saveVersionToggle();
-            // UI.updateVersionToggle();
-        });
-
-        $toggle_v2.click(() => {
-            songVersion = 2;
-            LocalStorage.saveVersionToggle();
-            // UI.updateVersionToggle();
-        });
-
         // When we hover over the Download MIDI | TEXT links, we update
         // the href attributes so that we download the correct data.
         $download_midi_link.mouseover(() => {
@@ -1226,8 +1204,8 @@ namespace UI {
             // A textual representation of the song:
             //   V1 => e.g., 40 42 44 45 40.47
             //   V2 => e.g., [24.36 @ 0] [17.29 @ 2730] [36 @ 2904] [41 @ 3029] [44 @ 3152]
-            let text = getTextFileFromTracks();
-            let base64Text = btoa(text); // base 64 encoding
+            const text = getTextFileFromTracks();
+            const base64Text = btoa(text); // base 64 encoding
             $download_text_link.attr("href", "data:text/plain;base64," + base64Text);
         });
 
@@ -1792,8 +1770,10 @@ namespace Song {
 }
 
 function getTextFileFromTracks(): string {
-    let noteGroups = Song.getNoteGroupsFromTracks();
-    if (songVersion === 1) {
+    console.log("getTextFileFromTracks " + App.songVersion);
+
+    const noteGroups = Song.getNoteGroupsFromTracks();
+    if (App.songVersion === 1) {
         let noteGroupV1Strings = [];
         noteGroups.forEach((noteGroup) => {
             noteGroupV1Strings.push(noteGroup.toStringV1());
@@ -1805,9 +1785,12 @@ function getTextFileFromTracks(): string {
     }
 }
 
-// Once the DOM is ready, call new App().go()
+// Once the DOM is ready, call new App.start(options)
 class App {
-    constructor() {
+    static reduxDispatch: Function = null;
+    static songVersion: number = Constants.MIN_SONG_VERSION; // We need to update this every time the redux store changes!
+
+    static start() {
         MIDIPianoInput.setup();
         UI.setupJQueryDOMReferences();
         LocalStorage.load();
@@ -1820,16 +1803,22 @@ class App {
         UI.drawPiano();
     }
 
-    startAudio() {
+    static startAudio() {
         piano = new Piano();
     }
 
-    onKeyUp(e) {
+    static onKeyUp(e) {
         UI.onKeyUpHandler(e);
     }
 
-    onKeyDown(e) {
+    static onKeyDown(e) {
         UI.onKeyDownHandler(e);
+    }
+
+    static saveSongVersionToLocalStorage(ver: number) {
+        App.songVersion = ver;
+        console.log("saveSongVersionToLocalStorage " + ver);
+        LocalStorage.saveVersionToggle(ver);
     }
 }
 

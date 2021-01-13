@@ -1,12 +1,10 @@
+import Constants from "apps/shared/Constants";
 import loggerMiddleware from "apps/shared/redux/Logger";
 import { useMemo } from "react";
 import { applyMiddleware, createStore } from "redux";
 import thunkMiddleware from "redux-thunk";
 
 import Actions from "./Actions";
-
-const MIN_SONG_VERSION = 1;
-const MAX_SONG_VERSION = 2;
 
 let sharedStoreInstance = null;
 
@@ -19,7 +17,7 @@ const reducer = (state = defaultInitialState, action) => {
     switch (action.type) {
         case Actions.Toggle.SongVersionFormat:
             let songVersion = action.payload.songVersion;
-            if (typeof songVersion !== "number" || songVersion < MIN_SONG_VERSION || songVersion > MAX_SONG_VERSION) {
+            if (typeof songVersion !== "number" || songVersion < Constants.MIN_SONG_VERSION || songVersion > Constants.MAX_SONG_VERSION) {
                 songVersion = defaultInitialState.songVersion;
             }
             console.log("Song Version Set to " + songVersion);
