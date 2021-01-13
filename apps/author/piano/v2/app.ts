@@ -11,14 +11,15 @@ import { Note, NoteGroup, Track } from "./Music";
 //
 
 //
+function setHTML(elementID, html) {
+    console.log("setHTML " + elementID + `[${html}]`);
+    document.getElementById(elementID).innerHTML = html;
+}
 
 // Set up a dummy jQuery $ function
 const $ = (arg) => {
     console.log(`jQuery called with arg [${arg}]`);
     const retVal = {
-        html: (htmlArg) => {
-            console.log(`jQuery.html called with [${htmlArg}]`);
-        },
         change: (changeArg) => {
             console.log(`jQuery.change called with [${changeArg}]`);
         },
@@ -297,8 +298,10 @@ function resetEverything() {
     UI.checkAllNonEmptyTracks();
     saveAndShowData();
     Playback.stop();
-    $("#file-info").html("&nbsp;");
-    $("#song-info").html("&nbsp;");
+    // $("#file-info").html("&nbsp;");
+    // $("#song-info").html("&nbsp;");
+    setHTML("file-info", "&nbsp;");
+    setHTML("song-info", "&nbsp;");
 }
 
 function addTracks(numTracks) {
@@ -310,7 +313,8 @@ function addTracks(numTracks) {
         let track = `<div id="track-${t}" class="track">`;
         html += `<div id="track-${t}-container" class="track-container">${checkbox}${info}${track}</div></div>`; // Also add the corresponding DOM elements.
     }
-    $("#tracks").html(html);
+    // $("#tracks").html(html);
+    setHTML("tracks", html);
 
     for (let t = 0; t < numTracks; t++) {
         let $checkbox = $(`#track-${t}-checkbox`);
@@ -1147,14 +1151,17 @@ namespace UI {
                 let noteGroupID = getNoteGroupID(t, n); // t_0_n_0 stands for track 0 notegroup 0
                 trackHTML += `<div id="${noteGroupID}" class="notegroup${multiple}">${noteGroup.toString()}</div>`;
             }
-            $tracks[t].html(trackHTML);
+            // $tracks[t].html(trackHTML);
+            setHTML(`track-${t}`, trackHTML);
 
             if (numNoteGroups > 0) {
-                $trackInfos[t].html(`${numNoteGroups}`);
+                // $trackInfos[t].html(`${numNoteGroups}`);
+                setHTML(`track-${t}-info`, `${numNoteGroups}`);
                 $(`#track-${t}-container`).removeClass("empty");
             } else {
                 // empty track
-                $trackInfos[t].html("");
+                // $trackInfos[t].html("");
+                setHTML(`track-${t}-info`, "");
                 UI.setCheckedState(t, false); // Don't check an empty track.
                 $(`#track-${t}-container`).addClass("empty");
             }
