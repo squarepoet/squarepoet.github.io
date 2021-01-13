@@ -4,7 +4,7 @@
     "description": "This repo hosts authoring tools for creating songs for Tiny Piano and Tiny Guitar. I also use it to explore new JavaScript SDKs. Everything in this repo is [MIT Licensed](LICENSE). Enjoy!",
     "private": true,
     "scripts": {
-        "dev": "next dev -p 3001",
+        "dev": "NODE_OPTIONS='--inspect' next dev -p 3001",
         "build": "next build && next export -o 'www'",
         "start": "next start"
     },

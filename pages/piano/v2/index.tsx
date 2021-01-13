@@ -1,6 +1,7 @@
 import SharpsAndFlats from "apps/author/piano/shared/SharpsAndFlats";
 import PianoAuthorV2 from "apps/author/piano/v2/App";
 import { Note, NoteGroup, Track } from "apps/author/piano/v2/Music";
+import PlayPauseStop from "apps/author/piano/v2/PlayPauseStop";
 import VersionToggle from "apps/author/piano/v2/VersionToggle";
 import PreloadDialog from "components/dialogs/Preload";
 import React, { useEffect, useRef, useState } from "react";
@@ -90,26 +91,31 @@ const Page = () => {
                 <div id="song-info" className="bottom-info">
                     &nbsp;
                 </div>
-                <div id="buttons">
-                    <a id="play-button" href="#">
-                        Play
-                    </a>{" "}
-                    |{" "}
-                    <a id="pause-button" href="#">
-                        Pause
-                    </a>{" "}
-                    |{" "}
-                    <a id="stop-button" href="#">
-                        Stop
-                    </a>
-                </div>
+                <PlayPauseStop onPlay={PianoAuthorV2.PlayBack.play} onPause={PianoAuthorV2.PlayBack.pause} onStop={PianoAuthorV2.PlayBack.stop} />
             </div>
             <style jsx global>{`
                 html {
                     margin: 15px 1% 0px 1%;
                 }
-            `}</style>
-            <style jsx>{`
+
+                .notegroup {
+                    box-sizing: border-box;
+                    display: inline-block;
+                    height: 32px;
+                    line-height: 32px;
+                    padding: 0px 3px;
+                    margin: 4px 1px 0px 1px;
+                }
+
+                .notegroup.multiple {
+                    color: #59b;
+                }
+
+                .notegroup.highlight {
+                    color: #f67;
+                    background-color: rgba(238, 119, 153, 0.2);
+                }
+
                 .download-div {
                     float: left;
                     margin: 3px 0px;
@@ -168,7 +174,6 @@ const Page = () => {
                 }
 
                 #tracks {
-                    border: 2px solid red;
                     min-height: 40px;
                 }
 
@@ -225,24 +230,6 @@ const Page = () => {
 
                 .track-info.highlight {
                     border-bottom: 1px solid rgba(238, 119, 153, 0.4);
-                }
-
-                .notegroup {
-                    box-sizing: border-box;
-                    display: inline-block;
-                    height: 32px;
-                    line-height: 32px;
-                    padding: 0px 3px;
-                    margin: 4px 1px 0px 1px;
-                }
-
-                .notegroup.multiple {
-                    color: #59b;
-                }
-
-                .notegroup.highlight {
-                    color: #f67;
-                    background-color: rgba(238, 119, 153, 0.2);
                 }
 
                 .checkbox {
@@ -345,12 +332,7 @@ export async function getStaticProps(context) {
     <head>
         <link rel="stylesheet" href="/s/css/author.v2.css" type="text/css" media="screen" />
         
-        <!-- JS UTILS -->
-        <script type="text/javascript" src="/s/js/jquery.min.js"></script>
-        <script type="text/javascript" src="/s/js/lodash.4_15_0.min.js"></script>
 
-        <!-- PENCILCODE's SIMPLE MUSICAL TONE GENERATING LIBRARY -->
-        <script type="text/javascript" src="/s/js/musical.patched.js"></script>
 
         <!-- JSMIDGEN - CREATE MIDI FILES -->
         <script type="text/javascript" src="/s/js/jsmidgen.js"></script>
@@ -370,7 +352,5 @@ export async function getStaticProps(context) {
         <script type="text/javascript" src="/s/js/author/piano.v2.js"></script>
     </head>
 
-    <body>
-    </body>
 
 */

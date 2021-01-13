@@ -91,9 +91,6 @@ let octaveOffset = 0;
 // jQuery references to the DOM
 let $download_midi_link = null;
 let $download_text_link = null;
-let $playButton = null;
-let $pauseButton = null;
-let $stopButton = null;
 
 // piano key numbers % 12
 let blackKeys = [2, -1, 5, 7, -1, 10, 0]; // -1 is for the spaces where there are no black keys
@@ -873,30 +870,31 @@ namespace MIDI {
 ///////////////////////////////////////////////////////////////////////////
 
 class FakeWorkerClock {
-    isRunning = false;
-    interval = null;
-    delay = 10; // ms between ticks
+    private isRunning = false;
+    private interval = null;
+    private delay = 10; // ms between ticks
 
     public onmessage: Function;
     public postMessage(msg: string) {
         let self = this;
+        console.log(self);
         switch (msg) {
             case "start":
                 console.log("Piano Clock Worker Started");
-                if (!isRunning) {
-                    isRunning = true;
-                    interval = setInterval(function () {
+                if (!self.isRunning) {
+                    self.isRunning = true;
+                    self.interval = setInterval(() => {
                         if (self.onmessage) {
                             self.onmessage("tick");
                         }
-                    }, delay);
+                    }, self.delay);
                 }
                 break;
             case "stop":
             default:
                 console.log("Piano Clock Worker Stopped");
-                clearInterval(interval);
-                isRunning = false;
+                clearInterval(self.interval);
+                self.isRunning = false;
                 break;
         }
     }
@@ -1017,12 +1015,6 @@ namespace Playback {
         }
     }
 
-    export function setupButtons() {
-        $playButton.click(play);
-        $pauseButton.click(pause);
-        $stopButton.click(stop);
-    }
-
     /////////////////////////////////////////////////////////////////////////////////
     // Manual Playback of the song or individual tracks.
 
@@ -1113,9 +1105,6 @@ namespace UI {
         $currentStatus = $("#current-status");
         $download_midi_link = $("#download_midi_link");
         $download_text_link = $("#download_text_link");
-        $playButton = $("#play-button");
-        $pauseButton = $("#pause-button");
-        $stopButton = $("#stop-button");
     }
 
     export function setupCopyHandler() {
@@ -1196,7 +1185,7 @@ namespace UI {
     // MOUSE & KEYBOARD
 
     export function setupMouseHandlers() {
-        Playback.setupButtons();
+        // Playback.setupButtons();
 
         // When we hover over the Download MIDI | TEXT links, we update
         // the href attributes so that we download the correct data.
@@ -1827,6 +1816,8 @@ class App {
         console.log("saveSongVersionToLocalStorage " + ver);
         LocalStorage.saveVersionToggle(ver);
     }
+
+    static PlayBack = Playback;
 }
 
 export default App;
