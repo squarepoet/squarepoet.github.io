@@ -2,7 +2,7 @@ import SharpsAndFlats from "apps/author/piano/shared/SharpsAndFlats";
 import PianoAuthorV1 from "apps/author/piano/v1/App";
 import KeyboardShortcuts from "apps/author/piano/v1/KeyboardShortcuts";
 import NotesAndPiano from "apps/author/piano/v1/NotesAndPiano";
-import Piano, { PianoType } from "apps/shared/sound/Piano";
+import Instrument, { PianoType } from "apps/shared/sound/Instrument";
 import PreloadDialog from "components/dialogs/Preload";
 import React, { useEffect, useRef, useState } from "react";
 import { useEventListener } from "use-hooks";

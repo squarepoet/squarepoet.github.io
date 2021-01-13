@@ -1,6 +1,6 @@
 // Do some tests with Tone.js here.
 
-import Piano, { PianoType } from "apps/shared/sound/Piano";
+import Instrument, { PianoType } from "apps/shared/sound/Instrument";
 import React, { useEffect, useState } from "react";
 
 let tone;
@@ -9,7 +9,7 @@ let piano;
 const Page = () => {
     useEffect(() => {
         // One Time
-        piano = new Piano();
+        piano = new Instrument();
     }, []);
 
     function onClickStart() {

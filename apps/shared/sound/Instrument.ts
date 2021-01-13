@@ -2,7 +2,7 @@ import Musical from "apps/shared/sound/Musical";
 import Preloader from "apps/shared/sound/Preloader";
 import * as Tone from "tone";
 
-enum PianoType {
+enum InstrumentType {
     Basic,
     FM,
     AM,
@@ -16,11 +16,11 @@ enum AudioSDKType {
     Musical,
 }
 
-const PIANO_TYPE: PianoType = PianoType.Electric_1;
+const INSTRUMENT_TYPE: InstrumentType = InstrumentType.Electric_1;
 
-class Piano {
+class Instrument {
     sdk: AudioSDKType;
-    type: PianoType = PianoType.Basic;
+    type: InstrumentType = InstrumentType.Basic;
     instrument: Tone.PolySynth | Tone.Synth | Tone.FMSynth | Tone.AMSynth | Tone.Sampler | Musical.Instrument = null; // Tone.Instrument or Musical.Instrument
     private isReady: boolean = false;
 
@@ -31,13 +31,13 @@ class Piano {
 
     // Only call this from a user gesture, so we can call this.initWebAudio()!
     constructor() {
-        this.type = PIANO_TYPE;
+        this.type = INSTRUMENT_TYPE;
         this.initWebAudio();
     }
 
     private initWebAudio() {
         if (!this.instrument) {
-            if (this.type === PianoType.Electric_1) {
+            if (this.type === InstrumentType.Electric_1) {
                 this.sdk = AudioSDKType.Musical;
                 console.log("Start Musical.js");
                 this.instrument = new Musical.Instrument("piano");
@@ -49,19 +49,19 @@ class Piano {
                     console.log("Tone is Ready!");
                 });
                 switch (this.type) {
-                    case PianoType.Sampled_1:
+                    case InstrumentType.Sampled_1:
                         this.setupPreloaderAndSamplesMap_1();
                         // this.isReady will be true after all the mp3 files load.
                         break;
-                    case PianoType.Sampled_2:
+                    case InstrumentType.Sampled_2:
                         this.setupPreloaderAndSamplesMap_2();
                         // this.isReady will be true after all the mp3 files load.
                         break;
-                    case PianoType.FM:
+                    case InstrumentType.FM:
                         this.instrument = new Tone.PolySynth(Tone.FMSynth).toDestination();
                         this.isReady = true;
                         break;
-                    case PianoType.AM:
+                    case InstrumentType.AM:
                         this.instrument = new Tone.PolySynth(Tone.AMSynth).toDestination();
                         this.isReady = true;
                         break;
@@ -106,7 +106,7 @@ class Piano {
 
     stopAllNotes() {
         console.log(this.type);
-        if (this.type === PianoType.Sampled_1 || this.type === PianoType.Sampled_2) {
+        if (this.type === InstrumentType.Sampled_1 || this.type === InstrumentType.Sampled_2) {
             console.log("stopAllNotes!");
             (this.instrument as Tone.Sampler).releaseAll(Tone.now());
         } else {
@@ -194,6 +194,6 @@ class Piano {
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
-export { PianoType };
+export { InstrumentType as PianoType };
 
-export default Piano;
+export default Instrument;

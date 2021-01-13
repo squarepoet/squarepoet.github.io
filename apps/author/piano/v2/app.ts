@@ -1,7 +1,7 @@
 import Constants from "apps/shared/Constants";
 import Utils from "apps/shared/dom/Utils";
 import Actions from "apps/shared/redux/Actions";
-import Piano from "apps/shared/sound/Piano";
+import Instrument from "apps/shared/sound/Instrument";
 import throttle from "lodash.throttle";
 
 import { Note, NoteGroup, Track } from "./Music";
@@ -1811,7 +1811,7 @@ class App {
     }
 
     static startAudio() {
-        piano = new Piano();
+        piano = new Instrument();
     }
 
     static onKeyUp(e) {

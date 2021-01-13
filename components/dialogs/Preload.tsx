@@ -1,4 +1,4 @@
-import Piano from "apps/shared/sound/Piano";
+import Instrument from "apps/shared/sound/Instrument";
 import React, { KeyboardEvent, useEffect, useState } from "react";
 import { useEventListener } from "use-hooks";
 

@@ -1,8 +1,8 @@
-import Piano, { PianoType } from "apps/shared/sound/Piano";
+import Instrument, { PianoType } from "apps/shared/sound/Instrument";
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
-let piano: Piano = null;
+let piano: Instrument = null;
 
 const CANVAS_WIDTH = 1040;
 const CANVAS_HEIGHT = 280;
@@ -497,7 +497,7 @@ setInterval(() => {
 
         if (!piano) {
             console.log("Init Web Audio");
-            piano = new Piano(PianoType.Sampled_1);
+            piano = new Instrument(PianoType.Sampled_1);
             piano.initWebAudio();
         }
 

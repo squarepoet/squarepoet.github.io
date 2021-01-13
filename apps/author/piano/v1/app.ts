@@ -1,9 +1,9 @@
-import Piano, { PianoType } from "apps/shared/sound/Piano";
+import Instrument, { PianoType } from "apps/shared/sound/Instrument";
 
 export const CANVAS_WIDTH: number = 2080;
 export const CANVAS_HEIGHT: number = 300;
 
-let piano: Piano = null;
+let piano: Instrument = null;
 
 function setTextArea(text: string) {
     let textArea: HTMLTextAreaElement = document.getElementById("textarea") as HTMLTextAreaElement;
@@ -394,7 +394,7 @@ export default (function () {
         },
 
         startAudio: () => {
-            piano = new Piano();
+            piano = new Instrument();
         },
 
         keydown: (e) => {

@@ -1,14 +1,14 @@
-import Piano from "apps/shared/sound/Piano";
+import Instrument from "apps/shared/sound/Instrument";
 import React, { useEffect, useState } from "react";
 
 // A dirt simple piano that uses Tone.js
 
-let piano: Piano;
+let piano: Instrument;
 let notesPlaying = new Set();
 
 const SimplePiano = () => {
     useEffect(() => {
-        piano = new Piano();
+        piano = new Instrument();
     }, []);
 
     function startTone() {
