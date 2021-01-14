@@ -378,7 +378,9 @@ namespace LocalStorage {
         if (songVersion < Constants.MIN_SONG_VERSION || songVersion > Constants.MAX_SONG_VERSION) {
             songVersion = 1;
         }
-        App.reduxDispatch({ type: Actions.Toggle.SongVersionFormat, payload: { songVersion: songVersion } });
+        const payload = {};
+        payload[Constants.StoreKeys.SONG_VERSION] = songVersion;
+        App.reduxDispatch({ type: Actions.Toggle.onSongVersionFormatChangedArg_songVersion, payload: payload });
     }
 
     function loadTracks() {
@@ -1166,20 +1168,6 @@ namespace UI {
         $("#file-info").text(`Loaded File: ${file.name} | Size: ${file.size} bytes`);
     }
 
-    export function setupFileChooser() {
-        let $fileChooser = $("#filechooser");
-        $fileChooser.change((e) => {
-            let files = e.target.files;
-            if (files.length > 0) {
-                MIDI.readFile(files[0]); // Get the first file.
-            }
-        });
-
-        $("#filechooserlabel").mousedown((e) => {
-            $fileChooser[0].value = null;
-        });
-    }
-
     ////////////////////////////////////////////////////////////
 
     // MOUSE & KEYBOARD
@@ -1792,7 +1780,6 @@ class App {
         LocalStorage.load();
         UI.showNoteGroupsForTracks();
         UI.setupMouseHandlers();
-        UI.setupFileChooser();
         UI.setupCopyHandler();
         UI.setupPianoCanvas();
         UI.setupPianoMouseHandlers();
@@ -1818,6 +1805,7 @@ class App {
     }
 
     static PlayBack = Playback;
+    static MIDI = MIDI;
 }
 
 export default App;

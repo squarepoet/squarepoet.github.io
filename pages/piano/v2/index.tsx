@@ -1,12 +1,16 @@
 import SharpsAndFlats from "apps/author/piano/shared/SharpsAndFlats";
 import PianoAuthorV2 from "apps/author/piano/v2/App";
+import MIDIFileChooser from "apps/author/piano/v2/MIDIFileChooser";
 import { Note, NoteGroup, Track } from "apps/author/piano/v2/Music";
 import PlayPauseStop from "apps/author/piano/v2/PlayPauseStop";
 import VersionToggle from "apps/author/piano/v2/VersionToggle";
+import Constants from "apps/shared/Constants";
 import PreloadDialog from "components/dialogs/Preload";
 import React, { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useEventListener } from "use-hooks";
+
+const Keys = Constants.StoreKeys;
 
 // function onPianoClockWorkerMessage(e) {
 //     console.log(new Date().getTime());
@@ -45,12 +49,20 @@ const Page = () => {
         setShowPreloadDialog(false);
     }
 
-    const songVersion = useSelector((state) => state.songVersion);
-
     // Subscribe to changes in songVersion
+    const songVersion = useSelector((state) => state[Keys.SONG_VERSION]);
     useEffect(() => {
         PianoAuthorV2.saveSongVersionToLocalStorage(songVersion);
     }, [songVersion]);
+
+    // Subscribe to changes in the loaded file
+    const midiFileName = useSelector((state) => state[Keys.FILE_NAME]);
+    useEffect(() => {
+        console.log("Loaded a file... yay!");
+        console.log(midiFileName);
+
+        // XXX HERE XXX
+    }, [midiFileName]);
 
     return (
         <>
@@ -79,12 +91,7 @@ const Page = () => {
             </div>
             <div id="current-status">&nbsp;</div>
             <div id="bottom-panel">
-                <div id="upload-file" className="bottom-info">
-                    <input type="file" id="filechooser" />
-                    <label id="filechooserlabel" htmlFor="filechooser">
-                        Upload a MIDI file!
-                    </label>
-                </div>
+                <MIDIFileChooser />
                 <div id="file-info" className="bottom-info">
                     &nbsp;
                 </div>
@@ -123,9 +130,6 @@ const Page = () => {
                 .shortcuts {
                     float: right;
                 }
-                #filechooser {
-                    display: none;
-                }
 
                 html.drag {
                     background-color: #dffafb;
@@ -146,9 +150,8 @@ const Page = () => {
                     padding: 20px;
                     text-align: center;
                     color: #444;
-                    background-color: #dedede;
+                    background-color: #666;
                     position: absolute;
-                    height: 100px;
                     bottom: 0px;
                     left: 0px;
                     right: 0px;
@@ -162,15 +165,6 @@ const Page = () => {
 
                 .bottom-info {
                     margin-bottom: 10px;
-                }
-
-                #upload-file {
-                    color: #39d;
-                    text-decoration: underline;
-                }
-
-                #filechooserlabel {
-                    cursor: pointer;
                 }
 
                 #tracks {

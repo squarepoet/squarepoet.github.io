@@ -1,3 +1,4 @@
+import Constants from "apps/shared/Constants";
 import Actions from "apps/shared/redux/Actions";
 import classNames from "classnames";
 import { useDispatch, useSelector } from "react-redux";
@@ -7,11 +8,15 @@ const VersionToggleComponent = () => {
     const songVersion = useSelector((state) => state.songVersion);
 
     function onV1Clicked() {
-        dispatch({ type: Actions.Toggle.SongVersionFormat, payload: { songVersion: 1 } });
+        const payload = {};
+        payload[Constants.StoreKeys.SONG_VERSION] = 1;
+        dispatch({ type: Actions.Toggle.onSongVersionFormatChanged, payload: payload });
     }
 
     function onV2Clicked() {
-        dispatch({ type: Actions.Toggle.SongVersionFormat, payload: { songVersion: 2 } });
+        const payload = {};
+        payload[Constants.StoreKeys.SONG_VERSION] = 2;
+        dispatch({ type: Actions.Toggle.onSongVersionFormatChanged, payload: payload });
     }
 
     // TODO: Use classNames library.

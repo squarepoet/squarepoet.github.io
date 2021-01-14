@@ -4,7 +4,7 @@ import { AppProps } from "next/app";
 import { Provider } from "react-redux";
 
 const App = ({ Component, pageProps }: AppProps) => {
-    console.log("Page Component Props:");
+    console.log("Props:");
     console.log(pageProps);
 
     if (!pageProps.title) {

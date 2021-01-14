@@ -6,43 +6,30 @@ import thunkMiddleware from "redux-thunk";
 
 import Actions from "./Actions";
 
+const Keys = Constants.StoreKeys;
 let sharedStoreInstance = null;
 
-const defaultInitialState = {
-    count: 0,
-    songVersion: 1, // 1 | 2
-};
+const defaultInitialState = {};
+defaultInitialState[Keys.SONG_VERSION] = 1; // 1 | 2
+defaultInitialState[Keys.FILE_NAME] = "";
 
 const reducer = (state = defaultInitialState, action) => {
+    let retVal = { ...state };
     switch (action.type) {
-        case Actions.Toggle.SongVersionFormat:
-            let songVersion = action.payload.songVersion;
+        case Actions.Toggle.onSongVersionFormatChanged:
+            let songVersion = action.payload[Actions.Toggle.onSongVersionFormatChangedArg_songVersion];
             if (typeof songVersion !== "number" || songVersion < Constants.MIN_SONG_VERSION || songVersion > Constants.MAX_SONG_VERSION) {
-                songVersion = defaultInitialState.songVersion;
+                songVersion = defaultInitialState[Keys.SONG_VERSION];
             }
-            console.log("Song Version Set to " + songVersion);
-            return {
-                ...state,
-                songVersion: songVersion,
-            };
+            console.log(`Song version set to ${songVersion}`);
+            retVal[Keys.SONG_VERSION] = songVersion;
             break;
-        case "INCREMENT":
-            return {
-                ...state,
-                count: state.count + 1,
-            };
-        case "DECREMENT":
-            return {
-                ...state,
-                count: state.count - 1,
-            };
-        case "RESET":
-            return {
-                ...state,
-                count: defaultInitialState.count,
-            };
+        case Actions.FileChooser.onFileLoaded:
+            const fileName = action.payload[Actions.FileChooser.onFileLoadedArg_fileName];
+            retVal[Keys.FILE_NAME] = fileName;
+            console.log(`File set to [${fileName}]`);
         default:
-            return state;
+            return retVal;
     }
 };
 
