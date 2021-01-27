@@ -7,18 +7,14 @@
 
 # Piano TODOs
 
--   [x] V2: Make the track and track-info layout look correct again!
+-   [ ] Replace Redux w/ the Context API.
+    -   [ ] Rely on Singletons / Static Classes for storing data. Then just dispatch EVENTS to say that the model has changed. EVENTS can just update the timestamp of the event or something.
+-   [ ] THE CODE IS REALLY UGLY :-) I'm still converting jQuery to React, so I should clean stuff up whenever possible.
 -   [ ] V2: Make interaction between JS/CSS and HTML/DOM more React-like rather than jQuery like!
 -   [ ] Test out how <input> tags work in React. I swear there's a bug in React where onChange isn't fired when you select all and delete.
-
-## V1
-
 -   [ ] Piano.V1: The first note you hit will be Synth tones. It will auto switch to Sampler tones once everything is preloaded. SWEET!
 -   [ ] Piano.V1: Piano.ts should preload the samples in a programmatic way with less repetition of the baseURL and audio file names.
 -   [ ] Piano.V1: Right now, we need to hit space to preload the sounds. Can we preload by hitting any space?
-
-## V2
-
 -   [ ] Make Tone.js sound more like a piano w/ better pianoteq samples!
 
 # Other TODOs
@@ -43,10 +39,11 @@
 
 -   [ ] Learn more about debugging.
     -   [ ] chrome://inspect/
-    -   [ ]
 
 # DONE
 
+-   [x] Open the File somehow, by passing the File object to the right place in whatever way possible.
+-   [x] V2: Make the track and track-info layout look correct again!
 -   [x] Rename Piano.ts to PlayableInstrument.ts or Instrument.ts something.
 -   [x] V2: Share some components with V2, for example: sharps/flats.
     -   [x] V1 vs V2 lay out the sharps/flats div differently. Let them customize the css? float: right|left;

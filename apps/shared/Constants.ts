@@ -4,7 +4,7 @@ namespace Constants {
 
     export namespace StoreKeys {
         export const SONG_VERSION = "songVersion";
-        export const FILE_NAME = "fileName";
+        export const FILE_TIMESTAMP = "fileTimestamp";
     }
 }
 

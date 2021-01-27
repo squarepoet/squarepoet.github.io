@@ -11,7 +11,7 @@ let sharedStoreInstance = null;
 
 const defaultInitialState = {};
 defaultInitialState[Keys.SONG_VERSION] = 1; // 1 | 2
-defaultInitialState[Keys.FILE_NAME] = "";
+defaultInitialState[Keys.FILE_TIMESTAMP] = 0;
 
 const reducer = (state = defaultInitialState, action) => {
     let retVal = { ...state };
@@ -25,9 +25,8 @@ const reducer = (state = defaultInitialState, action) => {
             retVal[Keys.SONG_VERSION] = songVersion;
             break;
         case Actions.FileChooser.onFileLoaded:
-            const fileName = action.payload[Actions.FileChooser.onFileLoadedArg_fileName];
-            retVal[Keys.FILE_NAME] = fileName;
-            console.log(`File set to [${fileName}]`);
+            console.log("ON FILE LOAD OCCURRED");
+            retVal[Keys.FILE_TIMESTAMP] = new Date().getTime();
         default:
             return retVal;
     }

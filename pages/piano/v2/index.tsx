@@ -5,6 +5,7 @@ import { Note, NoteGroup, Track } from "apps/author/piano/v2/Music";
 import PlayPauseStop from "apps/author/piano/v2/PlayPauseStop";
 import VersionToggle from "apps/author/piano/v2/VersionToggle";
 import Constants from "apps/shared/Constants";
+import MIDIFileIO from "apps/shared/midi/MIDIFileIO";
 import PreloadDialog from "components/dialogs/Preload";
 import React, { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -55,14 +56,18 @@ const Page = () => {
         PianoAuthorV2.saveSongVersionToLocalStorage(songVersion);
     }, [songVersion]);
 
-    // Subscribe to changes in the loaded file
-    const midiFileName = useSelector((state) => state[Keys.FILE_NAME]);
+    // Subscribe to changes in the loaded file's timestamp.
+    const midiFileTimestamp = useSelector((state) => state[Keys.FILE_TIMESTAMP]);
     useEffect(() => {
-        console.log("Loaded a file... yay!");
-        console.log(midiFileName);
+        console.log("FILE TIMESTAMP CHANGED");
+        // update the UI here with data from our MIDIFileIO...
 
-        // XXX HERE XXX
-    }, [midiFileName]);
+        console.log(`Loaded a file at timestamp: ${midiFileTimestamp}`);
+        const midiFile = MIDIFileIO.getLoadedFile();
+        const midiEvents = MIDIFileIO.getLoadedEvents();
+        PianoAuthorV2.fillTracksWithNoteGroupsExtractedFromMIDIEvents(midiFile, midiEvents);
+        PianoAuthorV2.displaySongInfo(MIDIFileIO.getNumTracks(), MIDIFileIO.getDurationInSeconds());
+    }, [midiFileTimestamp]);
 
     return (
         <>
