@@ -7,6 +7,9 @@
 
 # Piano TODOs
 
+-   [ ] After we load bingo.mid, nothing changes until we load bingo.mid a second time. Need to trigger all the UI changes!
+    -   [ ] AH, THE FILE LOADING WAS ASYNCHRONOUS.
+        -   [ ] LEARN ABOUT JS async functions
 -   [ ] Replace Redux w/ the Context API.
     -   [ ] Rely on Singletons / Static Classes for storing data. Then just dispatch EVENTS to say that the model has changed. EVENTS can just update the timestamp of the event or something.
 -   [ ] THE CODE IS REALLY UGLY :-) I'm still converting jQuery to React, so I should clean stuff up whenever possible.

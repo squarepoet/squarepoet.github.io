@@ -59,9 +59,7 @@ const Page = () => {
     // Subscribe to changes in the loaded file's timestamp.
     const midiFileTimestamp = useSelector((state) => state[Keys.FILE_TIMESTAMP]);
     useEffect(() => {
-        console.log("FILE TIMESTAMP CHANGED");
         // update the UI here with data from our MIDIFileIO...
-
         console.log(`Loaded a file at timestamp: ${midiFileTimestamp}`);
         const midiFile = MIDIFileIO.getLoadedFile();
         const midiEvents = MIDIFileIO.getLoadedEvents();

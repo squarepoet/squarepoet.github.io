@@ -16,9 +16,9 @@ const TIME_THRESHOLD_FOR_GROUPING_NEARBY_NOTES = 0; // Adjust this for parsing M
 
 //
 
-//
+// TODO: Do it the react way with components responding to changes in state!
 function setHTML(elementID, html) {
-    console.log("setHTML " + elementID + `[${html}]`);
+    console.log("setHTML " + elementID);
     document.getElementById(elementID).innerHTML = html;
 }
 
@@ -921,9 +921,9 @@ namespace UI {
                     trackNumbersToInclude.push(trackNumber);
                 }
             }
-            const midi = MIDIFileIO.getFileFromTracks(trackNumbersToInclude, Song.getNoteGroupsFromTracks());
-            const base64Text = btoa(midi); // base 64 encoding
-            console.log("The base 64 text is");
+            const midiFile = MIDIFileIO.createFileFromTracks(trackNumbersToInclude, Song.getNoteGroupsFromTracks());
+            const base64Text = btoa(midiFile); // base 64 encoding
+            console.log("The base 64 text is:");
             console.log(base64Text);
             $download_midi_link.attr("href", "data:audio/midi;base64," + base64Text);
         });
@@ -1551,6 +1551,7 @@ class App {
     }
 
     static fillTracksWithNoteGroupsExtractedFromMIDIEvents(midiFile, midiEvents) {
+        console.log("MIDI File Passed In: " + midiFile);
         if (!midiFile) {
             return;
         }

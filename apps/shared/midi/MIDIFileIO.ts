@@ -14,6 +14,8 @@ let midiEvents = null;
 let midiLyrics = null;
 let midiNumTracks = 0;
 let midiDurationInSeconds = 0;
+let midiFileName = "";
+let midiFileSize = 0;
 
 class MIDIFileIO {
     static clearLoadedFile(): void {
@@ -22,15 +24,82 @@ class MIDIFileIO {
         midiLyrics = null;
         midiNumTracks = 0;
         midiDurationInSeconds = 0;
+        midiFileName = "";
+        midiFileSize = 0;
     }
 
     static hasLoadedAFile(): boolean {
         return midiFile !== null;
     }
 
+    // We should label this async, hehe.
+    static readFile(file, onFileLoaded: Function) {
+        midiFileName = file.name;
+        midiFileSize = file.size; // in bytes
+
+        const reader = new FileReader();
+        reader.addEventListener("load", (e: any) => {
+            const arrayBuffer = e.target.result;
+            MIDIFileIO.parseFileData(arrayBuffer);
+            onFileLoaded();
+        });
+        reader.addEventListener("error", (err) => {
+            console.error("FileReader error" + err);
+        });
+        reader.readAsArrayBuffer(file);
+    }
+
+    private static parseFileData(arrayBuffer) {
+        midiFile = new MIDIFile(arrayBuffer);
+        midiEvents = midiFile.getMidiEvents();
+        midiLyrics = midiFile.getLyrics();
+
+        const header = midiFile.header;
+        const format = header.getFormat();
+        midiNumTracks = header.getTracksCount();
+        console.log(`MIDI Format: ${format}`); // 0 | 1 | 2
+        if (header.getTimeDivision() === MIDIFile.Header.TICKS_PER_BEAT) {
+            console.log(`Ticks Per Beat: ${header.getTicksPerBeat()}`);
+        } else {
+            console.log("TODO: SMPTE Frames!");
+        }
+        if (midiLyrics.length > 0) {
+            console.log(`Lyrics Track contains ${midiLyrics.length} events.`);
+            // Each Lyrics Event has a .playTime and .text property.
+        } else {
+            midiLyrics = null;
+        }
+
+        // Calculate song duration.
+        const lastMidiEvent = midiEvents[midiEvents.length - 1]; // Probably a MIDIEvents.EVENT_MIDI_NOTE_OFF event.
+        const midiDurationInMillis = lastMidiEvent.playTime;
+        midiDurationInSeconds = midiDurationInMillis / 1000;
+
+        console.log(`Num Tracks: ${midiNumTracks}`);
+        console.log(`Duration: ${midiDurationInSeconds}`);
+    }
+
+    static getLoadedFile() {
+        return midiFile;
+    }
+
+    static getLoadedEvents() {
+        return midiEvents;
+    }
+
+    static getDurationInSeconds() {
+        return midiDurationInSeconds;
+    }
+
+    static getNumTracks() {
+        return midiNumTracks;
+    }
+
+    //////////////////////////////////////////////////////////////////////////////////////////////////
+
     // Use jsmidgen to create a MIDI file that we can encode in base 64.
     // https://github.com/dingram/jsmidgen
-    static getFileFromTracks(trackNumbersToInclude: number[], noteGroups: NoteGroup[]): string {
+    static createFileFromTracks(trackNumbersToInclude: number[], noteGroups: NoteGroup[]): string {
         const file = new JSmidgenMIDI.File();
 
         const BPM = 240; // Normally I'd choose 120, but 240 might give us better time resolution?
@@ -108,130 +177,69 @@ class MIDIFileIO {
         return file.toBytes();
     }
 
-    static readFile(file) {
-        const reader = new FileReader();
-        reader.addEventListener("load", (e: any) => {
-            const arrayBuffer = e.target.result;
-            // UI.displayFileInfo(file);
-            MIDIFileIO.parseFileData(arrayBuffer);
-        });
-        reader.addEventListener("error", (err) => {
-            console.error("FileReader error" + err);
-        });
-        reader.readAsArrayBuffer(file);
-    }
-
-    private static parseFileData(arrayBuffer) {
-        console.log("parseFileData");
-
-        midiFile = new MIDIFile(arrayBuffer);
-        midiEvents = midiFile.getMidiEvents();
-        midiLyrics = midiFile.getLyrics();
-
-        const header = midiFile.header;
-        const format = header.getFormat();
-        midiNumTracks = header.getTracksCount();
-        console.log(`MIDI Format: ${format}`); // 0, 1 or 2
-        if (header.getTimeDivision() === MIDIFile.Header.TICKS_PER_BEAT) {
-            console.log(`Ticks Per Beat: ${header.getTicksPerBeat()}`);
-        } else {
-            console.log("TODO: SMPTE Frames!");
-        }
-        if (midiLyrics.length > 0) {
-            console.log(`Lyrics Track ${midiLyrics.length} events.`);
-            // Each Lyrics Event has a .playTime and .text property.
-        } else {
-            midiLyrics = null;
-        }
-
-        // Calculate song duration.
-        const lastMidiEvent = midiEvents[midiEvents.length - 1]; // Probably a MIDIEvents.EVENT_MIDI_NOTE_OFF event.
-        const midiDurationInMillis = lastMidiEvent.playTime;
-        midiDurationInSeconds = midiDurationInMillis / 1000;
-
-        console.log(`Num Tracks: ${midiNumTracks}`);
-        console.log(`Duration: ${midiDurationInSeconds}`);
-    }
-
-    static getLoadedFile() {
-        return midiFile;
-    }
-
-    static getLoadedEvents() {
-        return midiEvents;
-    }
-
-    static getDurationInSeconds() {
-        return midiDurationInSeconds;
-    }
-
-    static getNumTracks() {
-        return midiNumTracks;
-    }
+    //////////////////////////////////////////////////////////////////////////////////////////////////
 
     /*
     getTypeString(type) {
         switch (type) {
-            case MIDI_EVENTS.EVENT_MIDI:
+            case MIDIEvents.EVENT_MIDI:
                 return "MIDI";
-            case MIDI_EVENTS.EVENT_META:
+            case MIDIEvents.EVENT_META:
                 return "META";
-            case MIDI_EVENTS.EVENT_SYSEX:
+            case MIDIEvents.EVENT_SYSEX:
                 return "SYSEX";
-            case MIDI_EVENTS.EVENT_DIVSYSEX:
+            case MIDIEvents.EVENT_DIVSYSEX:
                 return "DIVSYSEX";
             default:
                 return "UNKNOWN";
         }
     }
-    */
 
-    /*
     getSubTypeString(subtype) {
         switch (subtype) {
-            case MIDI_EVENTS.EVENT_META_SEQUENCE_NUMBER: // = 0x00;
+            case MIDIEvents.EVENT_META_SEQUENCE_NUMBER: // = 0x00;
                 return "META_SEQUENCE_NUMBER";
-            case MIDI_EVENTS.EVENT_META_TEXT: // = 0x01;
+            case MIDIEvents.EVENT_META_TEXT: // = 0x01;
                 return "META_TEXT";
-            case MIDI_EVENTS.EVENT_META_COPYRIGHT_NOTICE: // = 0x02;
+            case MIDIEvents.EVENT_META_COPYRIGHT_NOTICE: // = 0x02;
                 return "META_COPYRIGHT_NOTICE";
-            case MIDI_EVENTS.EVENT_META_TRACK_NAME: // = 0x03;
+            case MIDIEvents.EVENT_META_TRACK_NAME: // = 0x03;
                 return "META_TRACK_NAME";
-            case MIDI_EVENTS.EVENT_META_INSTRUMENT_NAME: // = 0x04;
+            case MIDIEvents.EVENT_META_INSTRUMENT_NAME: // = 0x04;
                 return "META_INSTRUMENT_NAME";
-            case MIDI_EVENTS.EVENT_META_LYRICS: // = 0x05;
+            case MIDIEvents.EVENT_META_LYRICS: // = 0x05;
                 return "META_LYRICS";
-            case MIDI_EVENTS.EVENT_META_MARKER: // = 0x06;
+            case MIDIEvents.EVENT_META_MARKER: // = 0x06;
                 return "META_MARKER";
-            case MIDI_EVENTS.EVENT_META_CUE_POINT: // = 0x07;
+            case MIDIEvents.EVENT_META_CUE_POINT: // = 0x07;
                 return "CUE_POINT";
-            case MIDI_EVENTS.EVENT_META_MIDI_CHANNEL_PREFIX: // = 0x20;
+            case MIDIEvents.EVENT_META_MIDI_CHANNEL_PREFIX: // = 0x20;
                 return "META_MIDI_CHANNEL_PREFIX";
-            case MIDI_EVENTS.EVENT_META_END_OF_TRACK: // = 0x2F;
+            case MIDIEvents.EVENT_META_END_OF_TRACK: // = 0x2F;
                 return "META_END_OF_TRACK";
-            case MIDI_EVENTS.EVENT_META_SET_TEMPO: //= 0x51;
+            case MIDIEvents.EVENT_META_SET_TEMPO: //= 0x51;
                 return "META_SET_TEMPO";
-            case MIDI_EVENTS.EVENT_META_SMTPE_OFFSET: //= 0x54;
+            case MIDIEvents.EVENT_META_SMTPE_OFFSET: //= 0x54;
                 return "META_SMTPE_OFFSET";
-            case MIDI_EVENTS.EVENT_META_TIME_SIGNATURE: //= 0x58;
+            case MIDIEvents.EVENT_META_TIME_SIGNATURE: //= 0x58;
                 return "META_TIME_SIGNATURE";
-            case MIDI_EVENTS.EVENT_META_KEY_SIGNATURE: //= 0x59;
+            case MIDIEvents.EVENT_META_KEY_SIGNATURE: //= 0x59;
                 return "META_KEY_SIGNATURE";
-            case MIDI_EVENTS.EVENT_META_SEQUENCER_SPECIFIC: //= 0x7F;
+            case MIDIEvents.EVENT_META_SEQUENCER_SPECIFIC: //= 0x7F;
                 return "META_SEQUENCER_SPECIFIC";
-            case MIDI_EVENTS.EVENT_MIDI_NOTE_OFF: // = 0x8;
+            case MIDIEvents.EVENT_MIDI_NOTE_OFF: // = 0x8;
                 return "MIDI_NOTE_OFF";
-            case MIDI_EVENTS.EVENT_MIDI_NOTE_ON: //= 0x9;
+            case MIDIEvents.EVENT_MIDI_NOTE_ON: //= 0x9;
                 return "MIDI_NOTE_ON";
-            case MIDI_EVENTS.EVENT_MIDI_NOTE_AFTERTOUCH: // = 0xA;
+            case MIDIEvents.EVENT_MIDI_NOTE_AFTERTOUCH: // = 0xA;
                 return "MIDI_NOTE_AFTERTOUCH";
-            case MIDI_EVENTS.EVENT_MIDI_CONTROLLER: //= 0xB;
+            case MIDIEvents.EVENT_MIDI_CONTROLLER: //= 0xB;
                 return "MIDI_CONTROLLER";
-            case MIDI_EVENTS.EVENT_MIDI_PROGRAM_CHANGE: // = 0xC;
+            case MIDIEvents.EVENT_MIDI_PROGRAM_CHANGE: // = 0xC;
                 return "MIDI_PROGRAM_CHANGE";
-            case MIDI_EVENTS.EVENT_MIDI_CHANNEL_AFTERTOUCH: // = 0xD;
+            case MIDIEvents.EVENT_MIDI_CHANNEL_AFTERTOUCH: // = 0xD;
                 return "MIDI_CHANNEL_AFTERTOUCH";
-            case MIDI_EVENTS.EVENT_MIDI_PITCH_BEND: // = 0xE;
+            case MIDIEvents.EVENT_MIDI_PITCH_BEND: // = 0xE;
                 return "MIDI_PITCH_BEND";
             default:
                 return "UNKNOWN";
