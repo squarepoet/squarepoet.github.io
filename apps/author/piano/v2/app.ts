@@ -291,9 +291,9 @@ function resetEverything() {
     UI.checkAllNonEmptyTracks();
     saveAndShowData();
     Playback.stop();
-    // $("#file-info").html("&nbsp;");
-    // $("#song-info").html("&nbsp;");
-    setHTML("file-info", "&nbsp;");
+
+    // TODO: Use setState somehow....
+    // setHTML("file-info", "&nbsp;");
     setHTML("song-info", "&nbsp;");
 }
 
@@ -899,10 +899,6 @@ namespace UI {
         Highlight.update();
     }
 
-    export function displayFileInfo(file) {
-        $("#file-info").text(`Loaded File: ${file.name} | Size: ${file.size} bytes`);
-    }
-
     ////////////////////////////////////////////////////////////
 
     // MOUSE & KEYBOARD
@@ -947,7 +943,9 @@ namespace UI {
                 // console.log('Dropped at coordinates', pos.x, pos.y)
 
                 Playback.stop();
-                MIDIFileIO.readFile(files[0]); // Get the first file.
+                MIDIFileIO.readFileAsync(files[0]).then(() => {
+                    App.reduxDispatch({ type: Actions.FileChooser.onFileLoaded });
+                }); // Get the first file.
             },
             onDragOver: () => {
                 $("#bottom-panel").addClass("drag");

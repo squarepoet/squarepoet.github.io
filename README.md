@@ -36,23 +36,9 @@ View deployments here: https://github.com/squarepoet/squarepoet.github.io/deploy
     -   https://github.com/PencilCode/musical.js
     -   Can we learn something from it? It does some wavetable synthesis with parameters from Google Chrome Labs.
 
----
-
----
-
----
-
-# OLD README
-
-## Drag & Drop Library
-
--   dragdrop.min.js
--   https://github.com/feross/drag-drop
-
 ## JSmidgen
 
 -   create MIDI files
--   jsmidgen.js
 -   https://github.com/dingram/jsmidgen
 
 ## MIDIFile
@@ -62,3 +48,14 @@ View deployments here: https://github.com/squarepoet/squarepoet.github.io/deploy
 -   https://github.com/nfroidure/MIDIFile/
 -   https://github.com/nfroidure/MIDIEvents/
 -   https://github.com/nfroidure/UTF8.js/
+
+---
+
+---
+
+---
+
+## Drag & Drop Library
+
+-   dragdrop.min.js
+-   https://github.com/feross/drag-drop

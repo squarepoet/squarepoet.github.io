@@ -33,20 +33,23 @@ class MIDIFileIO {
     }
 
     // We should label this async, hehe.
-    static readFile(file, onFileLoaded: Function) {
+    static async readFileAsync(file) {
         midiFileName = file.name;
         midiFileSize = file.size; // in bytes
-
-        const reader = new FileReader();
-        reader.addEventListener("load", (e: any) => {
-            const arrayBuffer = e.target.result;
-            MIDIFileIO.parseFileData(arrayBuffer);
-            onFileLoaded();
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.addEventListener("load", (e: any) => {
+                const arrayBuffer = e.target.result;
+                MIDIFileIO.parseFileData(arrayBuffer);
+                console.log("Loaded " + midiFileName);
+                resolve(midiFileName);
+            });
+            reader.addEventListener("error", (err) => {
+                console.error(err);
+                reject(err);
+            });
+            reader.readAsArrayBuffer(file);
         });
-        reader.addEventListener("error", (err) => {
-            console.error("FileReader error" + err);
-        });
-        reader.readAsArrayBuffer(file);
     }
 
     private static parseFileData(arrayBuffer) {
@@ -93,6 +96,14 @@ class MIDIFileIO {
 
     static getNumTracks() {
         return midiNumTracks;
+    }
+
+    static getFileName() {
+        return midiFileName;
+    }
+
+    static getFileSize() {
+        return midiFileSize;
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////////////

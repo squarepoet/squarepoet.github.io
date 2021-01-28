@@ -65,7 +65,13 @@ const Page = () => {
         const midiEvents = MIDIFileIO.getLoadedEvents();
         PianoAuthorV2.fillTracksWithNoteGroupsExtractedFromMIDIEvents(midiFile, midiEvents);
         PianoAuthorV2.displaySongInfo(MIDIFileIO.getNumTracks(), MIDIFileIO.getDurationInSeconds());
+
+        if (midiFile !== null) {
+            setFileInfo(`Loaded File: ${MIDIFileIO.getFileName()} | Size: ${MIDIFileIO.getFileSize()} bytes`);
+        }
     }, [midiFileTimestamp]);
+
+    const [fileInfo, setFileInfo] = useState("");
 
     return (
         <>
@@ -95,8 +101,9 @@ const Page = () => {
             <div id="current-status">&nbsp;</div>
             <div id="bottom-panel">
                 <MIDIFileChooser />
+
                 <div id="file-info" className="bottom-info">
-                    &nbsp;
+                    {fileInfo}
                 </div>
                 <div id="song-info" className="bottom-info">
                     &nbsp;

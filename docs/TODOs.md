@@ -5,11 +5,13 @@
 
 # NEXT
 
+-   [ ] Make a tiny component that gets updated automatically whenever the file is loaded.
+
 # Piano TODOs
 
--   [ ] After we load bingo.mid, nothing changes until we load bingo.mid a second time. Need to trigger all the UI changes!
-    -   [ ] AH, THE FILE LOADING WAS ASYNCHRONOUS.
-        -   [ ] LEARN ABOUT JS async functions
+-   [x] After we load bingo.mid, nothing changes until we load bingo.mid a second time. Need to trigger all the UI changes!
+    -   [x] AH, THE FILE LOADING WAS ASYNCHRONOUS.
+        -   [x] LEARN ABOUT JS async functions
 -   [ ] Replace Redux w/ the Context API.
     -   [ ] Rely on Singletons / Static Classes for storing data. Then just dispatch EVENTS to say that the model has changed. EVENTS can just update the timestamp of the event or something.
 -   [ ] THE CODE IS REALLY UGLY :-) I'm still converting jQuery to React, so I should clean stuff up whenever possible.
@@ -40,8 +42,11 @@
 
 # Debugging with Chrome and VSCode
 
--   [ ] Learn more about debugging.
-    -   [ ] chrome://inspect/
+-   [x] Learn more about debugging.
+    -   [x] chrome://inspect/
+    -   [x] In VS Code, hit CMD+P and enter >Debug:Start Debugging
+    -   [x] Then add debugger; statements
+    -   [ ] See https://code.visualstudio.com/docs/nodejs/nodejs-debugging#_breakpoints
 
 # DONE
 

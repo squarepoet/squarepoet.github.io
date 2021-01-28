@@ -10,9 +10,11 @@ const MIDIFileChooser = () => {
         if (files.length > 0) {
             // Read the first file.
             const file = files[0];
-            MIDIFileIO.readFile(file, () => {
+            MIDIFileIO.readFileAsync(file).then((fileName) => {
+                debugger;
+                console.log("YAY " + fileName);
                 dispatch({ type: Actions.FileChooser.onFileLoaded });
-            }); // Asynchronous! Should we used promises and stuff??? :-)
+            });
         }
     }
 

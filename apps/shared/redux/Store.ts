@@ -25,7 +25,6 @@ const reducer = (state = defaultInitialState, action) => {
             retVal[Keys.SONG_VERSION] = songVersion;
             break;
         case Actions.FileChooser.onFileLoaded:
-            console.log("ON FILE LOAD OCCURRED");
             retVal[Keys.FILE_TIMESTAMP] = new Date().getTime();
         default:
             return retVal;
