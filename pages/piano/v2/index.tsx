@@ -3,6 +3,7 @@ import PianoAuthorV2 from "apps/author/piano/v2/App";
 import DownloadSong from "apps/author/piano/v2/DownloadSong";
 import MIDIFileChooser from "apps/author/piano/v2/MIDIFileChooser";
 import PlayPauseStop from "apps/author/piano/v2/PlayPauseStop";
+import Tracks from "apps/author/piano/v2/Tracks";
 import VersionToggle from "apps/author/piano/v2/VersionToggle";
 import Constants from "apps/shared/Constants";
 import MIDIFileIO from "apps/shared/midi/MIDIFileIO";
@@ -21,6 +22,7 @@ const Page = () => {
     // const workerRef = useRef<Worker>();
     const [showPreloadDialog, setShowPreloadDialog] = useState(true);
     const [fileInfo, setFileInfo] = useState("");
+    const [numTracks, setNumTracks] = useState(1);
 
     const dispatch = useDispatch();
 
@@ -72,6 +74,20 @@ const Page = () => {
         }
     }, [midiFileTimestamp]);
 
+    function getTrackComponents() {
+        const divs = [];
+        for (let trackNum = 0; trackNum < numTracks; trackNum++) {
+            divs.push(
+                <div id={`track-${trackNum}-container`} className="track-container">
+                    <input id="track-${t}-checkbox" type="checkbox" className="checkbox" />
+                    <div id="track-${t}-info" className="track-info"></div>
+                    <div id="track-${t}" className="track"></div>
+                </div>
+            );
+        }
+        return divs;
+    }
+
     return (
         <>
             {showPreloadDialog ? <PreloadDialog initialOpenState={showPreloadDialog} preloadNow={startAudio} /> : null}
@@ -84,7 +100,7 @@ const Page = () => {
             </div>
             <SharpsAndFlats style={{ float: "right" }} />
             <div id="content" className="content">
-                <div id="tracks"></div>
+                <Tracks />
                 <canvas id="pianoCanvas" width="1040" height="150"></canvas>
             </div>
             <div id="current-status">&nbsp;</div>

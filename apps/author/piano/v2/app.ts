@@ -19,7 +19,6 @@ const TIME_THRESHOLD_FOR_GROUPING_NEARBY_NOTES = 0; // Adjust this for parsing M
 // TODO: Do it the react way with components responding to changes in state!
 function setHTML(elementID, html) {
     console.log("setHTML " + elementID);
-    document.getElementById(elementID).innerHTML = html;
 }
 
 // Set up a dummy jQuery $ function
@@ -83,10 +82,6 @@ const DragDrop = (arg1, arg2) => {
 
 const TIME_BETWEEN_NOTEGROUPS = 250;
 
-// Support multi track MIDI songs.
-// When we compose by hand, stick everything in track 0.
-let $tracks = []; // jQuery references to the elements. Allows us to modify the DOM.
-let $trackInfos = []; // jQuery references to the elements. Allows us to modify the DOM.
 let $currentStatus = null;
 
 let sharps = ""; // the string value of the $sharps input
@@ -283,38 +278,14 @@ function resetOffset() {
 function resetEverything() {
     console.log("Reset Everything!");
     octaveOffset = 0;
-    setupTracks(1);
+    Tracks.setupTracks(1);
     UI.checkAllNonEmptyTracks();
     saveAndShowData();
     Playback.stop();
 
     // TODO: Use setState somehow....
     // setHTML("file-info", "&nbsp;");
-    setHTML("song-info", "&nbsp;");
-}
-
-function addTracks(numTracks) {
-    let html = "";
-    for (let t = 0; t < numTracks; t++) {
-        Song.addTrack(t);
-        let checkbox = `<input id="track-${t}-checkbox" type="checkbox" class="checkbox">`;
-        let info = `<div id="track-${t}-info" class="track-info"></div>`;
-        let track = `<div id="track-${t}" class="track">`;
-        html += `<div id="track-${t}-container" class="track-container">${checkbox}${info}${track}</div></div>`; // Also add the corresponding DOM elements.
-    }
-    // $("#tracks").html(html);
-    setHTML("tracks", html);
-
-    for (let t = 0; t < numTracks; t++) {
-        let $checkbox = $(`#track-${t}-checkbox`);
-        $checkbox.change(function () {
-            UI.setCheckedState(t, this.checked);
-            LocalStorage.saveCheckBoxes();
-            Song.invalidateCache();
-        });
-        $tracks.push($(`#track-${t}`));
-        $trackInfos.push($(`#track-${t}-info`));
-    }
+    // setHTML("song-info", "&nbsp;");
 }
 
 function saveAndShowData() {
@@ -324,14 +295,10 @@ function saveAndShowData() {
     UI.drawPiano();
 }
 
-function getNoteGroupID(trackNumber, noteGroupNumber) {
-    return `t${trackNumber}_n${noteGroupNumber}`;
-}
-
 function scrollNoteGroupIntoView(trackNumber: number, noteGroupNumber: number) {
-    let noteGroupID = getNoteGroupID(trackNumber, noteGroupNumber);
+    const noteGroupID = Song.getNoteGroupID(trackNumber, noteGroupNumber);
     // Scroll the divs all the way to the right to make sure the most recent NoteGroups are visible.
-    let element = <HTMLElement>document.querySelector(`#${noteGroupID}`);
+    const element = <HTMLElement>document.querySelector(`#${noteGroupID}`);
     if (element) {
         element.scrollIntoView();
     }
@@ -380,7 +347,7 @@ namespace LocalStorage {
             const savedTracks = JSON.parse(localStorage.getItem("tracks")); // can throw a SyntaxError
             const numTracks = savedTracks.length;
 
-            setupTracks(numTracks);
+            Tracks.setupTracks(numTracks);
             for (let t = 0; t < numTracks; t++) {
                 let savedTrack = savedTracks[t];
                 for (let noteGroupString of savedTrack) {
@@ -389,7 +356,7 @@ namespace LocalStorage {
                 }
             }
         } catch (e) {
-            setupTracks(1);
+            Tracks.setupTracks(1);
         }
     }
 
@@ -461,14 +428,6 @@ function playOneNote(pianoKeyBeforeModifiers, applyModifiers: boolean = true) {
     saveAndShowData();
 }
 
-function setupTracks(numTracks: number) {
-    Song.reset();
-    $tracks = [];
-    $trackInfos = [];
-    addTracks(numTracks);
-    Highlight.setupIndexes();
-}
-
 function playPianoNote(pianoKeyNumber, velocity = 127.0) {
     if (piano === null) {
         console.log("playPianoNote: Piano has not been initialized.");
@@ -510,7 +469,6 @@ namespace Highlight {
 
     // Updates the visual indicators for our current track and current notegroup.
     export function update() {
-        let numTracks = $tracks.length;
         // assume the currentTrack & currentNoteGroup numbers are valid.
         // unhighlight the currently highlighted tracks.
         if ($currTrack) {
@@ -522,9 +480,11 @@ namespace Highlight {
         if ($currNoteGroup) {
             $currNoteGroup.removeClass(h);
         }
-        $currTrack = $tracks[currTrackNumber].addClass(h);
-        $currTrackInfo = $trackInfos[currTrackNumber].addClass(h);
-        $currNoteGroup = $("#" + getNoteGroupID(currTrackNumber, currentNoteGroup())).addClass(h);
+
+        // OLD jQuery Stuff: addClass("highlight") to highlight the current track and trackInfo and noteGroup
+        // $currTrack = $tracks[currTrackNumber].addClass(h);
+        // $currTrackInfo = $trackInfos[currTrackNumber].addClass(h);
+        // $currNoteGroup = $("#" + Song.getNoteGroupID(currTrackNumber, currentNoteGroup())).addClass(h);
 
         UI.drawPiano();
     }
@@ -858,38 +818,18 @@ namespace UI {
         });
     }
 
-    // TODO: When manually editing, only append and modify the last couple of spans. Don't regenerate the entire thing, for performance!
     export function showNoteGroupsForTracks() {
         let numTracks = Song.getNumTracks();
         for (let t = 0; t < numTracks; t++) {
-            let trackHTML = "";
             let numNoteGroups = Song.getNumNoteGroupsInTrack(t);
-            let n = 0;
-            for (; n < numNoteGroups; n++) {
-                let noteGroup = Song.getNoteGroupFromTrack(n, t);
-                let multiple = noteGroup.numNotes > 1 ? " multiple" : "";
-                let noteGroupID = getNoteGroupID(t, n); // t_0_n_0 stands for track 0 notegroup 0
-                trackHTML += `<div id="${noteGroupID}" class="notegroup${multiple}">${noteGroup.toString()}</div>`;
-            }
-            // $tracks[t].html(trackHTML);
-            setHTML(`track-${t}`, trackHTML);
-
-            if (numNoteGroups > 0) {
-                // $trackInfos[t].html(`${numNoteGroups}`);
-                setHTML(`track-${t}-info`, `${numNoteGroups}`);
-                $(`#track-${t}-container`).removeClass("empty");
-            } else {
-                // empty track
-                // $trackInfos[t].html("");
-                setHTML(`track-${t}-info`, "");
+            if (numNoteGroups === 0) {
                 UI.setCheckedState(t, false); // Don't check an empty track.
-                $(`#track-${t}-container`).addClass("empty");
             }
             $(`#track-${t}-checkbox`).prop("checked", UI.isChecked(t));
 
-            scrollNoteGroupIntoView(t, n); // n is set to the last noteGroup
+            // #TODO: Is there a one-off error here?
+            scrollNoteGroupIntoView(t, numNoteGroups); // n is set to the last noteGroup.
         }
-
         Highlight.update();
     }
 
@@ -898,7 +838,7 @@ namespace UI {
     // MOUSE & KEYBOARD
 
     export function setupMouseHandlers() {
-        // TODO0
+        // # TODO
         // Playback.setupButtons();
         setupDragAndDropFileUpload();
     }
@@ -1319,6 +1259,8 @@ namespace UI {
 }
 
 namespace Song {
+    // Support multi track MIDI songs.
+    // When we compose by hand, stick everything in track 0.
     let tracks: Array<Track> = [];
 
     let cachedNoteGroups: NoteGroup[] = null;
@@ -1343,7 +1285,7 @@ namespace Song {
     export function addNoteGroupToTrack(noteGroup: NoteGroup, trackNumber: number): number {
         invalidateCache(); // Every time we modify the tracks, we need to invalidate the cache.
 
-        let track = tracks[trackNumber];
+        const track = tracks[trackNumber];
         noteGroup.trackNumber = trackNumber;
         noteGroup.noteNumber = track.length;
         track.push(noteGroup);
@@ -1462,9 +1404,41 @@ namespace Song {
         cacheIsValid = true;
         return noteGroups;
     }
+
+    export function getNoteGroupID(trackNumber, noteGroupNumber) {
+        return `t${trackNumber}_n${noteGroupNumber}`;
+    }
 }
 
 namespace Tracks {
+    export function setupTracks(numTracks: number) {
+        Song.reset();
+        addTracks(numTracks);
+        Highlight.setupIndexes();
+    }
+
+    function addTracks(numTracks: number) {
+        for (let t = 0; t < numTracks; t++) {
+            Song.addTrack(t);
+        }
+        // setHTML("tracks", html);
+
+        /*
+        for (let t = 0; t < numTracks; t++) {
+            let $checkbox = $(`#track-${t}-checkbox`);
+            $checkbox.change(function () {
+                UI.setCheckedState(t, this.checked);
+                LocalStorage.saveCheckBoxes();
+                Song.invalidateCache();
+            });
+
+            // OLD jQuery stuff: Get references to DOM elements
+            $tracks.push($(`#track-${t}`));
+            $trackInfos.push($(`#track-${t}-info`));
+        }
+        */
+    }
+
     export function getTextFileFromTracks(): string {
         console.log("getTextFileFromTracks Song Version: " + App.songVersion);
 
@@ -1496,6 +1470,7 @@ namespace Tracks {
 // Once the DOM is ready, call new App.start(options)
 class App {
     static PlayBack = Playback;
+    static Song = Song;
 
     static reduxDispatch: Function = null;
     static songVersion: number = Constants.MIN_SONG_VERSION; // We need to update this every time the redux store changes!
@@ -1538,7 +1513,7 @@ class App {
 
         console.log("filling tracks....");
 
-        setupTracks(midiFile.tracks.length);
+        Tracks.setupTracks(midiFile.tracks.length);
 
         // Remember the most recently processed event so that we can merge notes that are played at the same time and on the same track.
         let lastNoteGroup: NoteGroup = null;
