@@ -5,7 +5,8 @@
 
 # NEXT
 
--   [ ] Make a tiny component that gets updated automatically whenever the file is loaded.
+-   [x] Make a tiny component that gets updated automatically whenever the file is loaded.
+-   [ ] Remember to start debugging with CMD+SHIFT+P => Debug: Start Debugging.
 
 # Piano TODOs
 

@@ -1,7 +1,7 @@
 import SharpsAndFlats from "apps/author/piano/shared/SharpsAndFlats";
 import PianoAuthorV2 from "apps/author/piano/v2/App";
+import DownloadSong from "apps/author/piano/v2/DownloadSong";
 import MIDIFileChooser from "apps/author/piano/v2/MIDIFileChooser";
-import { Note, NoteGroup, Track } from "apps/author/piano/v2/Music";
 import PlayPauseStop from "apps/author/piano/v2/PlayPauseStop";
 import VersionToggle from "apps/author/piano/v2/VersionToggle";
 import Constants from "apps/shared/Constants";
@@ -18,6 +18,10 @@ const Keys = Constants.StoreKeys;
 // }
 
 const Page = () => {
+    // const workerRef = useRef<Worker>();
+    const [showPreloadDialog, setShowPreloadDialog] = useState(true);
+    const [fileInfo, setFileInfo] = useState("");
+
     const dispatch = useDispatch();
 
     useEffect(() => {
@@ -32,9 +36,6 @@ const Page = () => {
         //     workerRef.current?.terminate();
         // };
     }, []);
-
-    // const workerRef = useRef<Worker>();
-    const [showPreloadDialog, setShowPreloadDialog] = useState(true);
 
     if (typeof window !== "undefined") {
         useEventListener("keydown", (e: KeyboardEvent) => {
@@ -71,22 +72,10 @@ const Page = () => {
         }
     }, [midiFileTimestamp]);
 
-    const [fileInfo, setFileInfo] = useState("");
-
     return (
         <>
             {showPreloadDialog ? <PreloadDialog initialOpenState={showPreloadDialog} preloadNow={startAudio} /> : null}
-            <div>{songVersion}</div>
-            <div className="download-div">
-                Save as{" "}
-                <a id="download_midi_link" href="data:text/plain;base64,Tm90aGluZw==" download="song.mid">
-                    MIDI
-                </a>
-                &nbsp;&nbsp;or&nbsp;
-                <a id="download_text_link" href="data:text/plain;base64,Tm90aGluZw==" download="song.txt">
-                    TEXT
-                </a>
-            </div>
+            <DownloadSong />
             <VersionToggle />
             <div className="shortcuts">
                 ctrl &rarr; flat &nbsp;&nbsp;&nbsp;&nbsp; alt &rarr; sharp &nbsp;&nbsp;&nbsp;&nbsp; shift + esc &rarr; clear
@@ -133,10 +122,6 @@ const Page = () => {
                     background-color: rgba(238, 119, 153, 0.2);
                 }
 
-                .download-div {
-                    float: left;
-                    margin: 3px 0px;
-                }
                 .shortcuts {
                     float: right;
                 }

@@ -93,10 +93,6 @@ let sharps = ""; // the string value of the $sharps input
 let flats = "";
 let octaveOffset = 0;
 
-// jQuery references to the DOM
-let $download_midi_link = null;
-let $download_text_link = null;
-
 // piano key numbers % 12
 let blackKeys = [2, -1, 5, 7, -1, 10, 0]; // -1 is for the spaces where there are no black keys
 let whiteKeys = [1, 3, 4, 6, 8, 9, 11];
@@ -381,8 +377,8 @@ namespace LocalStorage {
 
     function loadTracks() {
         try {
-            let savedTracks = JSON.parse(localStorage.getItem("tracks")); // can throw a SyntaxError
-            let numTracks = savedTracks.length;
+            const savedTracks = JSON.parse(localStorage.getItem("tracks")); // can throw a SyntaxError
+            const numTracks = savedTracks.length;
 
             setupTracks(numTracks);
             for (let t = 0; t < numTracks; t++) {
@@ -840,8 +836,6 @@ namespace UI {
         $sharps = $("#sharps-text");
         $flats = $("#flats-text");
         $currentStatus = $("#current-status");
-        $download_midi_link = $("#download_midi_link");
-        $download_text_link = $("#download_text_link");
     }
 
     export function setupCopyHandler() {
@@ -849,7 +843,7 @@ namespace UI {
             e.preventDefault();
             console.log("COPY");
             if (e.clipboardData) {
-                const text = getTextFileFromTracks();
+                const text = Tracks.getTextFileFromTracks();
                 e.clipboardData.setData("text/plain", text);
             }
         });
@@ -857,7 +851,7 @@ namespace UI {
             e.preventDefault();
             console.log("CUT");
             if (e.clipboardData) {
-                const text = getTextFileFromTracks();
+                const text = Tracks.getTextFileFromTracks();
                 e.clipboardData.setData("text/plain", text);
             }
             resetEverything(); // Set the text fields to empty strings.
@@ -904,35 +898,8 @@ namespace UI {
     // MOUSE & KEYBOARD
 
     export function setupMouseHandlers() {
+        // TODO0
         // Playback.setupButtons();
-
-        // When we hover over the Download MIDI | TEXT links, we update
-        // the href attributes so that we download the correct data.
-        $download_midi_link.mouseover(() => {
-            // GENERATE THE MIDI FILE FROM OUR TRACKS. BASE 64 ENCODE IT.
-            const trackNumbersToInclude: number[] = [];
-            const numTracks = Song.getNumTracks();
-            for (let trackNumber = 0; trackNumber < numTracks; trackNumber++) {
-                if (UI.isChecked(trackNumber)) {
-                    trackNumbersToInclude.push(trackNumber);
-                }
-            }
-            const midiFile = MIDIFileIO.createFileFromTracks(trackNumbersToInclude, Song.getNoteGroupsFromTracks());
-            const base64Text = btoa(midiFile); // base 64 encoding
-            console.log("The base 64 text is:");
-            console.log(base64Text);
-            $download_midi_link.attr("href", "data:audio/midi;base64," + base64Text);
-        });
-        $download_text_link.mouseover(() => {
-            // GENERATE THE TEXT FILE FROM OUR TRACKS. BASE 64 ENCODE IT.
-            // A textual representation of the song:
-            //   V1 => e.g., 40 42 44 45 40.47
-            //   V2 => e.g., [24.36 @ 0] [17.29 @ 2730] [36 @ 2904] [41 @ 3029] [44 @ 3152]
-            const text = getTextFileFromTracks();
-            const base64Text = btoa(text); // base 64 encoding
-            $download_text_link.attr("href", "data:text/plain;base64," + base64Text);
-        });
-
         setupDragAndDropFileUpload();
     }
 
@@ -1497,24 +1464,39 @@ namespace Song {
     }
 }
 
-function getTextFileFromTracks(): string {
-    console.log("getTextFileFromTracks " + App.songVersion);
+namespace Tracks {
+    export function getTextFileFromTracks(): string {
+        console.log("getTextFileFromTracks Song Version: " + App.songVersion);
 
-    const noteGroups = Song.getNoteGroupsFromTracks();
-    if (App.songVersion === 1) {
-        let noteGroupV1Strings = [];
-        noteGroups.forEach((noteGroup) => {
-            noteGroupV1Strings.push(noteGroup.toStringV1());
-        });
-        return noteGroupV1Strings.join(" ");
-    } else {
-        // songVersion === 2
-        return noteGroups.join(" ");
+        const noteGroups = Song.getNoteGroupsFromTracks();
+        if (App.songVersion === 1) {
+            let noteGroupV1Strings = [];
+            noteGroups.forEach((noteGroup) => {
+                noteGroupV1Strings.push(noteGroup.toStringV1());
+            });
+            return noteGroupV1Strings.join(" ");
+        } else {
+            // songVersion === 2
+            return noteGroups.join(" ");
+        }
+    }
+
+    export function getTrackNumbersToIncludeInMIDIFile(): number[] {
+        const trackNumbersToInclude: number[] = [];
+        const numTracks = Song.getNumTracks();
+        for (let trackNumber = 0; trackNumber < numTracks; trackNumber++) {
+            if (UI.isChecked(trackNumber)) {
+                trackNumbersToInclude.push(trackNumber);
+            }
+        }
+        return trackNumbersToInclude;
     }
 }
 
 // Once the DOM is ready, call new App.start(options)
 class App {
+    static PlayBack = Playback;
+
     static reduxDispatch: Function = null;
     static songVersion: number = Constants.MIN_SONG_VERSION; // We need to update this every time the redux store changes!
 
@@ -1600,7 +1582,27 @@ class App {
         $("#song-info").text(`Num Tracks: ${numTracks} | Duration: ${duration} secs`);
     }
 
-    static PlayBack = Playback;
+    // When we hover over the Download MIDI | TEXT links, we update
+    // the href attributes so that we download the correct data.
+    static getDownloadData_TEXT(): string {
+        // GENERATE THE TEXT FILE FROM OUR TRACKS. BASE 64 ENCODE IT.
+        // A textual representation of the song:
+        //   V1 => e.g., 40 42 44 45 40.47
+        //   V2 => e.g., [24.36 @ 0] [17.29 @ 2730] [36 @ 2904] [41 @ 3029] [44 @ 3152]
+        const text = Tracks.getTextFileFromTracks();
+        const base64Text = btoa(text); // base 64 encoding
+        return base64Text;
+    }
+
+    // When we hover over the Download MIDI | TEXT links, we update
+    // the href attributes so that we download the correct data.
+    static getDownloadData_MIDI(): string {
+        // GENERATE THE MIDI FILE FROM OUR TRACKS. BASE 64 ENCODE IT.
+        const trackNumbersToInclude = Tracks.getTrackNumbersToIncludeInMIDIFile();
+        const midiFile = MIDIFileIO.createFileFromTracks(trackNumbersToInclude, Song.getNoteGroupsFromTracks());
+        const base64Text = btoa(midiFile); // base 64 encoding
+        return base64Text;
+    }
 }
 
 export default App;
