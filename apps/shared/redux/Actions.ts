@@ -3,8 +3,10 @@ namespace Actions {
         onFileLoaded: "onFileLoaded",
     };
     export const Toggle = {
-        onSongVersionFormatChanged: "setSongVersionFormat",
-        onSongVersionFormatChangedArg_songVersion: "songVersion",
+        onSongVersionFormatChanged: "onSongVersionFormatChanged",
+    };
+    export const Song = {
+        onTracksUpdated: "onTracksUpdated",
     };
 }
 

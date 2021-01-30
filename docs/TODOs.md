@@ -5,14 +5,11 @@
 
 # NEXT
 
--   [x] Make a tiny component that gets updated automatically whenever the file is loaded.
--   [ ] Remember to start debugging with CMD+SHIFT+P => Debug: Start Debugging.
+-   [ ] Batch dispatches somehow.... I should only trigger the minimal amount of stuff that has changed, so we don't re-render too much!
+    -   [ ] Change to Context API, but also create convenience methods for dispatching to the Store. Some of these convenience methods will be batched (or debounced).
 
 # Piano TODOs
 
--   [x] After we load bingo.mid, nothing changes until we load bingo.mid a second time. Need to trigger all the UI changes!
-    -   [x] AH, THE FILE LOADING WAS ASYNCHRONOUS.
-        -   [x] LEARN ABOUT JS async functions
 -   [ ] Replace Redux w/ the Context API.
     -   [ ] Rely on Singletons / Static Classes for storing data. Then just dispatch EVENTS to say that the model has changed. EVENTS can just update the timestamp of the event or something.
 -   [ ] THE CODE IS REALLY UGLY :-) I'm still converting jQuery to React, so I should clean stuff up whenever possible.
@@ -72,3 +69,8 @@
 -   [x] BUG: Sharps and Flats don't update if I delete!
 -   [x] How do I import modules with absolute URLs? I don't like seeing all the dots and slashes.
 -   [x] Test export!
+-   [x] Make a tiny component that gets updated automatically whenever the file is loaded.
+-   [x] Remember to start debugging with CMD+SHIFT+P => Debug: Start Debugging.
+-   [x] After we load bingo.mid, nothing changes until we load bingo.mid a second time. Need to trigger all the UI changes!
+    -   [x] AH, THE FILE LOADING WAS ASYNCHRONOUS.
+        -   [x] LEARN ABOUT JS async functions

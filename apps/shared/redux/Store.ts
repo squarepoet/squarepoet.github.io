@@ -1,10 +1,9 @@
 import Constants from "apps/shared/Constants";
+import Actions from "apps/shared/redux/Actions";
 import loggerMiddleware from "apps/shared/redux/Logger";
 import { useMemo } from "react";
 import { applyMiddleware, createStore } from "redux";
 import thunkMiddleware from "redux-thunk";
-
-import Actions from "./Actions";
 
 const Keys = Constants.StoreKeys;
 let sharedStoreInstance = null;
@@ -12,23 +11,37 @@ let sharedStoreInstance = null;
 const defaultInitialState = {};
 defaultInitialState[Keys.SONG_VERSION] = 1; // 1 | 2
 defaultInitialState[Keys.FILE_TIMESTAMP] = 0;
+defaultInitialState[Keys.UPDATED_TRACKS_LIST] = [];
+defaultInitialState[Keys.UPDATED_TRACKS_TIMESTAMP] = 0;
 
 const reducer = (state = defaultInitialState, action) => {
     let retVal = { ...state };
     switch (action.type) {
-        case Actions.Toggle.onSongVersionFormatChanged:
-            let songVersion = action.payload[Actions.Toggle.onSongVersionFormatChangedArg_songVersion];
+        case Actions.Toggle.onSongVersionFormatChanged: {
+            let songVersion = action.payload[Constants.StoreKeys.SONG_VERSION];
             if (typeof songVersion !== "number" || songVersion < Constants.MIN_SONG_VERSION || songVersion > Constants.MAX_SONG_VERSION) {
                 songVersion = defaultInitialState[Keys.SONG_VERSION];
             }
             console.log(`Song version set to ${songVersion}`);
             retVal[Keys.SONG_VERSION] = songVersion;
             break;
-        case Actions.FileChooser.onFileLoaded:
+        }
+        case Actions.FileChooser.onFileLoaded: {
             retVal[Keys.FILE_TIMESTAMP] = new Date().getTime();
-        default:
-            return retVal;
+            break;
+        }
+        case Actions.Song.onTracksUpdated: {
+            const trackNumbers = action.payload[Constants.StoreKeys.UPDATED_TRACKS_LIST];
+            retVal[Keys.UPDATED_TRACKS_LIST] = trackNumbers;
+            retVal[Keys.UPDATED_TRACKS_TIMESTAMP] = new Date().getTime();
+            console.log("Tracks  " + trackNumbers + " Updated!");
+            break;
+        }
+        default: {
+            break;
+        }
     }
+    return retVal;
 };
 
 function createStoreWithState(preloadedState = defaultInitialState) {

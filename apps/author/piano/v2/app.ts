@@ -12,16 +12,10 @@ const MIDIEvents = require("midievents");
 
 const TIME_THRESHOLD_FOR_GROUPING_NEARBY_NOTES = 0; // Adjust this for parsing MIDI recordings of piano performances by humans (i.e., imprecise timing).
 
-//
+// Dispatch events and send data to the global store.
+let dispatchEvent: Function = null;
 
-//
-
-// TODO: Do it the react way with components responding to changes in state!
-function setHTML(elementID, html) {
-    console.log("setHTML " + elementID);
-}
-
-// Set up a dummy jQuery $ function
+// #TODO: Set up a dummy jQuery $ function while we are porting to React.
 const $ = (arg) => {
     console.log(`jQuery called with arg [${arg}]`);
     const retVal = {
@@ -339,7 +333,7 @@ namespace LocalStorage {
         }
         const payload = {};
         payload[Constants.StoreKeys.SONG_VERSION] = songVersion;
-        App.reduxDispatch({ type: Actions.Toggle.onSongVersionFormatChangedArg_songVersion, payload: payload });
+        dispatchEvent({ type: Actions.Toggle.onSongVersionFormatChanged, payload: payload });
     }
 
     function loadTracks() {
@@ -418,7 +412,7 @@ function playOneNote(pianoKeyBeforeModifiers, applyModifiers: boolean = true) {
         return;
     }
 
-    let t = Highlight.currentTrack();
+    let t = Highlight.getCurrentTrackNumber();
     let trackLength = Song.addNoteGroupToTrack(new NoteGroup(new Note(pianoKeyNumber)), t);
     UI.setCheckedState(t, true);
 
@@ -459,7 +453,7 @@ namespace Highlight {
         }
     }
 
-    export function currentTrack(): number {
+    export function getCurrentTrackNumber(): number {
         return currTrackNumber;
     }
 
@@ -743,7 +737,7 @@ namespace Playback {
     }
 
     function playCurrentNoteGroup() {
-        let t = Highlight.currentTrack();
+        let t = Highlight.getCurrentTrackNumber();
         let n = Highlight.currentNoteGroup();
         let noteGroup = Song.getNoteGroupFromTrack(n, t);
         if (!noteGroup) {
@@ -819,18 +813,25 @@ namespace UI {
     }
 
     export function showNoteGroupsForTracks() {
-        let numTracks = Song.getNumTracks();
-        for (let t = 0; t < numTracks; t++) {
-            let numNoteGroups = Song.getNumNoteGroupsInTrack(t);
-            if (numNoteGroups === 0) {
-                UI.setCheckedState(t, false); // Don't check an empty track.
-            }
-            $(`#track-${t}-checkbox`).prop("checked", UI.isChecked(t));
+        // #TODO REINTRODUCE THIS FUNCTIONALITY
+        //
+        // const numTracks = Song.getNumTracks();
+        // for (let t = 0; t < numTracks; t++) {
+        //     const numNoteGroups = Song.getNumNoteGroupsInTrack(t);
+        //     if (numNoteGroups === 0) {
+        //         UI.setCheckedState(t, false); // Don't check an empty track.
+        //     }
+        //     $(`#track-${t}-checkbox`).prop("checked", UI.isChecked(t));
 
-            // #TODO: Is there a one-off error here?
-            scrollNoteGroupIntoView(t, numNoteGroups); // n is set to the last noteGroup.
-        }
-        Highlight.update();
+        //     // #TODO: Is there a one-off error here?
+        //     scrollNoteGroupIntoView(t, numNoteGroups); // n is set to the last noteGroup.
+        // }
+        // Highlight.update();
+
+        const payload = {};
+        payload[Constants.StoreKeys.UPDATED_TRACKS_LIST] = Song.getRecentlyUpdatedTrackNumbersAsArray();
+        dispatchEvent({ type: Actions.Song.onTracksUpdated, payload: payload });
+        Song.resetRecentlyUpdatedTrackNumbers();
     }
 
     ////////////////////////////////////////////////////////////
@@ -851,7 +852,7 @@ namespace UI {
 
                 Playback.stop();
                 MIDIFileIO.readFileAsync(files[0]).then(() => {
-                    App.reduxDispatch({ type: Actions.FileChooser.onFileLoaded });
+                    dispatchEvent({ type: Actions.FileChooser.onFileLoaded });
                 }); // Get the first file.
             },
             onDragOver: () => {
@@ -1158,7 +1159,7 @@ namespace UI {
 
     // draw the highlighted group?
     function drawMostRecentGroup(c) {
-        const trackNumber = Highlight.currentTrack();
+        const trackNumber = Highlight.getCurrentTrackNumber();
         const noteGroupNumber = Highlight.currentNoteGroup();
 
         const lastGroup = Song.getNoteGroupFromTrack(noteGroupNumber, trackNumber);
@@ -1258,6 +1259,65 @@ namespace UI {
     }
 }
 
+namespace Tracks {
+    export function setupTracks(numTracks: number) {
+        Song.reset();
+        addTracks(numTracks);
+        Highlight.setupIndexes();
+    }
+
+    function addTracks(numTracks: number) {
+        for (let t = 0; t < numTracks; t++) {
+            Song.addTrack(t);
+        }
+        // setHTML("tracks", html);
+
+        /*
+        for (let t = 0; t < numTracks; t++) {
+            let $checkbox = $(`#track-${t}-checkbox`);
+            $checkbox.change(function () {
+                UI.setCheckedState(t, this.checked);
+                LocalStorage.saveCheckBoxes();
+                Song.invalidateCache();
+            });
+
+            // OLD jQuery stuff: Get references to DOM elements
+            $tracks.push($(`#track-${t}`));
+            $trackInfos.push($(`#track-${t}-info`));
+        }
+        */
+    }
+
+    export function getTextFileFromTracks(): string {
+        console.log("getTextFileFromTracks Song Version: " + App.getSongVersion());
+
+        const noteGroups = Song.getNoteGroupsFromTracks();
+        if (App.getSongVersion() === 1) {
+            let noteGroupV1Strings = [];
+            noteGroups.forEach((noteGroup) => {
+                noteGroupV1Strings.push(noteGroup.toStringV1());
+            });
+            return noteGroupV1Strings.join(" ");
+        } else {
+            // songVersion === 2
+            return noteGroups.join(" ");
+        }
+    }
+
+    export function getTrackNumbersToIncludeInMIDIFile(): number[] {
+        const trackNumbersToInclude: number[] = [];
+        const numTracks = Song.getNumTracks();
+        for (let trackNumber = 0; trackNumber < numTracks; trackNumber++) {
+            if (UI.isChecked(trackNumber)) {
+                trackNumbersToInclude.push(trackNumber);
+            }
+        }
+        return trackNumbersToInclude;
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////
+
 namespace Song {
     // Support multi track MIDI songs.
     // When we compose by hand, stick everything in track 0.
@@ -1266,30 +1326,39 @@ namespace Song {
     let cachedNoteGroups: NoteGroup[] = null;
     let cacheIsValid = false;
 
+    let recentlyUpdatedTrackNumbers: Set<number> = new Set();
+
     export function reset() {
         tracks = [];
+        Song.resetRecentlyUpdatedTrackNumbers();
+        Song.resetCache();
     }
 
-    export function invalidateCache() {
-        cacheIsValid = false;
+    export function resetCache() {
         cachedNoteGroups = null;
+        cacheIsValid = false;
     }
 
     export function addTrack(trackNumber: number) {
         const track = new Track();
         track.trackNumber = trackNumber;
         tracks.push(track);
+        recentlyUpdatedTrackNumbers.add(trackNumber);
     }
 
-    // returns the new length of the track
+    // Return: the new length of the specified track.
     export function addNoteGroupToTrack(noteGroup: NoteGroup, trackNumber: number): number {
-        invalidateCache(); // Every time we modify the tracks, we need to invalidate the cache.
+        Song.resetCache(); // Every time we modify the tracks, we need to invalidate the cache.
 
         const track = tracks[trackNumber];
         noteGroup.trackNumber = trackNumber;
         noteGroup.noteNumber = track.length;
         track.push(noteGroup);
+
+        recentlyUpdatedTrackNumbers.add(trackNumber);
         return tracks[trackNumber].length;
+
+        // We call saveAndShowData() elsewhere!
     }
 
     export function getNumTracks(): number {
@@ -1309,20 +1378,22 @@ namespace Song {
     }
 
     export function mergeLastTwoGroups() {
-        let trackNumber = Highlight.currentTrack();
-        let currTrack = tracks[trackNumber];
+        const trackNumber = Highlight.getCurrentTrackNumber();
+        const currTrack = tracks[trackNumber];
         if (currTrack.length >= 2) {
             let mergedNoteGroup: NoteGroup = NoteGroup.merge(currTrack.pop(), currTrack.pop());
-            addNoteGroupToTrack(mergedNoteGroup, trackNumber);
+            Song.addNoteGroupToTrack(mergedNoteGroup, trackNumber);
             Highlight.setTrackAndNoteGroup(trackNumber, currTrack.length - 1);
+            recentlyUpdatedTrackNumbers.add(trackNumber);
             saveAndShowData();
         }
     }
 
     export function deleteLastGroup() {
-        let t = Highlight.currentTrack();
-        tracks[t].pop();
-        Highlight.setTrackAndNoteGroup(t, tracks[t].length - 1);
+        const trackNumber = Highlight.getCurrentTrackNumber();
+        tracks[trackNumber].pop();
+        Highlight.setTrackAndNoteGroup(trackNumber, tracks[trackNumber].length - 1);
+        recentlyUpdatedTrackNumbers.add(trackNumber);
         saveAndShowData();
     }
 
@@ -1408,74 +1479,36 @@ namespace Song {
     export function getNoteGroupID(trackNumber, noteGroupNumber) {
         return `t${trackNumber}_n${noteGroupNumber}`;
     }
-}
 
-namespace Tracks {
-    export function setupTracks(numTracks: number) {
-        Song.reset();
-        addTracks(numTracks);
-        Highlight.setupIndexes();
+    export function getRecentlyUpdatedTrackNumbersAsArray(): number[] {
+        return Array.from(recentlyUpdatedTrackNumbers);
     }
 
-    function addTracks(numTracks: number) {
-        for (let t = 0; t < numTracks; t++) {
-            Song.addTrack(t);
-        }
-        // setHTML("tracks", html);
-
-        /*
-        for (let t = 0; t < numTracks; t++) {
-            let $checkbox = $(`#track-${t}-checkbox`);
-            $checkbox.change(function () {
-                UI.setCheckedState(t, this.checked);
-                LocalStorage.saveCheckBoxes();
-                Song.invalidateCache();
-            });
-
-            // OLD jQuery stuff: Get references to DOM elements
-            $tracks.push($(`#track-${t}`));
-            $trackInfos.push($(`#track-${t}-info`));
-        }
-        */
-    }
-
-    export function getTextFileFromTracks(): string {
-        console.log("getTextFileFromTracks Song Version: " + App.songVersion);
-
-        const noteGroups = Song.getNoteGroupsFromTracks();
-        if (App.songVersion === 1) {
-            let noteGroupV1Strings = [];
-            noteGroups.forEach((noteGroup) => {
-                noteGroupV1Strings.push(noteGroup.toStringV1());
-            });
-            return noteGroupV1Strings.join(" ");
-        } else {
-            // songVersion === 2
-            return noteGroups.join(" ");
-        }
-    }
-
-    export function getTrackNumbersToIncludeInMIDIFile(): number[] {
-        const trackNumbersToInclude: number[] = [];
-        const numTracks = Song.getNumTracks();
-        for (let trackNumber = 0; trackNumber < numTracks; trackNumber++) {
-            if (UI.isChecked(trackNumber)) {
-                trackNumbersToInclude.push(trackNumber);
-            }
-        }
-        return trackNumbersToInclude;
+    export function resetRecentlyUpdatedTrackNumbers() {
+        recentlyUpdatedTrackNumbers = new Set();
     }
 }
 
-// Once the DOM is ready, call new App.start(options)
-class App {
-    static PlayBack = Playback;
-    static Song = Song;
+const _PlaybackNS = Playback;
+const _SongNS = Song;
+namespace App {
+    export const Playback = _PlaybackNS;
+    export const Song = _SongNS;
 
-    static reduxDispatch: Function = null;
-    static songVersion: number = Constants.MIN_SONG_VERSION; // We need to update this every time the redux store changes!
+    let songVersion: number = Constants.MIN_SONG_VERSION; // We need to update this every time the redux store changes!
+    export function getSongVersion() {
+        return songVersion;
+    }
+    export function setSongVersion(v: number) {
+        songVersion = v;
+    }
 
-    static start() {
+    export function setDispatchFunction(dispatch: Function) {
+        dispatchEvent = dispatch;
+    }
+
+    // Once the DOM is ready, call App.start()
+    export function start() {
         MIDIPianoInput.setup();
         UI.setupJQueryDOMReferences();
         LocalStorage.load();
@@ -1487,25 +1520,25 @@ class App {
         UI.drawPiano();
     }
 
-    static startAudio() {
+    export function startAudio() {
         piano = new Instrument();
     }
 
-    static onKeyUp(e) {
+    export function onKeyUp(e) {
         UI.onKeyUpHandler(e);
     }
 
-    static onKeyDown(e) {
+    export function onKeyDown(e) {
         UI.onKeyDownHandler(e);
     }
 
-    static saveSongVersionToLocalStorage(ver: number) {
-        App.songVersion = ver;
+    export function saveSongVersionToLocalStorage(ver: number) {
+        App.setSongVersion(ver);
         console.log("saveSongVersionToLocalStorage " + ver);
         LocalStorage.saveVersionToggle(ver);
     }
 
-    static fillTracksWithNoteGroupsExtractedFromMIDIEvents(midiFile, midiEvents) {
+    export function fillTracksWithNoteGroupsExtractedFromMIDIEvents(midiFile, midiEvents) {
         console.log("MIDI File Passed In: " + midiFile);
         if (!midiFile) {
             return;
@@ -1552,14 +1585,14 @@ class App {
         saveAndShowData();
     }
 
-    static displaySongInfo(numTracks, durationInSeconds) {
+    export function displaySongInfo(numTracks, durationInSeconds) {
         const duration = Math.round(durationInSeconds * 100) / 100;
         $("#song-info").text(`Num Tracks: ${numTracks} | Duration: ${duration} secs`);
     }
 
     // When we hover over the Download MIDI | TEXT links, we update
     // the href attributes so that we download the correct data.
-    static getDownloadData_TEXT(): string {
+    export function getDownloadData_TEXT(): string {
         // GENERATE THE TEXT FILE FROM OUR TRACKS. BASE 64 ENCODE IT.
         // A textual representation of the song:
         //   V1 => e.g., 40 42 44 45 40.47
@@ -1571,7 +1604,7 @@ class App {
 
     // When we hover over the Download MIDI | TEXT links, we update
     // the href attributes so that we download the correct data.
-    static getDownloadData_MIDI(): string {
+    export function getDownloadData_MIDI(): string {
         // GENERATE THE MIDI FILE FROM OUR TRACKS. BASE 64 ENCODE IT.
         const trackNumbersToInclude = Tracks.getTrackNumbersToIncludeInMIDIFile();
         const midiFile = MIDIFileIO.createFileFromTracks(trackNumbersToInclude, Song.getNoteGroupsFromTracks());

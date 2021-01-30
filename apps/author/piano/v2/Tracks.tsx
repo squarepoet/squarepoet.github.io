@@ -1,33 +1,47 @@
 import PianoAuthorV2 from "apps/author/piano/v2/App";
+import Constants from "apps/shared/Constants";
 import classNames from "classnames";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
+
+const Song = PianoAuthorV2.Song;
+const Keys = Constants.StoreKeys;
+
+// #TODO: There has to be a more efficient way to only update the tracks we need to update,
+// instead of triggering the whole re-render due to the change in updatedTracksTimestamp.
 
 const Tracks = () => {
     const [numTracks, setNumTracks] = useState(1);
 
-    function getTracks() {
-        console.log(PianoAuthorV2.Song);
+    const updatedTrackNumbers = useSelector((state) => state[Keys.UPDATED_TRACKS_LIST]);
+    const updatedTracksTimestamp = useSelector((state) => state[Keys.UPDATED_TRACKS_TIMESTAMP]);
+    useEffect(() => {
+        console.log(`Tracks updated at ${updatedTracksTimestamp}. Need to rerender tracks: ${updatedTrackNumbers}`);
+    }, [updatedTrackNumbers, updatedTracksTimestamp]);
 
+    function getTracks() {
         const tracks = [];
         for (let trackNumber = 0; trackNumber < numTracks; trackNumber++) {
-            const numNoteGroups = PianoAuthorV2.Song.getNumNoteGroupsInTrack(trackNumber);
+            const numNoteGroups = Song.getNumNoteGroupsInTrack(trackNumber);
             const isEmpty = numNoteGroups === 0;
             const trackContainerClasses = classNames("track-container", { empty: isEmpty });
 
             const noteGroups = [];
             for (let n = 0; n < numNoteGroups; n++) {
-                const noteGroup = PianoAuthorV2.Song.getNoteGroupFromTrack(n, trackNumber);
+                const noteGroup = Song.getNoteGroupFromTrack(n, trackNumber);
                 const noteGroupClasses = classNames("notegroup", { multiple: noteGroup.numNotes > 1 });
-                const noteGroupID = PianoAuthorV2.Song.getNoteGroupID(trackNumber, n); // t_0_n_0 stands for track 0 notegroup 0
-                noteGroups.push(
-                    <div id={noteGroupID} className={noteGroupClasses}>
+                const noteGroupID = Song.getNoteGroupID(trackNumber, n); // t_0_n_0 stands for track 0 notegroup 0
+                const noteGroupDIV = (
+                    <div key={noteGroupID} id={noteGroupID} className={noteGroupClasses}>
                         {noteGroup.toString()}
                     </div>
                 );
+                noteGroups.push(noteGroupDIV);
             }
 
-            tracks.push(
-                <div id={`track-${trackNumber}-container`} className={trackContainerClasses}>
+            const containerID = `track-${trackNumber}-container`;
+            const trackContainerDIV = (
+                <div key={containerID} id={containerID} className={trackContainerClasses} last-update={updatedTracksTimestamp}>
                     <input id={`track-${trackNumber}-checkbox`} type="checkbox" className="checkbox" />
                     <div id={`track-${trackNumber}-info`} className="track-info">
                         {isEmpty ? "" : numNoteGroups}
@@ -37,6 +51,8 @@ const Tracks = () => {
                     </div>
                 </div>
             );
+
+            tracks.push(trackContainerDIV);
         }
         return tracks;
     }
@@ -44,11 +60,6 @@ const Tracks = () => {
     return (
         <>
             <div id="tracks">{getTracks()}</div>
-            <style jsx>{`
-                div {
-                    border: 3px solid red;
-                }
-            `}</style>
         </>
     );
 };

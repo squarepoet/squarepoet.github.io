@@ -22,12 +22,11 @@ const Page = () => {
     // const workerRef = useRef<Worker>();
     const [showPreloadDialog, setShowPreloadDialog] = useState(true);
     const [fileInfo, setFileInfo] = useState("");
-    const [numTracks, setNumTracks] = useState(1);
 
     const dispatch = useDispatch();
 
     useEffect(() => {
-        PianoAuthorV2.reduxDispatch = dispatch;
+        PianoAuthorV2.setDispatchFunction(dispatch);
         PianoAuthorV2.start();
 
         // workerRef.current = new Worker("./clock.worker.js", { type: "module" });
@@ -74,20 +73,6 @@ const Page = () => {
         }
     }, [midiFileTimestamp]);
 
-    function getTrackComponents() {
-        const divs = [];
-        for (let trackNum = 0; trackNum < numTracks; trackNum++) {
-            divs.push(
-                <div id={`track-${trackNum}-container`} className="track-container">
-                    <input id="track-${t}-checkbox" type="checkbox" className="checkbox" />
-                    <div id="track-${t}-info" className="track-info"></div>
-                    <div id="track-${t}" className="track"></div>
-                </div>
-            );
-        }
-        return divs;
-    }
-
     return (
         <>
             {showPreloadDialog ? <PreloadDialog initialOpenState={showPreloadDialog} preloadNow={startAudio} /> : null}
@@ -113,7 +98,7 @@ const Page = () => {
                 <div id="song-info" className="bottom-info">
                     &nbsp;
                 </div>
-                <PlayPauseStop onPlay={PianoAuthorV2.PlayBack.play} onPause={PianoAuthorV2.PlayBack.pause} onStop={PianoAuthorV2.PlayBack.stop} />
+                <PlayPauseStop onPlay={PianoAuthorV2.Playback.play} onPause={PianoAuthorV2.Playback.pause} onStop={PianoAuthorV2.Playback.stop} />
             </div>
             <style jsx global>{`
                 html {

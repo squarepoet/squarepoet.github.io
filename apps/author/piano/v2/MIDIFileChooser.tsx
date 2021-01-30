@@ -11,8 +11,6 @@ const MIDIFileChooser = () => {
             // Read the first file.
             const file = files[0];
             MIDIFileIO.readFileAsync(file).then((fileName) => {
-                debugger;
-                console.log("YAY " + fileName);
                 dispatch({ type: Actions.FileChooser.onFileLoaded });
             });
         }
