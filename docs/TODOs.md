@@ -5,15 +5,19 @@
 
 # NEXT
 
--   [ ] Batch dispatches somehow.... I should only trigger the minimal amount of stuff that has changed, so we don't re-render too much!
-    -   [ ] Change to Context API, but also create convenience methods for dispatching to the Store. Some of these convenience methods will be batched (or debounced).
+-   [ ] Rely on Singletons / Static Classes for storing the model. Then just dispatch EVENTS to say that the model has changed. EVENTS can just update the timestamp of the event or something, to trigger a re-render.
+    -   [ ] Batch dispatches somehow.... I should only trigger the minimal amount of stuff that has changed, so we don't re-render too much!
+-   [ ] Fix the Highlight Feature
+-   [ ] Add a keyboard shortcut to ADD_NEW_TRACKS
+    -   [ ] Then allow the user to append notes to different tracks.
+    -   [ ] When we download the song, we will copy all notes as separate lines.
+    -   [ ] When we play the song, we will play all tracks simultaneously, one notegroup per tick.
+-   [ ] Add a keyboard shortcut to ADD_MEASURE_SEPARATOR ||. This separator will be skipped during playback.
 
 # Piano TODOs
 
--   [ ] Replace Redux w/ the Context API.
-    -   [ ] Rely on Singletons / Static Classes for storing data. Then just dispatch EVENTS to say that the model has changed. EVENTS can just update the timestamp of the event or something.
 -   [ ] THE CODE IS REALLY UGLY :-) I'm still converting jQuery to React, so I should clean stuff up whenever possible.
--   [ ] V2: Make interaction between JS/CSS and HTML/DOM more React-like rather than jQuery like!
+    -   [ ] V2: Make interaction between JS/CSS and HTML/DOM more React-like rather than jQuery like!
 -   [ ] Test out how <input> tags work in React. I swear there's a bug in React where onChange isn't fired when you select all and delete.
 -   [ ] Piano.V1: The first note you hit will be Synth tones. It will auto switch to Sampler tones once everything is preloaded. SWEET!
 -   [ ] Piano.V1: Piano.ts should preload the samples in a programmatic way with less repetition of the baseURL and audio file names.
