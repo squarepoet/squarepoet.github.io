@@ -5,13 +5,16 @@
 
 # NEXT
 
--   [ ] Rely on Singletons / Static Classes for storing the model. Then just dispatch EVENTS to say that the model has changed. EVENTS can just update the timestamp of the event or something, to trigger a re-render.
-    -   [ ] Batch dispatches somehow.... I should only trigger the minimal amount of stuff that has changed, so we don't re-render too much!
--   [ ] Fix the Highlight Feature
+-   [ ] Organize CSS for Tracks. Move them from index.tsx => Tracks.tsx.
+-   [ ] Tracks.tsx should be broken down into more components??? Maybe?
+-   [ ] CONTINUE: Fixing the Highlight Feature. We should not be able to highlight tracks that don't exist. Make sure the highlight is obvious.
 -   [ ] Add a keyboard shortcut to ADD_NEW_TRACKS
     -   [ ] Then allow the user to append notes to different tracks.
     -   [ ] When we download the song, we will copy all notes as separate lines.
     -   [ ] When we play the song, we will play all tracks simultaneously, one notegroup per tick.
+-   [ ]
+-   [ ] Rely on Singletons / Static Classes for storing the model. Then just dispatch EVENTS to say that the model has changed. EVENTS can just update the timestamp of the event or something, to trigger a re-render.
+    -   [ ] Batch dispatches somehow.... I should only trigger the minimal amount of stuff that has changed, so we don't re-render too much!
 -   [ ] Add a keyboard shortcut to ADD_MEASURE_SEPARATOR ||. This separator will be skipped during playback.
 
 # Piano TODOs

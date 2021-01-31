@@ -1,3 +1,5 @@
+import Highlight from "apps/author/piano/v2/Highlight";
+import { Note, NoteGroup, Track } from "apps/author/piano/v2/Music";
 import Constants from "apps/shared/Constants";
 import Utils from "apps/shared/dom/Utils";
 import MIDIFileIO from "apps/shared/midi/MIDIFileIO";
@@ -5,8 +7,6 @@ import MIDIUtils from "apps/shared/midi/MIDIUtils";
 import Actions from "apps/shared/redux/Actions";
 import Instrument from "apps/shared/sound/Instrument";
 import throttle from "lodash.throttle";
-
-import { Note, NoteGroup, Track } from "./Music";
 
 const MIDIEvents = require("midievents");
 
@@ -289,15 +289,6 @@ function saveAndShowData() {
     UI.drawPiano();
 }
 
-function scrollNoteGroupIntoView(trackNumber: number, noteGroupNumber: number) {
-    const noteGroupID = Song.getNoteGroupID(trackNumber, noteGroupNumber);
-    // Scroll the divs all the way to the right to make sure the most recent NoteGroups are visible.
-    const element = <HTMLElement>document.querySelector(`#${noteGroupID}`);
-    if (element) {
-        element.scrollIntoView();
-    }
-}
-
 ////////////////////////////////////////////////////////////
 
 namespace LocalStorage {
@@ -429,129 +420,6 @@ function playPianoNote(pianoKeyNumber, velocity = 127.0) {
     }
     const duration = 1.0; // 0.125, 0.25, 0.5, 1.0, 2.0;
     piano.play(pianoKeyNumber, duration, velocity / 127.0);
-}
-
-/////////////////////////////////////////////////////////////////////////////////
-
-// Allow us to highlight a current track or current note group.
-namespace Highlight {
-    const h = "highlight";
-
-    let currTrackNumber: number = 0;
-    let currNoteGroupNumberForTrackNumber: number[] = [];
-
-    let $currTrack = null;
-    let $currTrackInfo = null;
-    let $currNoteGroup = null;
-
-    export function setupIndexes() {
-        currTrackNumber = 0;
-        currNoteGroupNumberForTrackNumber = [];
-        let numTracks = Song.getNumTracks();
-        for (let t = 0; t < numTracks; t++) {
-            currNoteGroupNumberForTrackNumber.push(0);
-        }
-    }
-
-    export function getCurrentTrackNumber(): number {
-        return currTrackNumber;
-    }
-
-    export function currentNoteGroup(): number {
-        return currNoteGroupNumberForTrackNumber[currTrackNumber];
-    }
-
-    // Updates the visual indicators for our current track and current notegroup.
-    export function update() {
-        // assume the currentTrack & currentNoteGroup numbers are valid.
-        // unhighlight the currently highlighted tracks.
-        if ($currTrack) {
-            $currTrack.removeClass(h);
-        }
-        if ($currTrackInfo) {
-            $currTrackInfo.removeClass(h);
-        }
-        if ($currNoteGroup) {
-            $currNoteGroup.removeClass(h);
-        }
-
-        // OLD jQuery Stuff: addClass("highlight") to highlight the current track and trackInfo and noteGroup
-        // $currTrack = $tracks[currTrackNumber].addClass(h);
-        // $currTrackInfo = $trackInfos[currTrackNumber].addClass(h);
-        // $currNoteGroup = $("#" + Song.getNoteGroupID(currTrackNumber, currentNoteGroup())).addClass(h);
-
-        UI.drawPiano();
-    }
-
-    function validateTrackNumber() {
-        let numTracks = Song.getNumTracks();
-        if (currTrackNumber < 0) {
-            currTrackNumber = 0;
-        } else if (currTrackNumber >= numTracks) {
-            currTrackNumber = numTracks - 1;
-        }
-    }
-
-    function validateNoteGroupNumber() {
-        // Assume the current track number is valid.
-        let numNoteGroups = Song.getNumNoteGroupsInTrack(currTrackNumber);
-        let noteGroupNumber = currentNoteGroup();
-        if (noteGroupNumber < 0) {
-            setCurrentNoteGroupNumber(0);
-        } else if (noteGroupNumber >= numNoteGroups) {
-            setCurrentNoteGroupNumber(numNoteGroups - 1);
-        }
-    }
-
-    export function setTrackAndNoteGroup(t: number, n: number) {
-        currTrackNumber = t;
-        setCurrentNoteGroupNumber(n);
-        validateTrackNumber();
-        validateUpdateScroll();
-    }
-
-    export function prevTrack() {
-        currTrackNumber--;
-        validateTrackNumber();
-        update();
-    }
-
-    export function nextTrack() {
-        currTrackNumber++;
-        validateTrackNumber();
-        update();
-    }
-
-    function setCurrentNoteGroupNumber(i) {
-        currNoteGroupNumberForTrackNumber[currTrackNumber] = i;
-    }
-
-    export function prevNoteGroup() {
-        currNoteGroupNumberForTrackNumber[currTrackNumber]--;
-        validateUpdateScroll();
-    }
-
-    export function nextNoteGroup() {
-        currNoteGroupNumberForTrackNumber[currTrackNumber]++;
-        validateUpdateScroll();
-    }
-
-    export function firstNoteGroup() {
-        setCurrentNoteGroupNumber(0);
-        validateUpdateScroll();
-    }
-
-    export function lastNoteGroup() {
-        let numNoteGroups = Song.getNumNoteGroupsInTrack(currTrackNumber);
-        setCurrentNoteGroupNumber(numNoteGroups - 1);
-        validateUpdateScroll();
-    }
-
-    function validateUpdateScroll() {
-        validateNoteGroupNumber();
-        update();
-        scrollNoteGroupIntoView(currTrackNumber, currentNoteGroup());
-    }
 }
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -738,7 +606,7 @@ namespace Playback {
 
     function playCurrentNoteGroup() {
         let t = Highlight.getCurrentTrackNumber();
-        let n = Highlight.currentNoteGroup();
+        let n = Highlight.getCurrentNoteGroupNumber();
         let noteGroup = Song.getNoteGroupFromTrack(n, t);
         if (!noteGroup) {
             return;
@@ -826,12 +694,22 @@ namespace UI {
         //     // #TODO: Is there a one-off error here?
         //     scrollNoteGroupIntoView(t, numNoteGroups); // n is set to the last noteGroup.
         // }
-        // Highlight.update();
+
+        Highlight.update();
 
         const payload = {};
         payload[Constants.StoreKeys.UPDATED_TRACKS_LIST] = Song.getRecentlyUpdatedTrackNumbersAsArray();
         dispatchEvent({ type: Actions.Song.onTracksUpdated, payload: payload });
         Song.resetRecentlyUpdatedTrackNumbers();
+    }
+
+    export function scrollNoteGroupIntoView(trackNumber: number, noteGroupNumber: number) {
+        const noteGroupID = Song.getNoteGroupID(trackNumber, noteGroupNumber);
+        // Scroll the divs all the way to the right to make sure the most recent NoteGroups are visible.
+        const element = <HTMLElement>document.querySelector(`#${noteGroupID}`);
+        if (element) {
+            element.scrollIntoView();
+        }
     }
 
     ////////////////////////////////////////////////////////////
@@ -967,26 +845,22 @@ namespace UI {
                 if (e.metaKey) {
                     // CMD + LEFT
                     Highlight.firstNoteGroup();
+                } else if (e.shiftKey) {
+                    // SHIFT + LEFT
+                    Playback.playAndGoBackwardOnCurrentTrack();
                 } else {
-                    if (e.shiftKey) {
-                        // SHIFT + LEFT
-                        Playback.playAndGoBackwardOnCurrentTrack();
-                    } else {
-                        Highlight.prevNoteGroup();
-                    }
+                    Highlight.prevNoteGroup();
                 }
                 break;
             case 39: // RIGHT
                 if (e.metaKey) {
                     // CMD + RIGHT
                     Highlight.lastNoteGroup();
+                } else if (e.shiftKey) {
+                    // SHIFT + RIGHT
+                    Playback.playAndGoForwardOnCurrentTrack();
                 } else {
-                    if (e.shiftKey) {
-                        // SHIFT + RIGHT
-                        Playback.playAndGoForwardOnCurrentTrack();
-                    } else {
-                        Highlight.nextNoteGroup();
-                    }
+                    Highlight.nextNoteGroup();
                 }
                 break;
             default:
@@ -1160,7 +1034,7 @@ namespace UI {
     // draw the highlighted group?
     function drawMostRecentGroup(c) {
         const trackNumber = Highlight.getCurrentTrackNumber();
-        const noteGroupNumber = Highlight.currentNoteGroup();
+        const noteGroupNumber = Highlight.getCurrentNoteGroupNumber();
 
         const lastGroup = Song.getNoteGroupFromTrack(noteGroupNumber, trackNumber);
         if (!lastGroup) {
@@ -1263,7 +1137,7 @@ namespace Tracks {
     export function setupTracks(numTracks: number) {
         Song.reset();
         addTracks(numTracks);
-        Highlight.setupIndexes();
+        Highlight.setupIndexes(numTracks);
     }
 
     function addTracks(numTracks: number) {
@@ -1491,9 +1365,12 @@ namespace Song {
 
 const _PlaybackNS = Playback;
 const _SongNS = Song;
+const _UINS = UI;
+
 namespace App {
     export const Playback = _PlaybackNS;
     export const Song = _SongNS;
+    export const UI = _UINS;
 
     let songVersion: number = Constants.MIN_SONG_VERSION; // We need to update this every time the redux store changes!
     export function getSongVersion() {

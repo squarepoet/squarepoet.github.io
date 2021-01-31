@@ -1,6 +1,7 @@
 import SharpsAndFlats from "apps/author/piano/shared/SharpsAndFlats";
 import PianoAuthorV2 from "apps/author/piano/v2/App";
 import DownloadSong from "apps/author/piano/v2/DownloadSong";
+import Highlight from "apps/author/piano/v2/Highlight";
 import MIDIFileChooser from "apps/author/piano/v2/MIDIFileChooser";
 import PlayPauseStop from "apps/author/piano/v2/PlayPauseStop";
 import Tracks from "apps/author/piano/v2/Tracks";
@@ -22,10 +23,13 @@ const Page = () => {
     // const workerRef = useRef<Worker>();
     const [showPreloadDialog, setShowPreloadDialog] = useState(true);
     const [fileInfo, setFileInfo] = useState("");
+    const [higlightedTrackNumber, setHighlightedTrackNumber] = useState(0);
+    const [higlightedNoteGruopNumber, setHighlightedNoteGroupNumber] = useState(0);
 
     const dispatch = useDispatch();
 
     useEffect(() => {
+        Highlight.setupCallbacks(setHighlightedTrackNumber, setHighlightedNoteGroupNumber, PianoAuthorV2.UI.drawPiano, PianoAuthorV2.Song.getNumTracks, PianoAuthorV2.Song.getNumNoteGroupsInTrack, PianoAuthorV2.UI.scrollNoteGroupIntoView);
         PianoAuthorV2.setDispatchFunction(dispatch);
         PianoAuthorV2.start();
 
@@ -75,6 +79,10 @@ const Page = () => {
 
     return (
         <>
+            <div>
+                <div>{higlightedTrackNumber}</div>
+                <div>{higlightedNoteGruopNumber}</div>
+            </div>
             {showPreloadDialog ? <PreloadDialog initialOpenState={showPreloadDialog} preloadNow={startAudio} /> : null}
             <DownloadSong />
             <VersionToggle />
@@ -85,7 +93,7 @@ const Page = () => {
             </div>
             <SharpsAndFlats style={{ float: "right" }} />
             <div id="content" className="content">
-                <Tracks />
+                <Tracks higlightedTrackNumber={higlightedTrackNumber} highlightedNoteGroupNumber={higlightedNoteGruopNumber} />
                 <canvas id="pianoCanvas" width="1040" height="150"></canvas>
             </div>
             <div id="current-status">&nbsp;</div>
@@ -116,11 +124,6 @@ const Page = () => {
 
                 .notegroup.multiple {
                     color: #59b;
-                }
-
-                .notegroup.highlight {
-                    color: #f67;
-                    background-color: rgba(238, 119, 153, 0.2);
                 }
 
                 .shortcuts {
@@ -196,10 +199,6 @@ const Page = () => {
                     border-bottom: 1px solid rgba(255, 255, 255, 0);
                 }
 
-                .track.highlight {
-                    border-bottom: 1px solid rgba(238, 119, 153, 0.4);
-                }
-
                 .track-info {
                     box-sizing: border-box;
                     width: 38px;
@@ -216,10 +215,6 @@ const Page = () => {
                     display: inline-block;
                     line-height: 40px;
                     border-bottom: 1px solid rgba(255, 255, 255, 0);
-                }
-
-                .track-info.highlight {
-                    border-bottom: 1px solid rgba(238, 119, 153, 0.4);
                 }
 
                 .checkbox {

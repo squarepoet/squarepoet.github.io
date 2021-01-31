@@ -10,7 +10,12 @@ const Keys = Constants.StoreKeys;
 // #TODO: There has to be a more efficient way to only update the tracks we need to update,
 // instead of triggering the whole re-render due to the change in updatedTracksTimestamp.
 
-const Tracks = () => {
+type Props = {
+    higlightedTrackNumber: number;
+    highlightedNoteGroupNumber: number;
+};
+
+const Tracks = ({ higlightedTrackNumber, highlightedNoteGroupNumber }: Props) => {
     const [numTracks, setNumTracks] = useState(1);
 
     const updatedTrackNumbers = useSelector((state) => state[Keys.UPDATED_TRACKS_LIST]);
@@ -21,16 +26,17 @@ const Tracks = () => {
 
     function getTracks() {
         const tracks = [];
-        for (let trackNumber = 0; trackNumber < numTracks; trackNumber++) {
-            const numNoteGroups = Song.getNumNoteGroupsInTrack(trackNumber);
+        for (let currTrackNumber = 0; currTrackNumber < numTracks; currTrackNumber++) {
+            const numNoteGroups = Song.getNumNoteGroupsInTrack(currTrackNumber);
             const isEmpty = numNoteGroups === 0;
+            const currTrackIsHighlighted = higlightedTrackNumber == currTrackNumber;
             const trackContainerClasses = classNames("track-container", { empty: isEmpty });
 
             const noteGroups = [];
             for (let n = 0; n < numNoteGroups; n++) {
-                const noteGroup = Song.getNoteGroupFromTrack(n, trackNumber);
-                const noteGroupClasses = classNames("notegroup", { multiple: noteGroup.numNotes > 1 });
-                const noteGroupID = Song.getNoteGroupID(trackNumber, n); // t_0_n_0 stands for track 0 notegroup 0
+                const noteGroup = Song.getNoteGroupFromTrack(n, currTrackNumber);
+                const noteGroupClasses = classNames("notegroup", { multiple: noteGroup.numNotes > 1, highlight: currTrackIsHighlighted && highlightedNoteGroupNumber == n });
+                const noteGroupID = Song.getNoteGroupID(currTrackNumber, n); // t_0_n_0 stands for track 0 notegroup 0
                 const noteGroupDIV = (
                     <div key={noteGroupID} id={noteGroupID} className={noteGroupClasses}>
                         {noteGroup.toString()}
@@ -39,14 +45,17 @@ const Tracks = () => {
                 noteGroups.push(noteGroupDIV);
             }
 
-            const containerID = `track-${trackNumber}-container`;
+            const trackClasses = classNames("track", { highlight: currTrackIsHighlighted });
+            const trackInfoClasses = classNames("track-info", { highlight: currTrackIsHighlighted });
+
+            const containerID = `track-${currTrackNumber}-container`;
             const trackContainerDIV = (
                 <div key={containerID} id={containerID} className={trackContainerClasses} last-update={updatedTracksTimestamp}>
-                    <input id={`track-${trackNumber}-checkbox`} type="checkbox" className="checkbox" />
-                    <div id={`track-${trackNumber}-info`} className="track-info">
+                    <input id={`track-${currTrackNumber}-checkbox`} type="checkbox" className="checkbox" />
+                    <div id={`track-${currTrackNumber}-info`} className={trackInfoClasses}>
                         {isEmpty ? "" : numNoteGroups}
                     </div>
-                    <div id={`track-${trackNumber}`} className="track">
+                    <div id={`track-${currTrackNumber}`} className={trackClasses}>
                         {noteGroups}
                     </div>
                 </div>
@@ -60,6 +69,20 @@ const Tracks = () => {
     return (
         <>
             <div id="tracks">{getTracks()}</div>
+            <style jsx global>{`
+                .track.highlight {
+                    border-bottom: 1px solid rgba(238, 119, 153, 0.4);
+                }
+
+                .track-info.highlight {
+                    border-bottom: 1px solid rgba(238, 119, 153, 0.4);
+                }
+
+                .notegroup.highlight {
+                    color: #f67;
+                    background-color: rgba(238, 119, 153, 0.2);
+                }
+            `}</style>
         </>
     );
 };
