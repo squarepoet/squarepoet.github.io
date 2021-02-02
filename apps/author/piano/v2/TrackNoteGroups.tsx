@@ -17,10 +17,6 @@ const TrackNoteGroups = (props: Props) => {
 
     const numNoteGroups = Song.getNumNoteGroupsInTrack(currTrackNumber);
 
-    // Question, will REACT call this entire loop when the highlighted note group DIV changes?
-    // Answer YES: Because our props change, so we need to re-render the entire TrackNoteGroups component, I believe.
-    // TO AVOID THIS, WE NEED TO AVOID PROP DRILLING I BELIEVE!
-
     const noteGroups = [];
     for (let noteGroupNumber = 0; noteGroupNumber < numNoteGroups; noteGroupNumber++) {
         const noteGroup = Song.getNoteGroupFromTrack(noteGroupNumber, currTrackNumber);

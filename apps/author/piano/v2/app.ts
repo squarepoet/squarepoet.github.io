@@ -45,9 +45,6 @@ const $ = (arg) => {
         click: (clickArg) => {
             console.log(`jQuery.click called with [${clickArg}]`);
         },
-        mouseup: (mouseupArg) => {
-            console.log(`jQuery.mouseup called with [${mouseupArg}]`);
-        },
         mousedown: (mousedownArg) => {
             console.log(`jQuery.mousedown called with [${mousedownArg}]`);
         },
@@ -236,7 +233,7 @@ namespace MIDIPianoInput {
         switch (type) {
             case 144: // note on
                 console.log("piano key down: " + pianoKey + " velocity: " + velocity);
-                playOneNote(pianoKey, false); // the second parameter (set to false) will bypass any sharp/flat modifiers.
+                App.playOneNote(pianoKey, false); // the second parameter (set to false) will bypass any sharp/flat modifiers.
                 numNotesPressed++;
                 if (numNotesPressed > 1) {
                     Song.mergeLastTwoGroups();
@@ -374,50 +371,6 @@ namespace LocalStorage {
     export function saveVersionToggle(songVersion: number) {
         localStorage.setItem("song_version", songVersion + "");
     }
-}
-
-function playOneNote(pianoKeyBeforeModifiers, applyModifiers: boolean = true) {
-    // get the name of the note we are about to play
-    let remainder = pianoKeyBeforeModifiers % 12;
-    let whiteKeyNoteIndex = whiteKeys.indexOf(remainder);
-    let noteLabel = noteLabels[whiteKeyNoteIndex];
-
-    let modifier = 0;
-    if (applyModifiers) {
-        modifier = sharpOrFlatModifier; // The user is holding down SHIFT or CTRL
-
-        // is this note auto-sharped, due to the key signature?
-        if (sharps.indexOf(noteLabel) != -1) {
-            modifier++; // raise the sharp a half-step!
-        }
-        // is this note auto-flatted, due to the key signature?
-        if (flats.indexOf(noteLabel) != -1) {
-            modifier--; // lower the note a half-step!
-        }
-    }
-
-    let pianoKeyNumber = pianoKeyBeforeModifiers + modifier + octaveOffset * 12;
-    if (pianoKeyNumber < 1 || pianoKeyNumber > 88) {
-        return;
-    }
-
-    let t = Highlight.getCurrentTrackNumber();
-    let trackLength = Song.addNoteGroupToTrack(new NoteGroup(new Note(pianoKeyNumber)), t);
-    UI.setCheckedState(t, true);
-
-    playPianoNote(pianoKeyNumber);
-
-    Highlight.setTrackAndNoteGroup(t, trackLength - 1);
-    saveAndShowData();
-}
-
-function playPianoNote(pianoKeyNumber, velocity = 127.0) {
-    if (piano === null) {
-        console.log("playPianoNote: Piano has not been initialized.");
-        return;
-    }
-    const duration = 1.0; // 0.125, 0.25, 0.5, 1.0, 2.0;
-    piano.play(pianoKeyNumber, duration, velocity / 127.0);
 }
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -610,7 +563,7 @@ namespace Playback {
             return;
         }
         for (let note of noteGroup.notes) {
-            playPianoNote(MIDIUtils.m2p(note.midiNote), note.velocity);
+            App.playPianoNote(MIDIUtils.m2p(note.midiNote), note.velocity);
         }
         let $noteGroup = $(`#t${t}_n${n}`);
         $noteGroup.addClass("played-note");
@@ -639,7 +592,6 @@ namespace UI {
     const flatsElementID = "flats-text";
 
     let $sharps, $flats;
-    // let $toggle_v1, $toggle_v2;
 
     export function updateSharpsAndFlats() {
         $sharps.val(sharps);
@@ -651,8 +603,6 @@ namespace UI {
     }
 
     export function setupJQueryDOMReferences() {
-        // $toggle_v1 = $("#toggle_v1");
-        // $toggle_v2 = $("#toggle_v2");
         $sharps = $("#sharps-text");
         $flats = $("#flats-text");
         $currentStatus = $("#current-status");
@@ -870,7 +820,7 @@ namespace UI {
                 break;
             default:
                 if (Keyboard.keyCodeToPianoKeyNumber.hasOwnProperty(keyCode)) {
-                    playOneNote(Keyboard.keyCodeToPianoKeyNumber[keyCode]);
+                    App.playOneNote(Keyboard.keyCodeToPianoKeyNumber[keyCode]);
                 }
                 break;
         }
@@ -929,25 +879,19 @@ namespace UI {
     ////////////////////////////////////////////////////////////
 
     // The Piano Visualization (Canvas 2D)
-    const WHITE_KEY_WIDTH = 20;
-    const WHITE_KEY_HEIGHT = 120;
-    const BLACK_KEY_WIDTH = 16;
+    export const WHITE_KEY_WIDTH = 20;
+    export const WHITE_KEY_HEIGHT = 120;
+    export const BLACK_KEY_WIDTH = 16;
     export const BLACK_KEY_HEIGHT = 72;
 
     let context2d = null;
     let context2dWidth = 0;
     let context2dHeight = 0;
 
-    export function setupPianoCanvas() {
-        let elem: HTMLCanvasElement = <HTMLCanvasElement>document.getElementById("pianoCanvas");
-        elem.width = 2080; // Retina Display Support
-        elem.height = 300; // Retina Display Support
-        elem.style.width = "1040px"; // Retina Display Support
-        elem.style.height = "150px"; // Retina Display Support
-        context2dWidth = elem.width;
-        context2dHeight = elem.height;
-        context2d = elem.getContext("2d");
-        context2d.scale(2, 2); // Retina Display Support
+    export function setCanvasContext(c2d, c2dWidth: number, c2dHeight: number) {
+        context2d = c2d;
+        context2dWidth = c2dWidth;
+        context2dHeight = c2dHeight;
     }
 
     export function drawPiano() {
@@ -1072,71 +1016,6 @@ namespace UI {
     }
 
     ////////////////////////////////////////////////////////////
-
-    export function setupPianoMouseHandlers() {
-        const whiteKeyOffsets = [1, 3, 4, 6, 8, 9, 11]; // A  B  C  D  E  F  G
-        const blackKeyOffsets = [2, 0, 5, 7, 0, 10, 12]; // A# _  C# D# _  F# G#
-
-        function getPianoKeyNumberForMouseLocation(x, y): number {
-            let octaveOffset = 0;
-            if (y <= BLACK_KEY_HEIGHT) {
-                // x: 12 + 20 * (key + (octave * 7))
-                // y: 0
-                // w: BLACK_KEY_WIDTH
-                // h: BLACK_KEY_HEIGHT
-                let temp = Math.floor((x - 12) / 20);
-                octaveOffset = Math.floor(temp / 7);
-                let blackKeyNumber = temp % 7;
-                let xRelativeToKeyOrigin = (x - 12) % 20;
-
-                if (
-                    xRelativeToKeyOrigin >= 0 &&
-                    xRelativeToKeyOrigin <= BLACK_KEY_WIDTH && // Make sure we're within the black key.
-                    blackKeyNumber !== 1 &&
-                    blackKeyNumber !== 4
-                ) {
-                    // There are no black keys at B# and E#.
-
-                    let keyNumber = octaveOffset * 12 + blackKeyOffsets[blackKeyNumber];
-                    return keyNumber;
-                }
-            }
-
-            // WHITE KEYS ONLY
-            let whiteKeyNumber = Math.floor(x / 20);
-            let remainder = whiteKeyNumber % 7;
-            octaveOffset = Math.floor(whiteKeyNumber / 7);
-            return octaveOffset * 12 + whiteKeyOffsets[remainder];
-        }
-
-        let $piano = $("#pianoCanvas");
-        $piano.mousedown(function (e) {
-            let offsetLeft = this.offsetLeft;
-            let offsetTop = this.offsetTop;
-
-            let x = e.pageX - offsetLeft;
-            let y = e.pageY - offsetTop;
-
-            let pianoKeyNumber = getPianoKeyNumberForMouseLocation(x, y);
-            let lastKeyNumber = pianoKeyNumber;
-            playOneNote(pianoKeyNumber);
-
-            $piano.mousemove(function (e) {
-                let x = e.pageX - offsetLeft;
-                let y = e.pageY - offsetTop;
-
-                let pianoKeyNumber = getPianoKeyNumberForMouseLocation(x, y);
-                if (pianoKeyNumber !== lastKeyNumber) {
-                    lastKeyNumber = pianoKeyNumber;
-                    playOneNote(pianoKeyNumber);
-                }
-            });
-        });
-
-        $("html").mouseup((e) => {
-            $piano.unbind("mousemove");
-        });
-    }
 }
 
 namespace Tracks {
@@ -1402,8 +1281,6 @@ namespace App {
         UI.showNoteGroupsForTracks();
         UI.setupMouseHandlers();
         UI.setupCopyHandler();
-        UI.setupPianoCanvas();
-        UI.setupPianoMouseHandlers();
         UI.drawPiano();
     }
 
@@ -1497,6 +1374,50 @@ namespace App {
         const midiFile = MIDIFileIO.createFileFromTracks(trackNumbersToInclude, Song.getNoteGroupsFromTracks());
         const base64Text = btoa(midiFile); // base 64 encoding
         return base64Text;
+    }
+
+    export function playOneNote(pianoKeyBeforeModifiers, applyModifiers: boolean = true) {
+        // get the name of the note we are about to play
+        let remainder = pianoKeyBeforeModifiers % 12;
+        let whiteKeyNoteIndex = whiteKeys.indexOf(remainder);
+        let noteLabel = noteLabels[whiteKeyNoteIndex];
+
+        let modifier = 0;
+        if (applyModifiers) {
+            modifier = sharpOrFlatModifier; // The user is holding down SHIFT or CTRL
+
+            // is this note auto-sharped, due to the key signature?
+            if (sharps.indexOf(noteLabel) != -1) {
+                modifier++; // raise the sharp a half-step!
+            }
+            // is this note auto-flatted, due to the key signature?
+            if (flats.indexOf(noteLabel) != -1) {
+                modifier--; // lower the note a half-step!
+            }
+        }
+
+        let pianoKeyNumber = pianoKeyBeforeModifiers + modifier + octaveOffset * 12;
+        if (pianoKeyNumber < 1 || pianoKeyNumber > 88) {
+            return;
+        }
+
+        let t = Highlight.getCurrentTrackNumber();
+        let trackLength = Song.addNoteGroupToTrack(new NoteGroup(new Note(pianoKeyNumber)), t);
+        UI.setCheckedState(t, true);
+
+        App.playPianoNote(pianoKeyNumber);
+
+        Highlight.setTrackAndNoteGroup(t, trackLength - 1);
+        saveAndShowData();
+    }
+
+    export function playPianoNote(pianoKeyNumber, velocity = 127.0) {
+        if (piano === null) {
+            console.log("playPianoNote: Piano has not been initialized.");
+            return;
+        }
+        const duration = 1.0; // 0.125, 0.25, 0.5, 1.0, 2.0;
+        piano.play(pianoKeyNumber, duration, velocity / 127.0);
     }
 }
 

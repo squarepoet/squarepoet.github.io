@@ -12,7 +12,7 @@ const Page = (props) => {
     return (
         <div id="content">
             <textarea id="textarea" rows={8} cols={100}></textarea>
-            <canvas id="pianoCanvas" ref={canvasRef} width={CANVAS_WIDTH} height={CANVAS_HEIGHT} onClick={showXY}></canvas>
+            <canvas ref={canvasRef} width={CANVAS_WIDTH} height={CANVAS_HEIGHT} onClick={showXY}></canvas>
             <style jsx>{`
                 div {
                     width: 100%;

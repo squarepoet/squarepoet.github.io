@@ -5,8 +5,14 @@
 
 # NEXT
 
+-   [ ] When the page first appears, the canvas is blank sometimes. (Usually due to fast refresh during development.)
+-   [ ] The piano canvas is not centered within its parent container div.
+-   [ ]
+-   [ ] FIX Mouse Handlers in PianoKeyboard.tsx. Right now clicking on left edge has a 17px offset or something. Whatever's going on, I end up playing the wrong note when I click the piano key.
+    -   [ ] When my mouse leaves to the left side of the canvas, it plays middle C or something. Handle negative X values correctly! Clamp to 0! :-)
+-   [ ] The first track should not be squished down. It should always be checked, if it's the only track.
 -   [ ] Organize CSS for Tracks. Move them from index.tsx => Tracks.tsx.
--   [ ] Tracks.tsx should be broken down into more components??? Maybe?
+-   [x] Tracks.tsx should be broken down into more components.
 -   [ ] CONTINUE: Fixing the Highlight Feature. We should not be able to highlight tracks that don't exist. Make sure the highlight is obvious.
 -   [ ] Add a keyboard shortcut to ADD_NEW_TRACKS
     -   [ ] Then allow the user to append notes to different tracks.

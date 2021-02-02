@@ -3,6 +3,7 @@ import PianoAuthorV2 from "apps/author/piano/v2/App";
 import DownloadSong from "apps/author/piano/v2/DownloadSong";
 import Highlight from "apps/author/piano/v2/Highlight";
 import MIDIFileChooser from "apps/author/piano/v2/MIDIFileChooser";
+import PianoKeyboard from "apps/author/piano/v2/PianoKeyboard";
 import PlayPauseStop from "apps/author/piano/v2/PlayPauseStop";
 import Tracks from "apps/author/piano/v2/Tracks";
 import VersionToggle from "apps/author/piano/v2/VersionToggle";
@@ -90,12 +91,11 @@ const Page = () => {
             <SharpsAndFlats style={{ float: "right" }} />
             <div id="content" className="content">
                 <Tracks highlightedTrackNumber={highlightedTrackNumber} highlightedNoteGroupNumber={highlightedNoteGroupNumber} />
-                <canvas id="pianoCanvas" width="1040" height="150"></canvas>
+                <PianoKeyboard />
             </div>
             <div id="current-status">&nbsp;</div>
             <div id="bottom-panel">
                 <MIDIFileChooser />
-
                 <div id="file-info" className="bottom-info">
                     {fileInfo}
                 </div>
@@ -222,12 +222,6 @@ const Page = () => {
                     margin-right: 6px;
                     border: 0px;
                     padding: 0px;
-                }
-
-                #pianoCanvas {
-                    border: 1px solid #444;
-                    margin-top: 10px;
-                    cursor: pointer;
                 }
 
                 /* always show scrollbars */
