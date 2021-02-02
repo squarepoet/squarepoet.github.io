@@ -114,6 +114,7 @@ const PianoKeyboard = () => {
     useEffect(() => {
         setupCanvas(canvasRef.current);
         PianoAuthorV2.UI.setCanvasContext(context2d, context2dWidth, context2dHeight);
+        PianoAuthorV2.UI.drawPiano();
     }, []);
 
     return (
@@ -123,8 +124,11 @@ const PianoKeyboard = () => {
             </div>
             <style jsx>{`
                 div {
+                    margin: auto;
                     margin-top: 12px;
                     border: 1px solid #444;
+                    width: 1040px;
+                    height: 150px;
                 }
                 canvas {
                     cursor: pointer;

@@ -5,8 +5,7 @@
 
 # NEXT
 
--   [ ] When the page first appears, the canvas is blank sometimes. (Usually due to fast refresh during development.)
--   [ ] The piano canvas is not centered within its parent container div.
+-   [ ]
 -   [ ]
 -   [ ] FIX Mouse Handlers in PianoKeyboard.tsx. Right now clicking on left edge has a 17px offset or something. Whatever's going on, I end up playing the wrong note when I click the piano key.
     -   [ ] When my mouse leaves to the left side of the canvas, it plays middle C or something. Handle negative X values correctly! Clamp to 0! :-)
@@ -50,13 +49,13 @@
 -   [ ] When I refresh or go to a URL directly, it gets a 404! Something about routing?
     -   [x] This does NOT happen on surge or GitHub pages! We need to configure something with the test server!
 -   [ ] Add trailing slash on about/ page and other similar pages.
+-   [ ] Learn about Debugging: https://code.visualstudio.com/docs/nodejs/nodejs-debugging#_breakpoints
 
-# Debugging with Chrome and VSCode
+# DONE
 
--   [x] Learn more about debugging.
+-   [x] The piano canvas is not centered within its parent container div.
+-   [x] Due to fast refresh during development, when the page first appears, the canvas is blank sometimes.
+-   [x] Learn more about Debugging with Chrome and VSCode
     -   [x] chrome://inspect/
     -   [x] In VS Code, hit CMD+P and enter >Debug:Start Debugging
     -   [x] Then add debugger; statements
-    -   [ ] See https://code.visualstudio.com/docs/nodejs/nodejs-debugging#_breakpoints
-
-# DONE

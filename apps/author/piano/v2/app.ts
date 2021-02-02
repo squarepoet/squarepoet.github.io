@@ -1275,6 +1275,7 @@ namespace App {
 
     // Once the DOM is ready, call App.start()
     export function start() {
+        console.log("App.start()");
         MIDIPianoInput.setup();
         UI.setupJQueryDOMReferences();
         LocalStorage.load();
