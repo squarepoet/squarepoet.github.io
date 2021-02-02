@@ -54,7 +54,6 @@ namespace Highlight {
 
     // Updates the visual indicators for our current track and current notegroup.
     export function update() {
-        console.log("HIGHLIGHT UPDATE()");
         setHighlightedTrackNumber(getCurrentTrackNumber());
         setHighlightedNoteGroupNumber(getCurrentNoteGroupNumber());
         drawPiano();

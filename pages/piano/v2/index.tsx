@@ -23,8 +23,8 @@ const Page = () => {
     // const workerRef = useRef<Worker>();
     const [showPreloadDialog, setShowPreloadDialog] = useState(true);
     const [fileInfo, setFileInfo] = useState("");
-    const [higlightedTrackNumber, setHighlightedTrackNumber] = useState(0);
-    const [higlightedNoteGruopNumber, setHighlightedNoteGroupNumber] = useState(0);
+    const [highlightedTrackNumber, setHighlightedTrackNumber] = useState(0);
+    const [highlightedNoteGroupNumber, setHighlightedNoteGroupNumber] = useState(0);
 
     const dispatch = useDispatch();
 
@@ -79,10 +79,6 @@ const Page = () => {
 
     return (
         <>
-            <div>
-                <div>{higlightedTrackNumber}</div>
-                <div>{higlightedNoteGruopNumber}</div>
-            </div>
             {showPreloadDialog ? <PreloadDialog initialOpenState={showPreloadDialog} preloadNow={startAudio} /> : null}
             <DownloadSong />
             <VersionToggle />
@@ -93,7 +89,7 @@ const Page = () => {
             </div>
             <SharpsAndFlats style={{ float: "right" }} />
             <div id="content" className="content">
-                <Tracks higlightedTrackNumber={higlightedTrackNumber} highlightedNoteGroupNumber={higlightedNoteGruopNumber} />
+                <Tracks highlightedTrackNumber={highlightedTrackNumber} highlightedNoteGroupNumber={highlightedNoteGroupNumber} />
                 <canvas id="pianoCanvas" width="1040" height="150"></canvas>
             </div>
             <div id="current-status">&nbsp;</div>

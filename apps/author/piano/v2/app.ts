@@ -94,7 +94,6 @@ let piano = null;
 namespace Keyboard {
     // which character to type to get the corresponding white key
     export const labels = [
-        "␣",
         "z",
         "x", // G A B
         "c",
@@ -143,7 +142,6 @@ namespace Keyboard {
     ];
 
     export const keyCodeToPianoKeyNumber = {
-        32: 11, // SPACE => G1
         90: 13, // z => A
         88: 15, // x => B
         //
@@ -752,10 +750,12 @@ namespace UI {
             return;
         }
 
-        let keyCode = e.keyCode;
+        const keyCode = e.keyCode;
+        const metaKeyIsDown = e.metaKey; // e.metaKey => CMD (91 is LEFT CMD & 93 is RIGHT CMD)
+        const ctrlKeyIsDown = e.ctrlKey;
+        const shiftKeyIsDown = e.shiftKey;
 
-        // e.metaKey => CMD (91 is LEFT CMD & 93 is RIGHT CMD)
-        if (e.metaKey) {
+        if (metaKeyIsDown) {
             if (keyCode == 37 || keyCode == 39) {
                 // DO NOTHING. Fall through so that we can do CMD + LEFT ARROW and CMD + RIGHT ARROW.
             } else {
@@ -766,10 +766,10 @@ namespace UI {
 
         // CTRL => FLAT and SHIFT => SHARP
         sharpOrFlatModifier = 0;
-        if (e.ctrlKey) {
+        if (ctrlKeyIsDown) {
             sharpOrFlatModifier = -1;
         }
-        if (e.shiftKey) {
+        if (shiftKeyIsDown) {
             sharpOrFlatModifier = +1;
         }
 
@@ -821,11 +821,16 @@ namespace UI {
                 console.log("SHIFT + `");
                 resetEverything();
                 break;
+            case 32: // SPACE BAR
+                console.log("SPACE");
+                break;
             case 27: // ESC
                 console.log("ESC");
-                if (e.shiftKey) {
+                if (shiftKeyIsDown) {
+                    // SHIFT + ESC
                     resetEverything();
                 } else {
+                    // ESC resets the octave offsets
                     resetOffset();
                 }
                 break;
@@ -842,10 +847,10 @@ namespace UI {
                 Highlight.nextTrack();
                 break;
             case 37: // LEFT
-                if (e.metaKey) {
-                    // CMD + LEFT
+                if (metaKeyIsDown) {
+                    // CMD + LEFT jumps to the first notegroup of the currently highlighted track.
                     Highlight.firstNoteGroup();
-                } else if (e.shiftKey) {
+                } else if (shiftKeyIsDown) {
                     // SHIFT + LEFT
                     Playback.playAndGoBackwardOnCurrentTrack();
                 } else {
@@ -853,10 +858,10 @@ namespace UI {
                 }
                 break;
             case 39: // RIGHT
-                if (e.metaKey) {
-                    // CMD + RIGHT
+                if (metaKeyIsDown) {
+                    // CMD + RIGHT jumps to the last notegroup of the currently highlighted track.
                     Highlight.lastNoteGroup();
-                } else if (e.shiftKey) {
+                } else if (shiftKeyIsDown) {
                     // SHIFT + RIGHT
                     Playback.playAndGoForwardOnCurrentTrack();
                 } else {
@@ -952,7 +957,7 @@ namespace UI {
         let c = context2d;
 
         // clear the background
-        c.fillStyle = "#444";
+        c.fillStyle = "#333";
         c.fillRect(0, 0, context2dWidth, context2dHeight);
 
         drawWhiteKeys(c);
@@ -1023,9 +1028,10 @@ namespace UI {
         c.fillStyle = "#FFF";
         c.textAlign = "center";
 
+        // xxxx
         // draw the current character to press, under the correct key!
-        let offset = (octaveOffset + 1) * 7 - 1; // start on G (key 13)
-        let len = Keyboard.labels.length;
+        const offset = (octaveOffset + 1) * 7; // start on A (key 13)
+        const len = Keyboard.labels.length;
         for (let i = 0; i < len; i++) {
             c.fillText(Keyboard.labels[i], (i + offset) * 20 + 10, 140);
         }
@@ -1239,12 +1245,16 @@ namespace Song {
         return tracks.length;
     }
 
-    export function getNumNoteGroupsInTrack(t: number) {
-        if (t < 0 || t >= tracks.length) {
+    export function getNumNoteGroupsInTrack(trackNumber: number) {
+        if (trackNumber < 0 || trackNumber >= tracks.length) {
             return 0;
         } else {
-            return tracks[t].length;
+            return tracks[trackNumber].length;
         }
+    }
+
+    export function isTrackEmpty(trackNumber: number) {
+        return getNumNoteGroupsInTrack(trackNumber) === 0;
     }
 
     export function getTracksAsJSON(): string {

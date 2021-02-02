@@ -2,7 +2,7 @@ import Head from "next/head";
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
 
-type LayoutProps = {
+type Props = {
     title: string;
     children: React.ReactNode;
 };
@@ -14,7 +14,7 @@ function openSquarePoet() {
 }
 */
 
-const Layout = ({ title, children }: LayoutProps) => {
+const Layout = ({ title, children }: Props) => {
     return (
         <>
             <Head>

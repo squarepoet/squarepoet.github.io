@@ -1,4 +1,6 @@
 import PianoAuthorV2 from "apps/author/piano/v2/App";
+import TrackInfo from "apps/author/piano/v2/TrackInfo";
+import TrackNoteGroups from "apps/author/piano/v2/TrackNoteGroups";
 import Constants from "apps/shared/Constants";
 import classNames from "classnames";
 import { useEffect, useState } from "react";
@@ -11,11 +13,11 @@ const Keys = Constants.StoreKeys;
 // instead of triggering the whole re-render due to the change in updatedTracksTimestamp.
 
 type Props = {
-    higlightedTrackNumber: number;
+    highlightedTrackNumber: number;
     highlightedNoteGroupNumber: number;
 };
 
-const Tracks = ({ higlightedTrackNumber, highlightedNoteGroupNumber }: Props) => {
+const Tracks = ({ highlightedTrackNumber, highlightedNoteGroupNumber }: Props) => {
     const [numTracks, setNumTracks] = useState(1);
 
     const updatedTrackNumbers = useSelector((state) => state[Keys.UPDATED_TRACKS_LIST]);
@@ -27,37 +29,15 @@ const Tracks = ({ higlightedTrackNumber, highlightedNoteGroupNumber }: Props) =>
     function getTracks() {
         const tracks = [];
         for (let currTrackNumber = 0; currTrackNumber < numTracks; currTrackNumber++) {
-            const numNoteGroups = Song.getNumNoteGroupsInTrack(currTrackNumber);
-            const isEmpty = numNoteGroups === 0;
-            const currTrackIsHighlighted = higlightedTrackNumber == currTrackNumber;
+            const isEmpty = Song.isTrackEmpty(currTrackNumber);
+            const currTrackIsHighlighted = highlightedTrackNumber == currTrackNumber;
             const trackContainerClasses = classNames("track-container", { empty: isEmpty });
-
-            const noteGroups = [];
-            for (let n = 0; n < numNoteGroups; n++) {
-                const noteGroup = Song.getNoteGroupFromTrack(n, currTrackNumber);
-                const noteGroupClasses = classNames("notegroup", { multiple: noteGroup.numNotes > 1, highlight: currTrackIsHighlighted && highlightedNoteGroupNumber == n });
-                const noteGroupID = Song.getNoteGroupID(currTrackNumber, n); // t_0_n_0 stands for track 0 notegroup 0
-                const noteGroupDIV = (
-                    <div key={noteGroupID} id={noteGroupID} className={noteGroupClasses}>
-                        {noteGroup.toString()}
-                    </div>
-                );
-                noteGroups.push(noteGroupDIV);
-            }
-
-            const trackClasses = classNames("track", { highlight: currTrackIsHighlighted });
-            const trackInfoClasses = classNames("track-info", { highlight: currTrackIsHighlighted });
-
             const containerID = `track-${currTrackNumber}-container`;
             const trackContainerDIV = (
                 <div key={containerID} id={containerID} className={trackContainerClasses} last-update={updatedTracksTimestamp}>
                     <input id={`track-${currTrackNumber}-checkbox`} type="checkbox" className="checkbox" />
-                    <div id={`track-${currTrackNumber}-info`} className={trackInfoClasses}>
-                        {isEmpty ? "" : numNoteGroups}
-                    </div>
-                    <div id={`track-${currTrackNumber}`} className={trackClasses}>
-                        {noteGroups}
-                    </div>
+                    <TrackInfo currTrackNumber={currTrackNumber} currTrackIsHighlighted={currTrackIsHighlighted} />
+                    <TrackNoteGroups currTrackNumber={currTrackNumber} currTrackIsHighlighted={currTrackIsHighlighted} highlightedNoteGroupNumber={highlightedNoteGroupNumber} />
                 </div>
             );
 
@@ -69,20 +49,6 @@ const Tracks = ({ higlightedTrackNumber, highlightedNoteGroupNumber }: Props) =>
     return (
         <>
             <div id="tracks">{getTracks()}</div>
-            <style jsx global>{`
-                .track.highlight {
-                    border-bottom: 1px solid rgba(238, 119, 153, 0.4);
-                }
-
-                .track-info.highlight {
-                    border-bottom: 1px solid rgba(238, 119, 153, 0.4);
-                }
-
-                .notegroup.highlight {
-                    color: #f67;
-                    background-color: rgba(238, 119, 153, 0.2);
-                }
-            `}</style>
         </>
     );
 };
