@@ -5,7 +5,8 @@
 
 # NEXT
 
--   [ ]
+-   [ ] Restore Drag and Drop
+-   [ ] Restore Playback Buttons
 -   [ ]
 -   [ ] FIX Mouse Handlers in PianoKeyboard.tsx. Right now clicking on left edge has a 17px offset or something. Whatever's going on, I end up playing the wrong note when I click the piano key.
     -   [ ] When my mouse leaves to the left side of the canvas, it plays middle C or something. Handle negative X values correctly! Clamp to 0! :-)

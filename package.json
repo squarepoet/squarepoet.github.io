@@ -26,6 +26,7 @@
         "next": "latest",
         "react": "latest",
         "react-dom": "latest",
+        "react-file-drop": "^3.1.2",
         "react-redux": "^7.2.2",
         "react-useinterval": "^1.0.2",
         "tone": "latest",

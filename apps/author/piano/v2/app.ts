@@ -13,7 +13,7 @@ const MIDIEvents = require("midievents");
 const TIME_THRESHOLD_FOR_GROUPING_NEARBY_NOTES = 0; // Adjust this for parsing MIDI recordings of piano performances by humans (i.e., imprecise timing).
 
 // Dispatch events and send data to the global store.
-let dispatchEvent: Function = null;
+let dispatch: Function = null;
 
 // #TODO: Set up a dummy jQuery $ function while we are porting to React.
 const $ = (arg) => {
@@ -59,11 +59,6 @@ const $ = (arg) => {
         },
     };
     return retVal;
-};
-
-// Set up a dummy / stub DragDrop
-const DragDrop = (arg1, arg2) => {
-    console.log(`DragDrop called with [${arg1}][${arg2}]`);
 };
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -319,7 +314,7 @@ namespace LocalStorage {
         }
         const payload = {};
         payload[Constants.StoreKeys.SONG_VERSION] = songVersion;
-        dispatchEvent({ type: Actions.Toggle.onSongVersionFormatChanged, payload: payload });
+        dispatch({ type: Actions.Toggle.onSongVersionFormatChanged, payload: payload });
     }
 
     function loadTracks() {
@@ -647,7 +642,7 @@ namespace UI {
 
         const payload = {};
         payload[Constants.StoreKeys.UPDATED_TRACKS_LIST] = Song.getRecentlyUpdatedTrackNumbersAsArray();
-        dispatchEvent({ type: Actions.Song.onTracksUpdated, payload: payload });
+        dispatch({ type: Actions.Song.onTracksUpdated, payload: payload });
         Song.resetRecentlyUpdatedTrackNumbers();
     }
 
@@ -667,28 +662,6 @@ namespace UI {
     export function setupMouseHandlers() {
         // # TODO
         // Playback.setupButtons();
-        setupDragAndDropFileUpload();
-    }
-
-    function setupDragAndDropFileUpload() {
-        let handlers = {
-            onDrop: (files, pos) => {
-                // console.log('Here are the dropped files', files)
-                // console.log('Dropped at coordinates', pos.x, pos.y)
-
-                Playback.stop();
-                MIDIFileIO.readFileAsync(files[0]).then(() => {
-                    dispatchEvent({ type: Actions.FileChooser.onFileLoaded });
-                }); // Get the first file.
-            },
-            onDragOver: () => {
-                $("#bottom-panel").addClass("drag");
-            },
-            onDragLeave: () => {
-                $("#bottom-panel").removeClass("drag");
-            },
-        };
-        DragDrop("html", handlers);
     }
 
     export function onKeyDownHandler(e) {
@@ -1252,14 +1225,14 @@ namespace Song {
     }
 }
 
-const _PlaybackNS = Playback;
-const _SongNS = Song;
-const _UINS = UI;
+const _Playback_NS = Playback;
+const _Song_NS = Song;
+const _UI_NS = UI;
 
 namespace App {
-    export const Playback = _PlaybackNS;
-    export const Song = _SongNS;
-    export const UI = _UINS;
+    export const Playback = _Playback_NS;
+    export const Song = _Song_NS;
+    export const UI = _UI_NS;
 
     let songVersion: number = Constants.MIN_SONG_VERSION; // We need to update this every time the redux store changes!
     export function getSongVersion() {
@@ -1269,8 +1242,9 @@ namespace App {
         songVersion = v;
     }
 
-    export function setDispatchFunction(dispatch: Function) {
-        dispatchEvent = dispatch;
+    // Dispatch events to modify Redux store.
+    export function setDispatchFunction(d: Function) {
+        dispatch = d;
     }
 
     // Once the DOM is ready, call App.start()
@@ -1419,6 +1393,15 @@ namespace App {
         }
         const duration = 1.0; // 0.125, 0.25, 0.5, 1.0, 2.0;
         piano.play(pianoKeyNumber, duration, velocity / 127.0);
+    }
+
+    export function loadFirstFile(fileList: any) {
+        if (fileList.length > 0) {
+            const file = fileList[0]; // Read the first file.
+            MIDIFileIO.readFileAsync(file).then((fileName) => {
+                dispatch({ type: Actions.FileChooser.onFileLoaded });
+            });
+        }
     }
 }
 

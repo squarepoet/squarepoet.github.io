@@ -1,5 +1,6 @@
 import SharpsAndFlats from "apps/author/piano/shared/SharpsAndFlats";
 import PianoAuthorV2 from "apps/author/piano/v2/App";
+import BottomPanel from "apps/author/piano/v2/BottomPanel";
 import DownloadSong from "apps/author/piano/v2/DownloadSong";
 import Highlight from "apps/author/piano/v2/Highlight";
 import MIDIFileChooser from "apps/author/piano/v2/MIDIFileChooser";
@@ -94,7 +95,7 @@ const Page = () => {
                 <PianoKeyboard />
             </div>
             <div id="current-status">&nbsp;</div>
-            <div id="bottom-panel">
+            <BottomPanel>
                 <MIDIFileChooser />
                 <div id="file-info" className="bottom-info">
                     {fileInfo}
@@ -103,7 +104,7 @@ const Page = () => {
                     &nbsp;
                 </div>
                 <PlayPauseStop onPlay={PianoAuthorV2.Playback.play} onPause={PianoAuthorV2.Playback.pause} onStop={PianoAuthorV2.Playback.stop} />
-            </div>
+            </BottomPanel>
             <style jsx global>{`
                 html {
                     margin: 15px 1% 0px 1%;
@@ -139,23 +140,6 @@ const Page = () => {
 
                 input {
                     width: 50px;
-                }
-
-                #bottom-panel {
-                    padding: 20px;
-                    text-align: center;
-                    color: #444;
-                    background-color: #666;
-                    position: absolute;
-                    bottom: 0px;
-                    left: 0px;
-                    right: 0px;
-                }
-
-                #bottom-panel.drag {
-                    background-color: #dffafb;
-                    font-weight: bold;
-                    color: #f66;
                 }
 
                 .bottom-info {

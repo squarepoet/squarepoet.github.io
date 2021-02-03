@@ -1,7 +1,5 @@
 import { Note, NoteGroup } from "apps/author/piano/v2/Music";
 
-import { duration } from "@material-ui/core";
-
 const JSmidgenMIDI = require("jsmidgen");
 const MIDIFile = require("midifile");
 const MIDIEvents = require("midievents");

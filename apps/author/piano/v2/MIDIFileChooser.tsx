@@ -1,19 +1,8 @@
-import MIDIFileIO from "apps/shared/midi/MIDIFileIO";
-import Actions from "apps/shared/redux/Actions";
-import { useDispatch } from "react-redux";
+import PianoAuthorV2 from "apps/author/piano/v2/App";
 
 const MIDIFileChooser = () => {
-    const dispatch = useDispatch();
-
     function onFilesChanged(e) {
-        const files = e.target.files;
-        if (files.length > 0) {
-            // Read the first file.
-            const file = files[0];
-            MIDIFileIO.readFileAsync(file).then((fileName) => {
-                dispatch({ type: Actions.FileChooser.onFileLoaded });
-            });
-        }
+        PianoAuthorV2.loadFirstFile(e.target.files);
     }
 
     function onClick(e) {

@@ -49,13 +49,6 @@ View deployments here: https://github.com/squarepoet/squarepoet.github.io/deploy
 -   https://github.com/nfroidure/MIDIEvents/
 -   https://github.com/nfroidure/UTF8.js/
 
----
+## File Drag & Drop
 
----
-
----
-
-## Drag & Drop Library
-
--   dragdrop.min.js
--   https://github.com/feross/drag-drop
+-   https://github.com/sarink/react-file-drop
