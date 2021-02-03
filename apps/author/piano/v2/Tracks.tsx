@@ -1,9 +1,10 @@
 import PianoAuthorV2 from "apps/author/piano/v2/App";
+import TrackCheckbox from "apps/author/piano/v2/TrackCheckbox";
 import TrackInfo from "apps/author/piano/v2/TrackInfo";
 import TrackNoteGroups from "apps/author/piano/v2/TrackNoteGroups";
 import Constants from "apps/shared/Constants";
 import classNames from "classnames";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 
 const Song = PianoAuthorV2.Song;
@@ -35,7 +36,7 @@ const Tracks = ({ highlightedTrackNumber, highlightedNoteGroupNumber }: Props) =
             const containerID = `track-${currTrackNumber}-container`;
             const trackContainerDIV = (
                 <div key={containerID} id={containerID} className={trackContainerClasses} last-update={updatedTracksTimestamp}>
-                    <input id={`track-${currTrackNumber}-checkbox`} type="checkbox" className="checkbox" />
+                    <TrackCheckbox currTrackNumber={currTrackNumber} />
                     <TrackInfo currTrackNumber={currTrackNumber} currTrackIsHighlighted={currTrackIsHighlighted} />
                     <TrackNoteGroups currTrackNumber={currTrackNumber} currTrackIsHighlighted={currTrackIsHighlighted} highlightedNoteGroupNumber={highlightedNoteGroupNumber} />
                 </div>

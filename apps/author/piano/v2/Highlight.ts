@@ -68,6 +68,44 @@ namespace Highlight {
         }
     }
 
+    export function setTrackAndNoteGroup(t: number, n: number) {
+        currTrackNumber = t;
+        setCurrentNoteGroupNumber(n);
+        validateTrackNumber();
+        validateNoteGroupAndUpdateAndScroll();
+    }
+
+    export function prevTrack() {
+        currTrackNumber--;
+        validateTrackAndUpdate();
+    }
+
+    export function nextTrack() {
+        currTrackNumber++;
+        validateTrackAndUpdate();
+    }
+
+    export function prevNoteGroup() {
+        currNoteGroupNumberForTrackNumber[currTrackNumber]--;
+        validateNoteGroupAndUpdateAndScroll();
+    }
+
+    export function nextNoteGroup() {
+        currNoteGroupNumberForTrackNumber[currTrackNumber]++;
+        validateNoteGroupAndUpdateAndScroll();
+    }
+
+    export function firstNoteGroup() {
+        setCurrentNoteGroupNumber(0);
+        validateNoteGroupAndUpdateAndScroll();
+    }
+
+    export function lastNoteGroup() {
+        let numNoteGroups = getNumNoteGroupsInTrack(currTrackNumber);
+        setCurrentNoteGroupNumber(numNoteGroups - 1);
+        validateNoteGroupAndUpdateAndScroll();
+    }
+
     function validateNoteGroupNumber() {
         // Assume the current track number is valid.
         const numNoteGroups = getNumNoteGroupsInTrack(currTrackNumber);
@@ -79,50 +117,16 @@ namespace Highlight {
         }
     }
 
-    export function setTrackAndNoteGroup(t: number, n: number) {
-        currTrackNumber = t;
-        setCurrentNoteGroupNumber(n);
-        validateTrackNumber();
-        validateUpdateScroll();
-    }
-
-    export function prevTrack() {
-        currTrackNumber--;
+    function validateTrackAndUpdate() {
         validateTrackNumber();
         update();
     }
 
-    export function nextTrack() {
-        currTrackNumber++;
-        validateTrackNumber();
-        update();
-    }
-
-    export function prevNoteGroup() {
-        currNoteGroupNumberForTrackNumber[currTrackNumber]--;
-        validateUpdateScroll();
-    }
-
-    export function nextNoteGroup() {
-        currNoteGroupNumberForTrackNumber[currTrackNumber]++;
-        validateUpdateScroll();
-    }
-
-    export function firstNoteGroup() {
-        setCurrentNoteGroupNumber(0);
-        validateUpdateScroll();
-    }
-
-    export function lastNoteGroup() {
-        let numNoteGroups = getNumNoteGroupsInTrack(currTrackNumber);
-        setCurrentNoteGroupNumber(numNoteGroups - 1);
-        validateUpdateScroll();
-    }
-
-    function validateUpdateScroll() {
-        validateNoteGroupNumber();
-        update();
-        scrollNoteGroupIntoView(currTrackNumber, getCurrentNoteGroupNumber());
+    // Do three things!
+    function validateNoteGroupAndUpdateAndScroll() {
+        validateNoteGroupNumber(); // Validate
+        update(); // Update
+        scrollNoteGroupIntoView(currTrackNumber, getCurrentNoteGroupNumber()); // Scroll to the highlighted NoteGroup.
     }
 }
 

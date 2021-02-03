@@ -5,8 +5,11 @@
 
 # NEXT
 
--   [ ] Restore Drag and Drop
--   [ ] Restore Playback Buttons
+-   [x] Add checkbox change handlers.
+-   [ ] When I load a multitrack, it should add multiple tracks and populate all the notes!!!
+-   [ ]
+
+-   [ ] Have a button for me to add empty tracks manually!
 -   [ ]
 -   [ ] FIX Mouse Handlers in PianoKeyboard.tsx. Right now clicking on left edge has a 17px offset or something. Whatever's going on, I end up playing the wrong note when I click the piano key.
     -   [ ] When my mouse leaves to the left side of the canvas, it plays middle C or something. Handle negative X values correctly! Clamp to 0! :-)
@@ -60,3 +63,5 @@
     -   [x] chrome://inspect/
     -   [x] In VS Code, hit CMD+P and enter >Debug:Start Debugging
     -   [x] Then add debugger; statements
+-   [x] Restore Drag and Drop
+-   [x] Restore Playback Buttons
