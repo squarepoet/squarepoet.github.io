@@ -5,7 +5,15 @@
 
 # NEXT
 
+-   [ ] Fix Sharps & Flats. Use my V1 or Guitar Author code.
+    -   [ ] Also Fix Sharps & Flats in the Guitar V1. InputSaved!!!!
+-   [ ] WTF is #current-status? How did we use it in our old code?
+    -   [ ] <div id="current-status">&nbsp;</div>
+-   [ ]
 -   [ ] Whenever tracks are loaded from localstorage or a MIDI file, they should be checked!
+    -   [ ] Maybe I should use the global redux store.... :-\
+-   [ ] Save all the file info, so that when we refresh the page, we can restore the song's file name, etc etc.... It should look exactly like after I drag a MIDI file into the bottom panel.
+-   [ ]
 -   [ ] Have a button for me to add empty tracks manually!
 -   [ ]
 -   [ ] FIX Mouse Handlers in PianoKeyboard.tsx. Right now clicking on left edge has a 17px offset or something. Whatever's going on, I end up playing the wrong note when I click the piano key.

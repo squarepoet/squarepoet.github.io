@@ -19,12 +19,6 @@ let dispatch: Function = null;
 const $ = (arg) => {
     console.log(`jQuery called with arg [${arg}]`);
     const retVal = {
-        change: (changeArg) => {
-            console.log(`jQuery.change called with [${changeArg}]`);
-        },
-        val: (valArg) => {
-            console.log(`jQuery.val called with [${valArg}]`);
-        },
         addClass: (addClassArg) => {
             console.log(`jQuery.addClass called with [${addClassArg}]`);
         },
@@ -54,9 +48,6 @@ const $ = (arg) => {
         mousemove: (mousemoveArg) => {
             console.log(`jQuery.mousemove called with [${mousemoveArg}]`);
         },
-        text: (textArg) => {
-            console.log(`jQuery.text called with [${textArg}]`);
-        },
     };
     return retVal;
 };
@@ -68,10 +59,6 @@ const $ = (arg) => {
 
 const TIME_BETWEEN_NOTEGROUPS = 250;
 
-let $currentStatus = null;
-
-let sharps = ""; // the string value of the $sharps input
-let flats = "";
 let octaveOffset = 0;
 
 // piano key numbers % 12
@@ -283,23 +270,7 @@ function saveAndShowData() {
 namespace LocalStorage {
     export function load() {
         loadTracks();
-        loadSharpsAndFlats();
-        loadCheckboxes();
         loadVersionToggle();
-    }
-
-    function loadSharpsAndFlats() {
-        if (!localStorage.getItem("sharps")) {
-            localStorage.setItem("sharps", "");
-        }
-        sharps = localStorage.getItem("sharps");
-
-        if (!localStorage.getItem("flats")) {
-            localStorage.setItem("flats", "");
-        }
-        flats = localStorage.getItem("flats");
-
-        UI.updateSharpsAndFlats();
     }
 
     function loadVersionToggle() {
@@ -355,11 +326,6 @@ namespace LocalStorage {
     export function saveTracks() {
         let tracksJSON = Song.getTracksAsJSON();
         localStorage.setItem("tracks", tracksJSON);
-    }
-
-    export function saveSharpsAndFlats() {
-        localStorage.setItem("sharps", sharps);
-        localStorage.setItem("flats", flats);
     }
 
     export function saveVersionToggle(songVersion: number) {
@@ -578,31 +544,7 @@ namespace Playback {
     }, 150 /* ms */);
 }
 
-function logStatus(msg) {
-    $currentStatus.text(msg);
-}
-
 namespace UI {
-    const sharpsElementID = "sharps-text";
-    const flatsElementID = "flats-text";
-
-    let $sharps, $flats;
-
-    export function updateSharpsAndFlats() {
-        $sharps.val(sharps);
-        $flats.val(flats);
-    }
-
-    function isFocusedOnSharpsOrFlatsInput() {
-        return Utils.isFocusedOnElementWithID(sharpsElementID) || Utils.isFocusedOnElementWithID(flatsElementID);
-    }
-
-    export function setupJQueryDOMReferences() {
-        $sharps = $("#sharps-text");
-        $flats = $("#flats-text");
-        $currentStatus = $("#current-status");
-    }
-
     export function setupCopyHandler() {
         document.querySelector("html").addEventListener("copy", function (e: ClipboardEvent) {
             e.preventDefault();
@@ -649,7 +591,7 @@ namespace UI {
         if (!piano) {
             console.log("onKeyDownHandler: Piano has not been initialized.");
             return;
-        } else if (isFocusedOnSharpsOrFlatsInput()) {
+        } else if (App.isFocusedOnSharpsOrFlatsInput()) {
             // If we are typing in the sharps/flats input, we should ignore the rest of the key handler.
             return;
         }
@@ -782,10 +724,8 @@ namespace UI {
 
     export function onKeyUpHandler(e) {
         // update our sharps / flats
-        if (isFocusedOnSharpsOrFlatsInput()) {
-            sharps = $sharps.val().toLowerCase();
-            flats = $flats.val().toLowerCase();
-            LocalStorage.saveSharpsAndFlats();
+        if (App.isFocusedOnSharpsOrFlatsInput()) {
+            // DO NOTHING
         } else {
             // Released CTRL or SHIFT
             if (e.ctrlKey) {
@@ -943,9 +883,22 @@ namespace UI {
         // We can call setChecked to change the track's checked state.
         let isCheckedCallbacks: Function[] = null;
         let setCheckedCallbacks: Function[] = null;
+
+        const defaultIsCheckedCB = () => {
+            console.log("DEFAULT IS-CHECKED. RETURN TRUE.");
+            return true;
+        };
+        const defaultSetCheckedCB = (checked: boolean) => {
+            console.log("DEFAULT SET CHECKED: " + checked);
+            /* NO-OP */
+        };
+
         export function setup(numTracks: number) {
             isCheckedCallbacks = new Array(numTracks);
             setCheckedCallbacks = new Array(numTracks);
+            isCheckedCallbacks.fill(defaultIsCheckedCB);
+            setCheckedCallbacks.fill(defaultSetCheckedCB);
+
             Song.reset();
             for (let t = 0; t < numTracks; t++) {
                 Song.addTrack(t);
@@ -989,7 +942,6 @@ namespace UI {
         }
         export function setChecked(trackNumber: number, checked: boolean) {
             console.log("setChecked " + trackNumber + " => " + checked);
-            debugger;
 
             const setCheckedCB = setCheckedCallbacks[trackNumber];
             if (!setCheckedCB) {
@@ -1027,7 +979,6 @@ namespace UI {
                     return false; // If the callback is undefined or null, we consider that track "NOT CHECKED".
                 } else {
                     let checked = isCheckedCB();
-                    debugger;
                     console.log(checked);
                     return checked; // Otherwise, we call the callback to determine the current checked state.
                 }
@@ -1246,7 +1197,6 @@ namespace App {
     export function start() {
         console.log("App.start()");
         MIDIPianoInput.setup();
-        UI.setupJQueryDOMReferences();
         LocalStorage.load();
         UI.showNoteGroupsForTracks();
         UI.setupCopyHandler();
@@ -1325,11 +1275,6 @@ namespace App {
         saveAndShowData();
     }
 
-    export function displaySongInfo(numTracks, durationInSeconds) {
-        const duration = Math.round(durationInSeconds * 100) / 100;
-        $("#song-info").text(`Num Tracks: ${numTracks} | Duration: ${duration} secs`);
-    }
-
     // When we hover over the Download MIDI | TEXT links, we update
     // the href attributes so that we download the correct data.
     export function getDownloadData_TEXT(): string {
@@ -1363,11 +1308,11 @@ namespace App {
             modifier = sharpOrFlatModifier; // The user is holding down SHIFT or CTRL
 
             // is this note auto-sharped, due to the key signature?
-            if (sharps.indexOf(noteLabel) != -1) {
+            if (App.isNoteSharp(noteLabel)) {
                 modifier++; // raise the sharp a half-step!
             }
             // is this note auto-flatted, due to the key signature?
-            if (flats.indexOf(noteLabel) != -1) {
+            if (App.isNoteFlat(noteLabel)) {
                 modifier--; // lower the note a half-step!
             }
         }
@@ -1403,6 +1348,39 @@ namespace App {
                 dispatch({ type: Actions.FileChooser.onFileLoaded });
             });
         }
+    }
+
+    //////////////////////////////////////////////////////////////////////////////////////////////////
+    let isFocusedOnInputsCB: Function = () => false;
+    let getSharpsCB: Function = () => "";
+    let getFlatsCB: Function = () => "";
+
+    export function setHandlersForSharpsAndFlatsInput(isFocused: Function, getSharps: Function, getFlats: Function) {
+        isFocusedOnInputsCB = isFocused;
+        getSharpsCB = getSharps;
+        getFlatsCB = getFlats;
+    }
+
+    export function isFocusedOnSharpsOrFlatsInput(): boolean {
+        return isFocusedOnInputsCB();
+    }
+
+    export function getSharps(): string {
+        return getSharpsCB();
+    }
+
+    export function getFlats(): string {
+        return getFlatsCB();
+    }
+
+    export function isNoteSharp(noteLabel: string): boolean {
+        // Case insensitive test. Does the list of sharps contain the noteLabel?
+        return new RegExp(noteLabel, "i").test(App.getSharps());
+    }
+
+    export function isNoteFlat(noteLabel: string): boolean {
+        // Case insensitive test. Does the list of flats contain the noteLabel?
+        return new RegExp(noteLabel, "i").test(App.getFlats());
     }
 }
 

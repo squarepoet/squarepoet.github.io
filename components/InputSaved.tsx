@@ -20,11 +20,11 @@ const InputSaved = forwardRef((props: any, ref) => {
     //
 
     const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-        // console.log("onKeyDown " + e.keyCode);
+        console.log("onKeyDown " + e.code);
     };
 
     const onKeyUp = (e: KeyboardEvent<HTMLInputElement>) => {
-        console.log("onKeyUp " + e.keyCode);
+        console.log("onKeyUp " + e.code);
         // DETECT situations where the current input element is empty!
         setValue((e.target as HTMLInputElement).value.toUpperCase().replace(/[^ABCDEFG]+/g, ""));
     };
@@ -36,13 +36,17 @@ const InputSaved = forwardRef((props: any, ref) => {
     };
 
     const onBlur = (e: FocusEvent<HTMLInputElement>) => {
-        // console.log("onBlur");
+        console.log("onBlur");
     };
 
+    // Exposes a hasFocus() method to parents who have our ref.
     useImperativeHandle(ref, () => {
         return {
             hasFocus() {
                 return inputElementRef.current === document.activeElement;
+            },
+            getValue() {
+                return value;
             },
         };
     });
@@ -56,7 +60,6 @@ const InputSaved = forwardRef((props: any, ref) => {
             <style jsx>{`
                 div {
                     display: block;
-                    border: 1px solid red;
                 }
             `}</style>
         </>

@@ -32,6 +32,7 @@ namespace Highlight {
         scrollNoteGroupIntoView = scrollNoteGroupIntoViewFcn;
     }
 
+    // Keep a pointer for each track.
     export function setupIndexes(numTracks: number) {
         currTrackNumber = 0;
         currNoteGroupNumberForTrackNumber = [];

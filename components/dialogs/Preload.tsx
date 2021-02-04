@@ -16,14 +16,12 @@ const PreloadDialog = (props) => {
     };
 
     const onButtonClick = (event: object) => {
-        console.log("onButtonClick");
         handleDialogClose(null, "buttonClicked");
     };
 
     if (typeof window !== "undefined") {
         useEventListener("keydown", (e: KeyboardEvent) => {
             handleDialogClose(null, "keyboardPressed");
-            console.log("KD");
         });
     }
 

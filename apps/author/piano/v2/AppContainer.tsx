@@ -25,14 +25,40 @@ const AppContainer = () => {
     // const workerRef = useRef<Worker>();
     const [showPreloadDialog, setShowPreloadDialog] = useState(true);
     const [fileInfo, setFileInfo] = useState("");
+    const [songInfo, setSongInfo] = useState("");
     const [highlightedTrackNumber, setHighlightedTrackNumber] = useState(0);
     const [highlightedNoteGroupNumber, setHighlightedNoteGroupNumber] = useState(0);
+
+    const sharpsAndFlatsInput = useRef();
 
     const dispatch = useDispatch();
 
     useEffect(() => {
         Highlight.setupCallbacks(setHighlightedTrackNumber, setHighlightedNoteGroupNumber, PianoAuthorV2.UI.drawPiano, PianoAuthorV2.Song.getNumTracks, PianoAuthorV2.Song.getNumNoteGroupsInTrack, PianoAuthorV2.UI.scrollNoteGroupIntoView);
         PianoAuthorV2.setDispatchFunction(dispatch);
+
+        const isFocusedOnInputs = () => {
+            if (sharpsAndFlatsInput && sharpsAndFlatsInput.current) {
+                return (sharpsAndFlatsInput.current as any).hasFocus();
+            } else {
+                return false;
+            }
+        };
+        const getSharps = () => {
+            if (sharpsAndFlatsInput && sharpsAndFlatsInput.current) {
+                return (sharpsAndFlatsInput.current as any).getSharps();
+            } else {
+                return "";
+            }
+        };
+        const getFlats = () => {
+            if (sharpsAndFlatsInput && sharpsAndFlatsInput.current) {
+                return (sharpsAndFlatsInput.current as any).getFlats();
+            } else {
+                return "";
+            }
+        };
+        PianoAuthorV2.setHandlersForSharpsAndFlatsInput(isFocusedOnInputs, getSharps, getFlats);
         PianoAuthorV2.start();
 
         // workerRef.current = new Worker("./clock.worker.js", { type: "module" });
@@ -74,10 +100,11 @@ const AppContainer = () => {
         const midiFile = MIDIFileIO.getLoadedFile();
         const midiEvents = MIDIFileIO.getLoadedMIDIEvents();
         PianoAuthorV2.fillTracksWithNoteGroupsExtractedFromMIDIEvents(midiFile, midiEvents);
-        PianoAuthorV2.displaySongInfo(MIDIFileIO.getNumTracks(), MIDIFileIO.getDurationInSeconds());
 
         if (midiFile !== null) {
             setFileInfo(`Loaded File: ${MIDIFileIO.getFileName()} | Size: ${MIDIFileIO.getFileSize()} bytes | Num Tracks: ${MIDIFileIO.getNumTracks()}`);
+            const durationRounded = Math.round(MIDIFileIO.getDurationInSeconds() * 100) / 100;
+            setSongInfo(`Num Tracks: ${MIDIFileIO.getNumTracks()} | Duration: ${durationRounded} secs`);
         }
     }, [midiFileTimestamp]);
     //
@@ -93,19 +120,18 @@ const AppContainer = () => {
                 <br />
                 up/down &rarr; +/- octave &nbsp;&nbsp;&nbsp;&nbsp; tab &rarr; combine &nbsp;&nbsp;&nbsp;&nbsp; cmd + c &rarr; copy
             </div>
-            <SharpsAndFlats style={{ float: "right" }} />
+            <SharpsAndFlats ref={sharpsAndFlatsInput} style={{ float: "right" }} />
             <div id="content" className="content">
                 <Tracks highlightedTrackNumber={highlightedTrackNumber} highlightedNoteGroupNumber={highlightedNoteGroupNumber} />
                 <PianoKeyboard />
             </div>
-            <div id="current-status">&nbsp;</div>
             <BottomPanel>
                 <MIDIFileChooser />
                 <div id="file-info" className="bottom-info">
                     {fileInfo}
                 </div>
                 <div id="song-info" className="bottom-info">
-                    &nbsp;
+                    {songInfo}
                 </div>
                 <PlayPauseStop onPlay={PianoAuthorV2.Playback.play} onPause={PianoAuthorV2.Playback.pause} onStop={PianoAuthorV2.Playback.stop} />
             </BottomPanel>
@@ -140,10 +166,6 @@ const AppContainer = () => {
                     text-align: center;
                     clear: both;
                     padding-top: 10px;
-                }
-
-                input {
-                    width: 50px;
                 }
 
                 .bottom-info {
@@ -222,12 +244,6 @@ const AppContainer = () => {
                 ::-webkit-scrollbar-thumb {
                     border-radius: 0px;
                     background-color: rgba(0, 0, 0, 0.18);
-                }
-
-                .sharps-and-flats {
-                    float: right;
-                    margin-right: 20px;
-                    text-align: right;
                 }
 
                 #current-status {
