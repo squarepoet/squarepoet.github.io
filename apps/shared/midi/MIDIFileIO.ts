@@ -1,4 +1,4 @@
-import { Note, NoteGroup } from "apps/author/piano/v2/Music";
+import { NoteGroup } from "apps/author/piano/v2/Music";
 
 const JSmidgenMIDI = require("jsmidgen");
 const MIDIFile = require("midifile");
@@ -15,8 +15,8 @@ let midiDurationInSeconds = 0;
 let midiFileName = "";
 let midiFileSize = 0;
 
-class MIDIFileIO {
-    static clearLoadedFile(): void {
+namespace MIDIFileIO {
+    function clearLoadedFile(): void {
         midiFile = null;
         midiEvents = null;
         midiLyrics = null;
@@ -26,19 +26,19 @@ class MIDIFileIO {
         midiFileSize = 0;
     }
 
-    static hasLoadedAFile(): boolean {
+    function hasLoadedAFile(): boolean {
         return midiFile !== null;
     }
 
     // We should label this async, hehe.
-    static async readFileAsync(file) {
+    export async function readFileAsync(file) {
         midiFileName = file.name;
         midiFileSize = file.size; // in bytes
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.addEventListener("load", (e: any) => {
                 const arrayBuffer = e.target.result;
-                MIDIFileIO.parseFileData(arrayBuffer);
+                parseFileData(arrayBuffer);
                 console.log("Loaded " + midiFileName);
                 resolve(midiFileName);
             });
@@ -50,7 +50,7 @@ class MIDIFileIO {
         });
     }
 
-    private static parseFileData(arrayBuffer) {
+    function parseFileData(arrayBuffer) {
         midiFile = new MIDIFile(arrayBuffer);
         midiEvents = midiFile.getMidiEvents();
         midiLyrics = midiFile.getLyrics();
@@ -80,27 +80,27 @@ class MIDIFileIO {
         console.log(`Duration: ${midiDurationInSeconds}`);
     }
 
-    static getLoadedFile() {
+    export function getLoadedFile() {
         return midiFile;
     }
 
-    static getLoadedEvents() {
+    export function getLoadedEvents() {
         return midiEvents;
     }
 
-    static getDurationInSeconds() {
+    export function getDurationInSeconds() {
         return midiDurationInSeconds;
     }
 
-    static getNumTracks() {
+    export function getNumTracks() {
         return midiNumTracks;
     }
 
-    static getFileName() {
+    export function getFileName() {
         return midiFileName;
     }
 
-    static getFileSize() {
+    export function getFileSize() {
         return midiFileSize;
     }
 
@@ -108,7 +108,7 @@ class MIDIFileIO {
 
     // Use jsmidgen to create a MIDI file that we can encode in base 64.
     // https://github.com/dingram/jsmidgen
-    static createFileFromTracks(trackNumbersToInclude: number[], noteGroups: NoteGroup[]): string {
+    export function createFileFromTracks(trackNumbersToInclude: number[], noteGroups: NoteGroup[]): string {
         const file = new JSmidgenMIDI.File();
 
         const BPM = 240; // Normally I'd choose 120, but 240 might give us better time resolution?
@@ -188,73 +188,83 @@ class MIDIFileIO {
 
     //////////////////////////////////////////////////////////////////////////////////////////////////
 
-    /*
-    getTypeString(type) {
+    export function printTypeAndSubtype(type, subtype) {
+        console.log("EVENT => " + getTypeString(type), getSubTypeString(subtype));
+    }
+
+    function getTypeString(type) {
         switch (type) {
-            case MIDIEvents.EVENT_MIDI:
+            case MIDIEvents.EVENT_MIDI: // 0x8;
                 return "MIDI";
-            case MIDIEvents.EVENT_META:
+            case MIDIEvents.EVENT_META: // 0xFF;
                 return "META";
-            case MIDIEvents.EVENT_SYSEX:
+            case MIDIEvents.EVENT_SYSEX: // 0xF0;
                 return "SYSEX";
-            case MIDIEvents.EVENT_DIVSYSEX:
+            case MIDIEvents.EVENT_DIVSYSEX: // 0xF7;
                 return "DIVSYSEX";
             default:
                 return "UNKNOWN";
         }
     }
 
-    getSubTypeString(subtype) {
+    function getSubTypeString(subtype) {
         switch (subtype) {
-            case MIDIEvents.EVENT_META_SEQUENCE_NUMBER: // = 0x00;
+            //////////////////////////////////////////////////////////////////////////////////////////////////
+            // META event types
+            case MIDIEvents.EVENT_META_SEQUENCE_NUMBER: // = 0x00
                 return "META_SEQUENCE_NUMBER";
-            case MIDIEvents.EVENT_META_TEXT: // = 0x01;
+            case MIDIEvents.EVENT_META_TEXT: // = 0x01
                 return "META_TEXT";
-            case MIDIEvents.EVENT_META_COPYRIGHT_NOTICE: // = 0x02;
+            case MIDIEvents.EVENT_META_COPYRIGHT_NOTICE: // = 0x02
                 return "META_COPYRIGHT_NOTICE";
-            case MIDIEvents.EVENT_META_TRACK_NAME: // = 0x03;
+            case MIDIEvents.EVENT_META_TRACK_NAME: // = 0x03
                 return "META_TRACK_NAME";
-            case MIDIEvents.EVENT_META_INSTRUMENT_NAME: // = 0x04;
+            case MIDIEvents.EVENT_META_INSTRUMENT_NAME: // = 0x04
                 return "META_INSTRUMENT_NAME";
-            case MIDIEvents.EVENT_META_LYRICS: // = 0x05;
+            case MIDIEvents.EVENT_META_LYRICS: // = 0x05
                 return "META_LYRICS";
-            case MIDIEvents.EVENT_META_MARKER: // = 0x06;
+            case MIDIEvents.EVENT_META_MARKER: // = 0x06
                 return "META_MARKER";
-            case MIDIEvents.EVENT_META_CUE_POINT: // = 0x07;
+            case MIDIEvents.EVENT_META_CUE_POINT: // = 0x07
                 return "CUE_POINT";
-            case MIDIEvents.EVENT_META_MIDI_CHANNEL_PREFIX: // = 0x20;
+            case MIDIEvents.EVENT_META_MIDI_CHANNEL_PREFIX: // = 0x20
                 return "META_MIDI_CHANNEL_PREFIX";
-            case MIDIEvents.EVENT_META_END_OF_TRACK: // = 0x2F;
+            case MIDIEvents.EVENT_META_END_OF_TRACK: // = 0x2F
                 return "META_END_OF_TRACK";
-            case MIDIEvents.EVENT_META_SET_TEMPO: //= 0x51;
+            case MIDIEvents.EVENT_META_SET_TEMPO: //= 0x51
                 return "META_SET_TEMPO";
-            case MIDIEvents.EVENT_META_SMTPE_OFFSET: //= 0x54;
+            case MIDIEvents.EVENT_META_SMTPE_OFFSET: //= 0x54
                 return "META_SMTPE_OFFSET";
-            case MIDIEvents.EVENT_META_TIME_SIGNATURE: //= 0x58;
+            case MIDIEvents.EVENT_META_TIME_SIGNATURE: //= 0x58
                 return "META_TIME_SIGNATURE";
-            case MIDIEvents.EVENT_META_KEY_SIGNATURE: //= 0x59;
+            case MIDIEvents.EVENT_META_KEY_SIGNATURE: // 0x59
                 return "META_KEY_SIGNATURE";
-            case MIDIEvents.EVENT_META_SEQUENCER_SPECIFIC: //= 0x7F;
+            case MIDIEvents.EVENT_META_SEQUENCER_SPECIFIC: // 0x7F
                 return "META_SEQUENCER_SPECIFIC";
-            case MIDIEvents.EVENT_MIDI_NOTE_OFF: // = 0x8;
+            // End META event types
+            //////////////////////////////////////////////////////////////////////////////////////////////////
+            //////////////////////////////////////////////////////////////////////////////////////////////////
+            // MIDI event types
+            case MIDIEvents.EVENT_MIDI_NOTE_OFF: // 0x8
                 return "MIDI_NOTE_OFF";
-            case MIDIEvents.EVENT_MIDI_NOTE_ON: //= 0x9;
+            case MIDIEvents.EVENT_MIDI_NOTE_ON: // 0x9
                 return "MIDI_NOTE_ON";
-            case MIDIEvents.EVENT_MIDI_NOTE_AFTERTOUCH: // = 0xA;
+            case MIDIEvents.EVENT_MIDI_NOTE_AFTERTOUCH: // 0xA
                 return "MIDI_NOTE_AFTERTOUCH";
-            case MIDIEvents.EVENT_MIDI_CONTROLLER: //= 0xB;
+            case MIDIEvents.EVENT_MIDI_CONTROLLER: // 0xB
                 return "MIDI_CONTROLLER";
-            case MIDIEvents.EVENT_MIDI_PROGRAM_CHANGE: // = 0xC;
+            case MIDIEvents.EVENT_MIDI_PROGRAM_CHANGE: // 0xC
                 return "MIDI_PROGRAM_CHANGE";
-            case MIDIEvents.EVENT_MIDI_CHANNEL_AFTERTOUCH: // = 0xD;
+            case MIDIEvents.EVENT_MIDI_CHANNEL_AFTERTOUCH: // 0xD
                 return "MIDI_CHANNEL_AFTERTOUCH";
-            case MIDIEvents.EVENT_MIDI_PITCH_BEND: // = 0xE;
+            case MIDIEvents.EVENT_MIDI_PITCH_BEND: // 0xE
                 return "MIDI_PITCH_BEND";
+            // END MIDI event types
+            //////////////////////////////////////////////////////////////////////////////////////////////////
             default:
                 return "UNKNOWN";
         }
     }
-    */
 }
 
 export default MIDIFileIO;

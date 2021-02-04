@@ -19,8 +19,6 @@ type Props = {
 };
 
 const Tracks = ({ highlightedTrackNumber, highlightedNoteGroupNumber }: Props) => {
-    const [numTracks, setNumTracks] = useState(1);
-
     const updatedTrackNumbers = useSelector((state) => state[Keys.UPDATED_TRACKS_LIST]);
     const updatedTracksTimestamp = useSelector((state) => state[Keys.UPDATED_TRACKS_TIMESTAMP]);
     useEffect(() => {
@@ -28,7 +26,9 @@ const Tracks = ({ highlightedTrackNumber, highlightedNoteGroupNumber }: Props) =
     }, [updatedTrackNumbers, updatedTracksTimestamp]);
 
     function getTracks() {
+        console.log("GET TRACKS");
         const tracks = [];
+        const numTracks = PianoAuthorV2.Song.getNumTracks();
         for (let currTrackNumber = 0; currTrackNumber < numTracks; currTrackNumber++) {
             const isEmpty = Song.isTrackEmpty(currTrackNumber);
             const currTrackIsHighlighted = highlightedTrackNumber == currTrackNumber;

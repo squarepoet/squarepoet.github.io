@@ -5,8 +5,8 @@
 
 # NEXT
 
--   [x] Add checkbox change handlers.
 -   [ ] When I load a multitrack, it should add multiple tracks and populate all the notes!!!
+-   [x] Add checkbox change handlers.
 -   [ ]
 
 -   [ ] Have a button for me to add empty tracks manually!

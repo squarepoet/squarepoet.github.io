@@ -64,10 +64,12 @@ const AppContainer = () => {
         PianoAuthorV2.saveSongVersionToLocalStorage(songVersion);
     }, [songVersion]);
 
+    //////////////////////////////////////////////////////////////////////////////////////////////////
+    // MIDI FILE LOADING
     // Subscribe to changes in the loaded file's timestamp.
     const midiFileTimestamp = useSelector((state) => state[Keys.FILE_TIMESTAMP]);
     useEffect(() => {
-        // update the UI here with data from our MIDIFileIO...
+        // Update the UI here with data from our MIDIFileIO...
         console.log(`Loaded a file at timestamp: ${midiFileTimestamp}`);
         const midiFile = MIDIFileIO.getLoadedFile();
         const midiEvents = MIDIFileIO.getLoadedEvents();
@@ -78,6 +80,8 @@ const AppContainer = () => {
             setFileInfo(`Loaded File: ${MIDIFileIO.getFileName()} | Size: ${MIDIFileIO.getFileSize()} bytes | Num Tracks: ${MIDIFileIO.getNumTracks()}`);
         }
     }, [midiFileTimestamp]);
+    //
+    //////////////////////////////////////////////////////////////////////////////////////////////////
 
     return (
         <>

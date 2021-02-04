@@ -262,7 +262,7 @@ function resetOffset() {
 function resetEverything() {
     console.log("Reset Everything!");
     octaveOffset = 0;
-    Tracks.setup(1);
+    UI.Tracks.setup(1);
     saveAndShowData();
     Playback.stop();
 
@@ -321,7 +321,7 @@ namespace LocalStorage {
             const savedTracks = JSON.parse(localStorage.getItem("tracks")); // can throw a SyntaxError
             const numTracks = savedTracks.length;
 
-            Tracks.setup(numTracks);
+            UI.Tracks.setup(numTracks);
             for (let t = 0; t < numTracks; t++) {
                 let savedTrack = savedTracks[t];
                 for (let noteGroupString of savedTrack) {
@@ -330,7 +330,7 @@ namespace LocalStorage {
                 }
             }
         } catch (e) {
-            Tracks.setup(1);
+            UI.Tracks.setup(1);
         }
     }
 
@@ -338,18 +338,18 @@ namespace LocalStorage {
         try {
             const savedCheckboxState = JSON.parse(localStorage.getItem("checkboxes")); // can throw a SyntaxError
             if (Array.isArray(savedCheckboxState) && savedCheckboxState.length === Song.getNumTracks()) {
-                Tracks.setCheckedStateForAllTracks(savedCheckboxState);
+                UI.Tracks.setCheckedStateForAllTracks(savedCheckboxState);
             } else {
                 throw "OOPS";
             }
         } catch (e) {
-            Tracks.checkAllNonEmptyTracks();
+            UI.Tracks.checkAllNonEmptyTracks();
             LocalStorage.saveCheckBoxes();
         }
     }
 
     export function saveCheckBoxes() {
-        localStorage.setItem("checkboxes", JSON.stringify(Tracks.getCheckedStateForAllTracks()));
+        localStorage.setItem("checkboxes", JSON.stringify(UI.Tracks.getCheckedStateForAllTracks()));
     }
 
     export function saveTracks() {
@@ -607,7 +607,7 @@ namespace UI {
             e.preventDefault();
             console.log("COPY");
             if (e.clipboardData) {
-                const text = Tracks.getTextFileFromTracks();
+                const text = UI.Tracks.getTextFileFromTracks();
                 e.clipboardData.setData("text/plain", text);
             }
         });
@@ -615,7 +615,7 @@ namespace UI {
             e.preventDefault();
             console.log("CUT");
             if (e.clipboardData) {
-                const text = Tracks.getTextFileFromTracks();
+                const text = UI.Tracks.getTextFileFromTracks();
                 e.clipboardData.setData("text/plain", text);
             }
             resetEverything(); // Set the text fields to empty strings.
@@ -623,7 +623,7 @@ namespace UI {
     }
 
     export function showNoteGroupsForTracks() {
-        Tracks.checkAllNonEmptyTracks();
+        UI.Tracks.checkAllNonEmptyTracks();
         Highlight.update();
         const payload = {};
         payload[Constants.StoreKeys.UPDATED_TRACKS_LIST] = Song.getRecentlyUpdatedTrackNumbersAsArray();
@@ -643,11 +643,6 @@ namespace UI {
     ////////////////////////////////////////////////////////////
 
     // MOUSE & KEYBOARD
-
-    export function setupMouseHandlers() {
-        // # TODO
-        // Playback.setupButtons();
-    }
 
     export function onKeyDownHandler(e) {
         if (!piano) {
@@ -940,112 +935,100 @@ namespace UI {
     }
 
     ////////////////////////////////////////////////////////////
-}
 
-namespace Tracks {
-    // Bindings to our React component state.
-    // We can query whether a track's checkbox isChecked.
-    // We can call setChecked to change the track's checked state.
-    let isCheckedCallbacks: Function[] = null;
-    let setCheckedCallbacks: Function[] = null;
-
-    export function setup(numTracks: number) {
-        isCheckedCallbacks = new Array(numTracks);
-        setCheckedCallbacks = new Array(numTracks);
-
-        Song.reset();
-        for (let t = 0; t < numTracks; t++) {
-            Song.addTrack(t);
-        }
-        Highlight.setupIndexes(numTracks);
-    }
-
-    export function getTextFileFromTracks(): string {
-        console.log("getTextFileFromTracks Song Version: " + App.getSongVersion());
-
-        const noteGroups = Song.getNoteGroupsFromTracks();
-        if (App.getSongVersion() === 1) {
-            let noteGroupV1Strings = [];
-            noteGroups.forEach((noteGroup) => {
-                noteGroupV1Strings.push(noteGroup.toStringV1());
-            });
-            return noteGroupV1Strings.join(" ");
-        } else {
-            // songVersion === 2
-            return noteGroups.join(" ");
-        }
-    }
-
-    export function getTrackNumbersToIncludeInMIDIFile(): number[] {
-        const trackNumbersToInclude: number[] = [];
-        const numTracks = Song.getNumTracks();
-        for (let trackNumber = 0; trackNumber < numTracks; trackNumber++) {
-            if (Tracks.isChecked(trackNumber)) {
-                trackNumbersToInclude.push(trackNumber);
+    export namespace Tracks {
+        // Bindings to our React component state.
+        // We can query whether a track's checkbox isChecked.
+        // We can call setChecked to change the track's checked state.
+        let isCheckedCallbacks: Function[] = null;
+        let setCheckedCallbacks: Function[] = null;
+        export function setup(numTracks: number) {
+            isCheckedCallbacks = new Array(numTracks);
+            setCheckedCallbacks = new Array(numTracks);
+            Song.reset();
+            for (let t = 0; t < numTracks; t++) {
+                Song.addTrack(t);
             }
+            Highlight.setupIndexes(numTracks);
         }
-        return trackNumbersToInclude;
-    }
-
-    export function setTrackCheckedCallbacks(trackNumber: number, isTrackChecked: Function, setTrackChecked: Function) {
-        if (!isCheckedCallbacks) {
-            isCheckedCallbacks = [];
-        }
-        isCheckedCallbacks[trackNumber] = isTrackChecked;
-
-        if (!setCheckedCallbacks) {
-            setCheckedCallbacks = [];
-        }
-        setCheckedCallbacks[trackNumber] = setTrackChecked;
-    }
-
-    export function setChecked(trackNumber: number, checkedFlag: boolean) {
-        const setCheckedCB = setCheckedCallbacks[trackNumber];
-        if (!setCheckedCB) {
-            // DO NOTHING
-        } else {
-            // #TODO: If the value has not changed, do nothing.
-            setCheckedCB(checkedFlag);
-            LocalStorage.saveCheckBoxes();
-            Song.resetCache();
-        }
-    }
-
-    export function isChecked(trackNumber: number): boolean {
-        const isCheckedCB = isCheckedCallbacks[trackNumber];
-        if (!isCheckedCB) {
-            // null or undefined
-            return false;
-        } else {
-            return isCheckedCB();
-        }
-    }
-
-    export function checkAllNonEmptyTracks() {
-        const numTracks = Song.getNumTracks();
-        for (let trackNumber = 0; trackNumber < numTracks; trackNumber++) {
-            if (Song.getNumNoteGroupsInTrack(trackNumber) > 0) {
-                Tracks.setChecked(trackNumber, true);
+        export function getTextFileFromTracks(): string {
+            console.log("getTextFileFromTracks Song Version: " + App.getSongVersion());
+            const noteGroups = Song.getNoteGroupsFromTracks();
+            if (App.getSongVersion() === 1) {
+                let noteGroupV1Strings = [];
+                noteGroups.forEach((noteGroup) => {
+                    noteGroupV1Strings.push(noteGroup.toStringV1());
+                });
+                return noteGroupV1Strings.join(" ");
             } else {
-                Tracks.setChecked(trackNumber, false);
+                // songVersion === 2
+                return noteGroups.join(" ");
             }
         }
-    }
-
-    export function getCheckedStateForAllTracks(): boolean[] {
-        return isCheckedCallbacks.map((isCheckedCB) => {
+        export function getTrackNumbersToIncludeInMIDIFile(): number[] {
+            const trackNumbersToInclude: number[] = [];
+            const numTracks = Song.getNumTracks();
+            for (let trackNumber = 0; trackNumber < numTracks; trackNumber++) {
+                if (Tracks.isChecked(trackNumber)) {
+                    trackNumbersToInclude.push(trackNumber);
+                }
+            }
+            return trackNumbersToInclude;
+        }
+        export function setTrackCheckedCallbacks(trackNumber: number, isTrackChecked: Function, setTrackChecked: Function) {
+            if (!isCheckedCallbacks) {
+                isCheckedCallbacks = [];
+            }
+            isCheckedCallbacks[trackNumber] = isTrackChecked;
+            if (!setCheckedCallbacks) {
+                setCheckedCallbacks = [];
+            }
+            setCheckedCallbacks[trackNumber] = setTrackChecked;
+        }
+        export function setChecked(trackNumber: number, checkedFlag: boolean) {
+            const setCheckedCB = setCheckedCallbacks[trackNumber];
+            if (!setCheckedCB) {
+                // DO NOTHING
+            } else {
+                // #TODO: If the value has not changed, do nothing.
+                setCheckedCB(checkedFlag);
+                LocalStorage.saveCheckBoxes();
+                Song.resetCache();
+            }
+        }
+        export function isChecked(trackNumber: number): boolean {
+            const isCheckedCB = isCheckedCallbacks[trackNumber];
             if (!isCheckedCB) {
-                return false; // If the callback is undefined or null, we consider that track "NOT CHECKED".
+                // null or undefined
+                return false;
             } else {
-                return isCheckedCB(); // Otherwise, we call the callback to determine the current checked state.
+                return isCheckedCB();
             }
-        });
-    }
-
-    export function setCheckedStateForAllTracks(checkedStateForAllTracks: boolean[]): void {
-        for (let trackNumber = 0; trackNumber < checkedStateForAllTracks.length; trackNumber++) {
-            const checkedState = checkedStateForAllTracks[trackNumber];
-            Tracks.setChecked(trackNumber, checkedState);
+        }
+        export function checkAllNonEmptyTracks() {
+            const numTracks = Song.getNumTracks();
+            for (let trackNumber = 0; trackNumber < numTracks; trackNumber++) {
+                if (Song.getNumNoteGroupsInTrack(trackNumber) > 0) {
+                    Tracks.setChecked(trackNumber, true);
+                } else {
+                    Tracks.setChecked(trackNumber, false);
+                }
+            }
+        }
+        export function getCheckedStateForAllTracks(): boolean[] {
+            return isCheckedCallbacks.map((isCheckedCB) => {
+                if (!isCheckedCB) {
+                    return false; // If the callback is undefined or null, we consider that track "NOT CHECKED".
+                } else {
+                    return isCheckedCB(); // Otherwise, we call the callback to determine the current checked state.
+                }
+            });
+        }
+        export function setCheckedStateForAllTracks(checkedStateForAllTracks: boolean[]): void {
+            for (let trackNumber = 0; trackNumber < checkedStateForAllTracks.length; trackNumber++) {
+                const checkedState = checkedStateForAllTracks[trackNumber];
+                Tracks.setChecked(trackNumber, checkedState);
+            }
         }
     }
 }
@@ -1081,6 +1064,7 @@ namespace Song {
     // Return: the new length of the specified track.
     export function addNoteGroupToTrack(noteGroup: NoteGroup, trackNumber: number): number {
         Song.resetCache(); // Every time we modify the tracks, we need to invalidate the cache.
+        console.log(`addNoteGroupToTrack NoteGroup ${console.dir(noteGroup)}  Track Number ${trackNumber}`);
 
         const track = tracks[trackNumber];
         noteGroup.trackNumber = trackNumber;
@@ -1173,7 +1157,7 @@ namespace Song {
                 const currTrackLength = currTrack.length;
                 const currNoteGroupPointer = noteGroupPointerForTrack[trackNumber];
 
-                if (currTrackLength === 0 || !Tracks.isChecked(trackNumber) || currNoteGroupPointer >= currTrackLength) {
+                if (currTrackLength === 0 || !UI.Tracks.isChecked(trackNumber) || currNoteGroupPointer >= currTrackLength) {
                     // Ignore this track if:
                     //   it is empty
                     //   it is not checked
@@ -1229,7 +1213,7 @@ namespace Song {
 const _Playback_NS = Playback;
 const _Song_NS = Song;
 const _UI_NS = UI;
-const _Tracks_NS = Tracks;
+const _Tracks_NS = UI.Tracks;
 
 namespace App {
     export const Playback = _Playback_NS;
@@ -1257,7 +1241,6 @@ namespace App {
         UI.setupJQueryDOMReferences();
         LocalStorage.load();
         UI.showNoteGroupsForTracks();
-        UI.setupMouseHandlers();
         UI.setupCopyHandler();
         UI.drawPiano();
     }
@@ -1286,8 +1269,6 @@ namespace App {
             return;
         }
 
-        console.log("filling tracks....");
-
         Tracks.setup(midiFile.tracks.length);
 
         // Remember the most recently processed event so that we can merge notes that are played at the same time and on the same track.
@@ -1297,17 +1278,21 @@ namespace App {
 
         // Convert from MIDI events to NoteGroups
         for (const event of midiEvents) {
-            let type = event.type;
-            let subtype = event.subtype;
+            const type = event.type;
+            const subtype = event.subtype;
             // let status = (event.subtype << 4) + event.channel;
             // let statusCodeHexString = '0x' + status.toString(16).toUpperCase();
-            let trackNumber = event.track;
             let playTime = event.playTime; // time in milliseconds
             playTime = Math.round(playTime * 1000) / 1000; // round it to the nearest 0.001
-            let midiNoteNum = event.param1;
-            let velocity = event.param2;
-            let pianoNoteNum = MIDIUtils.m2p(midiNoteNum);
-            let noteToPlay = new Note(pianoNoteNum, 1.0 /* duration */, velocity); // TODO: Support duration someday?
+            const midiNoteNum = event.param1;
+            const velocity = event.param2;
+            const pianoNoteNum = MIDIUtils.m2p(midiNoteNum);
+            const noteToPlay = new Note(pianoNoteNum, 1.0 /* duration */, velocity); // TODO: Support duration someday?
+            console.log("VELOCITY " + velocity);
+            let trackNumber = event.track; // possibly undefined!
+            if (!trackNumber) {
+                trackNumber = 0; // We will assign events with undefined trackNumbers to track 0.
+            }
 
             if (subtype === MIDIEvents.EVENT_MIDI_NOTE_ON) {
                 if (playTime <= lastPlayTime + TIME_THRESHOLD_FOR_GROUPING_NEARBY_NOTES && trackNumber === lastTrackNumber) {
@@ -1320,10 +1305,13 @@ namespace App {
                     lastTrackNumber = trackNumber;
                     lastPlayTime = playTime;
                 }
+            } else {
+                // OTHER EVENTS
+                console.log("Unhandled Event:");
+                MIDIFileIO.printTypeAndSubtype(type, subtype);
             }
         }
 
-        Tracks.checkAllNonEmptyTracks();
         saveAndShowData();
     }
 
