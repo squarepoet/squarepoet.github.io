@@ -10,7 +10,6 @@ type Props = {
 };
 
 const TrackNoteGroups = (props: Props) => {
-    console.log(`RENDER TrackNoteGroups: ${JSON.stringify(props)}`);
     const { currTrackNumber, currTrackIsHighlighted, highlightedNoteGroupNumber } = props;
 
     const trackClasses = classNames("track", { highlight: currTrackIsHighlighted });

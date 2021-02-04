@@ -71,6 +71,8 @@ namespace MIDIFileIO {
             midiLyrics = null;
         }
 
+        printAllEvents();
+
         // Calculate song duration.
         const lastMidiEvent = midiEvents[midiEvents.length - 1]; // Probably a MIDIEvents.EVENT_MIDI_NOTE_OFF event.
         const midiDurationInMillis = lastMidiEvent.playTime;
@@ -84,8 +86,21 @@ namespace MIDIFileIO {
         return midiFile;
     }
 
-    export function getLoadedEvents() {
+    export function getLoadedMIDIEvents() {
         return midiEvents;
+    }
+
+    export function getAllEvents() {
+        return midiFile.getEvents();
+    }
+
+    function printAllEvents() {
+        const events = midiFile.getEvents();
+        let event = null;
+        for (let i = 0, j = events.length; i < j; i++) {
+            event = events[i];
+            printTypeAndSubtype(event.type, event.subtype);
+        }
     }
 
     export function getDurationInSeconds() {
@@ -118,7 +133,7 @@ namespace MIDIFileIO {
 
         const midiTracks = new Map<number, any>(); // track number => JSMIDGEN_MIDI.Track objects
 
-        for (let trackNumber of trackNumbersToInclude) {
+        for (const trackNumber of trackNumbersToInclude) {
             const midiTrack = new JSmidgenMIDI.Track();
             midiTrack.setTempo(BPM);
 

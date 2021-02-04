@@ -21,12 +21,13 @@ type Props = {
 const Tracks = ({ highlightedTrackNumber, highlightedNoteGroupNumber }: Props) => {
     const updatedTrackNumbers = useSelector((state) => state[Keys.UPDATED_TRACKS_LIST]);
     const updatedTracksTimestamp = useSelector((state) => state[Keys.UPDATED_TRACKS_TIMESTAMP]);
-    useEffect(() => {
-        console.log(`Tracks updated at ${updatedTracksTimestamp}. Need to rerender tracks: ${updatedTrackNumbers}`);
-    }, [updatedTrackNumbers, updatedTracksTimestamp]);
+
+    // useEffect(() => {
+    //     console.log(`Tracks updated at ${updatedTracksTimestamp}. Need to rerender tracks: ${updatedTrackNumbers}`);
+    //     console.log("XXXXXXXXX");
+    // }, [updatedTrackNumbers, updatedTracksTimestamp]);
 
     function getTracks() {
-        console.log("GET TRACKS");
         const tracks = [];
         const numTracks = PianoAuthorV2.Song.getNumTracks();
         for (let currTrackNumber = 0; currTrackNumber < numTracks; currTrackNumber++) {

@@ -72,7 +72,7 @@ const AppContainer = () => {
         // Update the UI here with data from our MIDIFileIO...
         console.log(`Loaded a file at timestamp: ${midiFileTimestamp}`);
         const midiFile = MIDIFileIO.getLoadedFile();
-        const midiEvents = MIDIFileIO.getLoadedEvents();
+        const midiEvents = MIDIFileIO.getLoadedMIDIEvents();
         PianoAuthorV2.fillTracksWithNoteGroupsExtractedFromMIDIEvents(midiFile, midiEvents);
         PianoAuthorV2.displaySongInfo(MIDIFileIO.getNumTracks(), MIDIFileIO.getDurationInSeconds());
 

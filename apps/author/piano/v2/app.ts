@@ -428,6 +428,7 @@ namespace Playback {
 
     // starts or resumes playback
     export function play() {
+        console.log("PLAY");
         if (isPaused) {
             baseSongTime = currSongTime;
         } else {
@@ -976,6 +977,7 @@ namespace UI {
             return trackNumbersToInclude;
         }
         export function setTrackCheckedCallbacks(trackNumber: number, isTrackChecked: Function, setTrackChecked: Function) {
+            console.log("setTrackCheckedCallbacks " + trackNumber + " " + typeof isTrackChecked + " " + typeof setTrackChecked);
             if (!isCheckedCallbacks) {
                 isCheckedCallbacks = [];
             }
@@ -985,13 +987,17 @@ namespace UI {
             }
             setCheckedCallbacks[trackNumber] = setTrackChecked;
         }
-        export function setChecked(trackNumber: number, checkedFlag: boolean) {
+        export function setChecked(trackNumber: number, checked: boolean) {
+            console.log("setChecked " + trackNumber + " => " + checked);
+            debugger;
+
             const setCheckedCB = setCheckedCallbacks[trackNumber];
             if (!setCheckedCB) {
+                console.log("NULL SETCHECKED CALLBACK");
                 // DO NOTHING
             } else {
                 // #TODO: If the value has not changed, do nothing.
-                setCheckedCB(checkedFlag);
+                setCheckedCB(checked);
                 LocalStorage.saveCheckBoxes();
                 Song.resetCache();
             }
@@ -1020,7 +1026,10 @@ namespace UI {
                 if (!isCheckedCB) {
                     return false; // If the callback is undefined or null, we consider that track "NOT CHECKED".
                 } else {
-                    return isCheckedCB(); // Otherwise, we call the callback to determine the current checked state.
+                    let checked = isCheckedCB();
+                    debugger;
+                    console.log(checked);
+                    return checked; // Otherwise, we call the callback to determine the current checked state.
                 }
             });
         }
@@ -1064,7 +1073,6 @@ namespace Song {
     // Return: the new length of the specified track.
     export function addNoteGroupToTrack(noteGroup: NoteGroup, trackNumber: number): number {
         Song.resetCache(); // Every time we modify the tracks, we need to invalidate the cache.
-        console.log(`addNoteGroupToTrack NoteGroup ${console.dir(noteGroup)}  Track Number ${trackNumber}`);
 
         const track = tracks[trackNumber];
         noteGroup.trackNumber = trackNumber;
@@ -1270,6 +1278,8 @@ namespace App {
         }
 
         Tracks.setup(midiFile.tracks.length);
+
+        console.log("FILL TRACKS XXX");
 
         // Remember the most recently processed event so that we can merge notes that are played at the same time and on the same track.
         let lastNoteGroup: NoteGroup = null;
