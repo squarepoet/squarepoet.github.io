@@ -5,48 +5,55 @@ import createPersistedState from "use-persisted-state";
 
 // TODO: Learn about controlled vs uncontrolled components.
 // https://reactjs.org/docs/uncontrolled-components.html
-const InputSaved = forwardRef((props: any, ref) => {
-    const label: string = props.label;
-    const key: string = props.persistedStateKey; // sharps | flats
+//
+// forwardRef and useImperativeHandle are two React features that allow us to interact with the <input> element's focus.
+type Props = {
+    label: string;
+    persistedStateKey: string; // e.g., "sharps" | "flats"
+};
 
-    const useState = createPersistedState(key);
-    const [value, setValue] = useState("");
+type InputSavedInterface = {
+    hasFocus(): boolean;
+    getValue(): string;
+};
 
+const InputSaved = forwardRef(({ label, persistedStateKey }: Props, ref) => {
+    // Instead of React's default useState(), we use a different function that saves to localstorage.
+    const useState = createPersistedState(persistedStateKey);
+    const [inputElementValue, setInputElementValue] = useState("");
     const inputElementRef = useRef();
 
-    // BUG
-    // CMD+A, BACKSPACE|DELETE
-    // MOUSE_SELECT_ALL, BACKSPACE|DELETE
-    //
-
     const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-        console.log("onKeyDown " + e.code);
+        console.log(`InputSaved: onKeyDown key = ${e.key} | code = ${e.code}`);
+        console.dir(localStorage);
     };
 
     const onKeyUp = (e: KeyboardEvent<HTMLInputElement>) => {
-        console.log("onKeyUp " + e.code);
-        // DETECT situations where the current input element is empty!
-        setValue((e.target as HTMLInputElement).value.toUpperCase().replace(/[^ABCDEFG]+/g, ""));
+        console.log(`InputSaved: onKeyUp key = ${e.key} | code = ${e.code}`);
+        setInputElementValue((e.target as HTMLInputElement).value.toUpperCase().replace(/[^ABCDEFG]+/g, ""));
+        console.dir(localStorage);
     };
 
-    // CMD + A, BACKSPACE/FORWARD_DELETE does not trigger an onChange().
     const onChange = (e: ChangeEvent<HTMLInputElement>) => {
-        console.log("onChange");
-        setValue(e.target.value.toUpperCase().replace(/[^ABCDEFG]+/g, ""));
+        console.log("InputSaved: onChange");
+        setInputElementValue(e.target.value.toUpperCase().replace(/[^ABCDEFG]+/g, ""));
+        console.dir(localStorage);
     };
 
     const onBlur = (e: FocusEvent<HTMLInputElement>) => {
-        console.log("onBlur");
+        console.log("InputSaved: onBlur");
+        console.dir(localStorage);
     };
 
-    // Exposes a hasFocus() method to parents who have our ref.
+    // Expose methods to our parent
+    // The parent can access through the ref they pass into this component.
     useImperativeHandle(ref, () => {
         return {
             hasFocus() {
                 return inputElementRef.current === document.activeElement;
             },
             getValue() {
-                return value;
+                return inputElementValue;
             },
         };
     });
@@ -55,11 +62,19 @@ const InputSaved = forwardRef((props: any, ref) => {
         <>
             <div>
                 {label} &nbsp;
-                <input ref={inputElementRef} value={value} onChange={onChange} onKeyDown={onKeyDown} onKeyUp={onKeyUp} onBlur={onBlur} />
+                <input ref={inputElementRef} value={inputElementValue} onChange={onChange} onKeyDown={onKeyDown} onKeyUp={onKeyUp} onBlur={onBlur} />
             </div>
             <style jsx>{`
                 div {
                     display: block;
+                }
+                input {
+                    background-color: #444;
+                    appearance: none;
+                    border: 1px solid #222;
+                    padding: 4px;
+                    width: 100px;
+                    color: #ddd;
                 }
             `}</style>
         </>
@@ -67,3 +82,4 @@ const InputSaved = forwardRef((props: any, ref) => {
 });
 
 export default InputSaved;
+export type { InputSavedInterface };

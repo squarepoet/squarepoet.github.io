@@ -27,14 +27,12 @@ export default class GuitarAuthorV1 {
 
     public setGuitarTab: (s: string) => void;
 
-    public getSharps: () => string;
-    public getFlats: () => string;
+    public isNoteSharp: (n: string) => boolean;
+    public isNoteFlat: (n: string) => boolean;
     public getGuitarTab: () => string;
 
     public getGuitarTabTextArea: () => HTMLTextAreaElement;
     public getGuitarCanvas: () => HTMLCanvasElement;
-    public isFocusedOnSharpsInput: () => boolean;
-    public isFocusedOnFlatsInput: () => boolean;
 
     //////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -465,17 +463,17 @@ setInterval(() => {
 
         let adjustedFret = this.keyCodeToFret[keyCode] + this.fretOffset;
         console.log("Adjusted Fret " + adjustedFret);
-        let adjustedString = this.keyCodeToString[keyCode] + this.stringOffset;
+        const adjustedString = this.keyCodeToString[keyCode] + this.stringOffset;
 
-        let noteOffset = this.noteOffsetForString[adjustedString];
-        let noteLabel = NOTE_LABELS[(noteOffset + adjustedFret) % 12].toLowerCase();
+        const noteOffset = this.noteOffsetForString[adjustedString];
+        const noteLabel = NOTE_LABELS[(noteOffset + adjustedFret) % 12].toLowerCase();
 
         // is this note auto-sharped, due to the key signature?
-        if (this.getSharps().indexOf(noteLabel) != -1) {
+        if (this.isNoteSharp(noteLabel)) {
             accidental++; // raise the note a half-step!
         }
         // is this note auto-flattened, due to the key signature?
-        if (this.getFlats().indexOf(noteLabel) != -1) {
+        if (this.isNoteFlat(noteLabel)) {
             accidental--; // lower the note a half-step!
         }
 
@@ -483,7 +481,7 @@ setInterval(() => {
 
         this.noteGroups.push(adjustedString + "_" + adjustedFret); // push the string onto our array
 
-        let pianoKeyNumber = STRING_TO_PIANOKEY[adjustedString] + adjustedFret;
+        const pianoKeyNumber = STRING_TO_PIANOKEY[adjustedString] + adjustedFret;
 
         this.playPianoNote(pianoKeyNumber);
 
@@ -491,10 +489,6 @@ setInterval(() => {
     }
 
     onKeyDown(e: KeyboardEvent) {
-        if (this.isFocusedOnSharpsInput() || this.isFocusedOnFlatsInput()) {
-            return; // if we are typing in the sharps/flats input, we should ignore the rest of the key handler
-        }
-
         if (!piano) {
             console.log("Init Web Audio");
             piano = new Instrument(PianoType.Sampled_1);

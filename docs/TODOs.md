@@ -5,8 +5,12 @@
 
 # NEXT
 
--   [ ] Fix Sharps & Flats. Use my V1 or Guitar Author code.
+-   [x] Fix Sharps & Flats. Use the Guitar Author code.
     -   [ ] Also Fix Sharps & Flats in the Guitar V1. InputSaved!!!!
+    -   [ ]
+-   [ ] Keyboard Events (keyCode is deprecated). We should eventually transition to using either .key or .code, which do different things.
+    -   [ ] `KeyboardEvent: key='${event.key}' | code='${event.code}'`;
+-   [ ]
 -   [ ] WTF is #current-status? How did we use it in our old code?
     -   [ ] <div id="current-status">&nbsp;</div>
 -   [ ]

@@ -1,12 +1,9 @@
 import GuitarAuthorV1 from "apps/author/guitar/v1/App";
 import Shortcuts from "apps/author/guitar/v1/Shortcuts";
-import InputSaved from "components/InputSaved";
+import InputSaved, { InputSavedInterface } from "components/InputSaved";
 import { useEffect, useRef, useState } from "react";
 import { useEventListener } from "use-hooks";
 import createPersistedState from "use-persisted-state";
-
-// SERVER + CLIENT
-console.log("index.tsx loaded!");
 
 const useGuitarTabState = createPersistedState("guitar_tab");
 
@@ -17,35 +14,44 @@ if (typeof window !== "undefined") {
 }
 
 // This function is called each time we need to update the page.
-// SERVER + CLIENT
 const Page = () => {
-    console.log("Page Function Called");
-
     const [guitarTab, setGuitarTab] = useGuitarTabState("");
 
     const guitarTabTextArea = useRef();
     const guitarCanvas = useRef();
 
-    const sharpsInput = useRef();
-    const flatsInput = useRef();
+    const sharpsInput = useRef<InputSavedInterface>();
+    const flatsInput = useRef<InputSavedInterface>();
+    const isFocusedOnSharpsInput = () => {
+        return sharpsInput.current.hasFocus();
+    };
+    const isFocusedOnFlatsInput = () => {
+        return flatsInput.current.hasFocus();
+    };
 
     if (typeof window !== "undefined") {
         useEventListener("keydown", (e) => {
-            app.onKeyDown(e);
+            if (isFocusedOnSharpsInput() || isFocusedOnFlatsInput()) {
+                return; // If the user is typing in the sharps/flats input, we not forward the onKeyDown to the app.
+            } else {
+                app.onKeyDown(e);
+            }
         });
     }
 
-    // Called Every Render
+    // #TODO: Consider using useLayoutEffect if any of the ref.current values are null!
     useEffect(() => {
-        console.log("USE EFFECT on every render!");
         app.setGuitarTab = setGuitarTab;
-        app.getSharps = () => {
-            return "";
-            // return sharps.toLowerCase();
+        app.isNoteSharp = (noteLabel: string): boolean => {
+            const sharps = sharpsInput.current.getValue();
+            // Case insensitive test. Does the list of sharps contain the noteLabel?
+            return new RegExp(noteLabel, "i").test(sharps);
         };
-        app.getFlats = () => {
-            return "";
-            // return flats.toLowerCase();
+
+        app.isNoteFlat = (noteLabel: string): boolean => {
+            const flats = flatsInput.current.getValue();
+            // Case insensitive test. Does the list of flats contain the noteLabel?
+            return new RegExp(noteLabel, "i").test(flats);
         };
         app.getGuitarTab = () => {
             return guitarTab;
@@ -53,30 +59,9 @@ const Page = () => {
         app.getGuitarTabTextArea = () => {
             return guitarTabTextArea.current;
         };
-        app.isFocusedOnSharpsInput = () => {
-            if (sharpsInput && sharpsInput.current) {
-                return (sharpsInput.current as any).hasFocus();
-            } else {
-                return false;
-            }
-        };
-        app.isFocusedOnFlatsInput = () => {
-            if (flatsInput && flatsInput.current) {
-                return (flatsInput.current as any).hasFocus();
-            } else {
-                return false;
-            }
-        };
         app.getGuitarCanvas = () => {
             return guitarCanvas.current;
         };
-    });
-
-    // Called Once!
-    useEffect(() => {
-        console.log("Local Storage is currently:");
-        console.log(localStorage);
-
         app.loadNoteGroupsFromGuitarTab(guitarTab);
         app.drawFrets();
     }, []);
@@ -121,15 +106,6 @@ const Page = () => {
                 }
                 .canvas {
                     border: 1px solid rgba(0, 0, 0, 0.2);
-                }
-
-                input {
-                    background-color: #444;
-                    appearance: none;
-                    border: 1px solid #222;
-                    padding: 6px;
-                    width: 100px;
-                    color: #ddd;
                 }
             `}</style>
         </>

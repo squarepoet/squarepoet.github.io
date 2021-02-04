@@ -1,6 +1,6 @@
-export default function () {
+const Shortcuts = () => {
     return (
-        <div className="root">
+        <div>
             shift + esc &rarr; clear
             <br />
             cmd + c &rarr; copy <br />
@@ -8,11 +8,15 @@ export default function () {
             <br />
             tab &rarr; combine
             <style jsx>{`
-                .root {
+                div {
                     float: right;
                     text-align: right;
+                    font-size: 70%;
+                    line-height: 150%;
                 }
             `}</style>
         </div>
     );
-}
+};
+
+export default Shortcuts;
