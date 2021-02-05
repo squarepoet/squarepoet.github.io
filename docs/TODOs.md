@@ -5,14 +5,9 @@
 
 # NEXT
 
--   [x] Fix Sharps & Flats. Use the Guitar Author code.
-    -   [ ] Also Fix Sharps & Flats in the Guitar V1. InputSaved!!!!
-    -   [ ]
 -   [ ] Keyboard Events (keyCode is deprecated). We should eventually transition to using either .key or .code, which do different things.
     -   [ ] `KeyboardEvent: key='${event.key}' | code='${event.code}'`;
 -   [ ]
--   [ ] WTF is #current-status? How did we use it in our old code?
-    -   [ ] <div id="current-status">&nbsp;</div>
 -   [ ]
 -   [ ] Whenever tracks are loaded from localstorage or a MIDI file, they should be checked!
     -   [ ] Maybe I should use the global redux store.... :-\
@@ -76,3 +71,6 @@
 -   [x] When I load a multitrack, it should add multiple tracks and populate all the notes!!!
 -   [x] Add checkbox change handlers.
 -   [x] Tracks.tsx should be broken down into more components.
+-   [x] Fix Sharps & Flats. Use the Guitar Author code.
+-   [x] Also Fix Sharps & Flats in the Guitar V1. InputSaved!!!!
+-   [x] Reviewed current-status DIV, which was an alternative to console.log()

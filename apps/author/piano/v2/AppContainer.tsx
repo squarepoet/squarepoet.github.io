@@ -246,19 +246,6 @@ const AppContainer = () => {
                     background-color: rgba(0, 0, 0, 0.18);
                 }
 
-                #current-status {
-                    margin: 10px 0;
-                    padding: 6px 0px;
-                    width: 100%;
-                    color: #333;
-                    background-color: #bdc;
-                    position: absolute;
-                    height: 50px;
-                    bottom: 100px;
-                    left: 0px;
-                    right: 0px;
-                }
-
                 /* animate the played notegroup */
 
                 /* The animation code */
