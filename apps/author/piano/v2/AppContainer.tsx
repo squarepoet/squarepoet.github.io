@@ -137,19 +137,6 @@ const AppContainer = () => {
                     margin: 15px 1% 0px 1%;
                 }
 
-                .notegroup {
-                    box-sizing: border-box;
-                    display: inline-block;
-                    height: 32px;
-                    line-height: 32px;
-                    padding: 0px 3px;
-                    margin: 4px 1px 0px 1px;
-                }
-
-                .notegroup.multiple {
-                    color: #59b;
-                }
-
                 html.drag {
                     background-color: #dffafb;
                 }
@@ -163,68 +150,6 @@ const AppContainer = () => {
 
                 .bottom-info {
                     margin-bottom: 10px;
-                }
-
-                #tracks {
-                    min-height: 40px;
-                }
-
-                .track-container {
-                    height: 40px;
-                    margin-bottom: 6px;
-                }
-
-                .track-container.empty {
-                    height: 22px;
-                }
-
-                .track {
-                    box-sizing: border-box;
-                    width: 90%;
-                    height: 100%;
-                    background-color: #dffafb;
-                    text-align: left;
-                    font-family: Inconsolata, Menlo, Monaco, sans-serif;
-                    font-size: 11pt;
-                    overflow-x: scroll;
-                    overflow-y: hidden;
-                    margin: 0;
-                    padding: 0 10px;
-                    white-space: nowrap;
-                    display: inline-block;
-                    line-height: 100%;
-                    -webkit-user-select: none;
-                    user-select: none;
-                    border-bottom: 1px solid rgba(255, 255, 255, 0);
-                }
-
-                .track-info {
-                    box-sizing: border-box;
-                    width: 38px;
-                    height: 100%;
-                    background-color: #f0f4ff;
-                    color: #666;
-                    text-align: center;
-                    font-family: Inconsolata, Menlo, Monaco, sans-serif;
-                    font-size: 11pt;
-                    overflow-x: scroll;
-                    overflow-y: hidden;
-                    white-space: nowrap;
-                    margin: 0px 0;
-                    display: inline-block;
-                    line-height: 40px;
-                    border-bottom: 1px solid rgba(255, 255, 255, 0);
-                }
-
-                .checkbox {
-                    box-sizing: border-box;
-                    width: 14px;
-                    height: 100%;
-                    vertical-align: top;
-                    margin: 0px;
-                    margin-right: 6px;
-                    border: 0px;
-                    padding: 0px;
                 }
 
                 /* always show scrollbars */

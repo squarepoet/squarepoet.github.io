@@ -28,29 +28,60 @@ const Tracks = ({ highlightedTrackNumber, highlightedNoteGroupNumber }: Props) =
     // }, [updatedTrackNumbers, updatedTracksTimestamp]);
 
     function getTracks() {
-        const tracks = [];
         const numTracks = PianoAuthorV2.Song.getNumTracks();
-        for (let currTrackNumber = 0; currTrackNumber < numTracks; currTrackNumber++) {
-            const isEmpty = Song.isTrackEmpty(currTrackNumber);
-            const currTrackIsHighlighted = highlightedTrackNumber == currTrackNumber;
-            const trackContainerClasses = classNames("track-container", { empty: isEmpty });
-            const containerID = `track-${currTrackNumber}-container`;
-            const trackContainerDIV = (
-                <div key={containerID} id={containerID} className={trackContainerClasses} last-update={updatedTracksTimestamp}>
-                    <TrackCheckbox currTrackNumber={currTrackNumber} />
-                    <TrackInfo currTrackNumber={currTrackNumber} currTrackIsHighlighted={currTrackIsHighlighted} />
-                    <TrackNoteGroups currTrackNumber={currTrackNumber} currTrackIsHighlighted={currTrackIsHighlighted} highlightedNoteGroupNumber={highlightedNoteGroupNumber} />
+        const tracks = [];
+        for (let trackNumber = 0; trackNumber < numTracks; trackNumber++) {
+            const isEmpty = Song.isTrackEmpty(trackNumber);
+            const isHighlighted = highlightedTrackNumber == trackNumber;
+            const classes = classNames("track", { empty: isEmpty, highlighted: isHighlighted });
+            const trackKey = `track-${trackNumber}`;
+            tracks.push(
+                <div key={trackKey} id={trackKey} className={classes} last-update={updatedTracksTimestamp}>
+                    <TrackCheckbox trackNumber={trackNumber} />
+                    <TrackInfo trackNumber={trackNumber} trackIsHighlighted={isHighlighted} />
+                    <TrackNoteGroups trackNumber={trackNumber} trackIsHighlighted={isHighlighted} highlightedNoteGroupNumber={highlightedNoteGroupNumber} />
                 </div>
             );
-
-            tracks.push(trackContainerDIV);
         }
         return tracks;
     }
 
     return (
         <>
-            <div id="tracks">{getTracks()}</div>
+            <div className="track-container">{getTracks()}</div>
+            <style jsx global>{`
+                .track-container {
+                    margin-bottom: 40px;
+                    box-sizing: border-box;
+                    font-family: Inconsolata, Menlo, Monaco, sans-serif;
+                }
+
+                .track {
+                    box-sizing: border-box;
+                    width: 100%;
+                    height: 40px;
+                    background-color: #dffafb;
+                    text-align: left;
+                    font-size: 11pt;
+                    overflow-x: scroll;
+                    overflow-y: hidden;
+                    margin: 0;
+                    padding: 0 10px;
+                    white-space: nowrap;
+                    line-height: 100%;
+                    -webkit-user-select: none;
+                    user-select: none;
+                }
+
+                .track.empty {
+                    /* Make the track shorter, like 22px? */
+                }
+
+                .track.highlighted {
+                    /* Add a glow around the track? */
+                    border: 2px solid yellow;
+                }
+            `}</style>
         </>
     );
 };

@@ -19,8 +19,8 @@ type InputSavedInterface = {
 
 const InputSaved = forwardRef(({ label, persistedStateKey }: Props, ref) => {
     // Instead of React's default useState(), we use a different function that saves to localstorage.
-    const useState = createPersistedState(persistedStateKey);
-    const [inputElementValue, setInputElementValue] = useState("");
+    const useInputState = createPersistedState(persistedStateKey);
+    const [inputElementValue, setInputElementValue] = useInputState("");
     const inputElementRef = useRef();
 
     const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {

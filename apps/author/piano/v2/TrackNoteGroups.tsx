@@ -4,25 +4,23 @@ import classNames from "classnames";
 const Song = PianoAuthorV2.Song;
 
 type Props = {
-    currTrackNumber: number;
-    currTrackIsHighlighted: boolean;
+    trackNumber: number;
+    trackIsHighlighted: boolean;
     highlightedNoteGroupNumber: number;
 };
 
 const TrackNoteGroups = (props: Props) => {
-    const { currTrackNumber, currTrackIsHighlighted, highlightedNoteGroupNumber } = props;
+    const { trackNumber, trackIsHighlighted, highlightedNoteGroupNumber } = props;
 
-    const trackClasses = classNames("track", { highlight: currTrackIsHighlighted });
-
-    const numNoteGroups = Song.getNumNoteGroupsInTrack(currTrackNumber);
+    const numNoteGroups = Song.getNumNoteGroupsInTrack(trackNumber);
 
     const noteGroups = [];
     for (let noteGroupNumber = 0; noteGroupNumber < numNoteGroups; noteGroupNumber++) {
-        const noteGroup = Song.getNoteGroupFromTrack(noteGroupNumber, currTrackNumber);
+        const noteGroup = Song.getNoteGroupFromTrack(noteGroupNumber, trackNumber);
         const noteGroupContainsMultipleNotes = noteGroup.numNotes > 1;
-        const shouldHighlightThisNoteGroup = currTrackIsHighlighted && highlightedNoteGroupNumber == noteGroupNumber;
+        const shouldHighlightThisNoteGroup = trackIsHighlighted && highlightedNoteGroupNumber == noteGroupNumber;
         const noteGroupClasses = classNames("notegroup", { multiple: noteGroupContainsMultipleNotes, highlight: shouldHighlightThisNoteGroup });
-        const noteGroupID = Song.getNoteGroupID(currTrackNumber, noteGroupNumber); // t_0_n_0 stands for track 0 notegroup 0
+        const noteGroupID = Song.getNoteGroupID(trackNumber, noteGroupNumber); // t_0_n_0 stands for track 0 notegroup 0
         const noteGroupDIV = (
             <div key={noteGroupID} id={noteGroupID} className={noteGroupClasses}>
                 {noteGroup.toString()}
@@ -33,17 +31,22 @@ const TrackNoteGroups = (props: Props) => {
 
     return (
         <>
-            <div id={`track-${currTrackNumber}`} className={trackClasses}>
-                <div>{noteGroups}</div>
-            </div>
+            <div id={`track-${trackNumber}-notes`}>{noteGroups}</div>
             <style jsx global>{`
-                .track.highlight {
-                    border-bottom: 1px solid rgba(238, 119, 153, 0.4);
+                .notegroup {
+                    box-sizing: border-box;
+                    display: inline-block;
+                    height: 32px;
+                    line-height: 32px;
+                    padding: 0px 3px;
+                    margin: 4px 1px 0px 1px;
                 }
-
                 .notegroup.highlight {
                     color: #f67;
                     background-color: rgba(238, 119, 153, 0.2);
+                }
+                .notegroup.multiple {
+                    color: #59b;
                 }
             `}</style>
         </>

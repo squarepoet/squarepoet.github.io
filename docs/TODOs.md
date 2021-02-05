@@ -1,7 +1,9 @@
 # NEXT
 
+-   [ ] How to subscribe to changes in state in my App.ts? Do I need to forward changes from my component.tsx?
+    -   [ ] Fix the checkbox shit.
 -   [ ] Whenever tracks are loaded from localstorage or a MIDI file, they should be checked!
-    -   [ ] Maybe I should use the global redux store.... :-\
+    -   [x] Maybe I should use the global redux store.... :-\
 
 ---
 

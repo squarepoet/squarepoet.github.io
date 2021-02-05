@@ -4,6 +4,7 @@ namespace Actions {
     };
     export const Toggle = {
         onSongVersionFormatChanged: "onSongVersionFormatChanged",
+        onCheckboxChanged: "onCheckboxChanged",
     };
     export const Song = {
         onTracksUpdated: "onTracksUpdated",

@@ -9,6 +9,11 @@ namespace Constants {
 
         export const UPDATED_TRACKS_LIST = "updatedTracks"; // Array of track numbers (e.g., [0, 3, 4])
         export const UPDATED_TRACKS_TIMESTAMP = "updatedTracksTimestamp";
+
+        // Handle checkbox change events.
+        export const TRACK_NUMBER = "trackNumber";
+        export const CHECKBOX_VALUE = "checkboxValue";
+        export const TRACK_NUMBER_TO_CHECKBOX_VALUE = "trackNumber=>checkboxValue";
     }
 
     export const DEFAULT_DOWNLOAD_DATA = "8J+OtQ=="; // base 64 encoded!

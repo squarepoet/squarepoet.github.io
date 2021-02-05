@@ -1,7 +1,6 @@
 import Highlight from "apps/author/piano/v2/Highlight";
 import { Note, NoteGroup, Track } from "apps/author/piano/v2/Music";
 import Constants from "apps/shared/Constants";
-import Utils from "apps/shared/dom/Utils";
 import MIDIFileIO from "apps/shared/midi/MIDIFileIO";
 import MIDIUtils from "apps/shared/midi/MIDIUtils";
 import Actions from "apps/shared/redux/Actions";
@@ -14,43 +13,6 @@ const TIME_THRESHOLD_FOR_GROUPING_NEARBY_NOTES = 0; // Adjust this for parsing M
 
 // Dispatch events and send data to the global store.
 let dispatch: Function = null;
-
-// #TODO: Set up a dummy jQuery $ function while we are porting to React.
-const $ = (arg) => {
-    console.log(`jQuery called with arg [${arg}]`);
-    const retVal = {
-        addClass: (addClassArg) => {
-            console.log(`jQuery.addClass called with [${addClassArg}]`);
-        },
-        removeClass: (removeClassArg) => {
-            console.log(`jQuery.removeClass called with [${removeClassArg}]`);
-        },
-        prop: (propArg1, propArg2) => {
-            console.log(`jQuery.prop called with [${propArg1}] [${propArg2}]`);
-        },
-        bind: (bindArg1, bindArg2) => {
-            console.log(`jQuery.bind called with [${bindArg1}] [${bindArg2}]`);
-            return retVal; // support chaining
-        },
-        unbind: (unbindArg) => {
-            console.log(`jQuery.unbind called with [${unbindArg}]`);
-            return retVal; // support chaining
-        },
-        click: (clickArg) => {
-            console.log(`jQuery.click called with [${clickArg}]`);
-        },
-        mousedown: (mousedownArg) => {
-            console.log(`jQuery.mousedown called with [${mousedownArg}]`);
-        },
-        mouseover: (mouseoverArg) => {
-            console.log(`jQuery.mouseover called with [${mouseoverArg}]`);
-        },
-        mousemove: (mousemoveArg) => {
-            console.log(`jQuery.mousemove called with [${mousemoveArg}]`);
-        },
-    };
-    return retVal;
-};
 
 /////////////////////////////////////////////////////////////////////////////////
 // declare types that are defined in 3rd party libraries
@@ -252,10 +214,6 @@ function resetEverything() {
     UI.Tracks.setup(1);
     saveAndShowData();
     Playback.stop();
-
-    // TODO: Use setState somehow....
-    // setHTML("file-info", "&nbsp;");
-    // setHTML("song-info", "&nbsp;");
 }
 
 function saveAndShowData() {
@@ -274,7 +232,6 @@ namespace LocalStorage {
     }
 
     function loadVersionToggle() {
-        console.log("LOAD VERSION TOGGLE");
         if (!localStorage.getItem("song_version")) {
             localStorage.setItem("song_version", "1");
         }
@@ -517,20 +474,25 @@ namespace Playback {
     }
 
     function playCurrentNoteGroup() {
-        let t = Highlight.getCurrentTrackNumber();
-        let n = Highlight.getCurrentNoteGroupNumber();
-        let noteGroup = Song.getNoteGroupFromTrack(n, t);
+        const t = Highlight.getCurrentTrackNumber();
+        const n = Highlight.getCurrentNoteGroupNumber();
+        const noteGroup = Song.getNoteGroupFromTrack(n, t);
         if (!noteGroup) {
             return;
         }
-        for (let note of noteGroup.notes) {
+        for (const note of noteGroup.notes) {
             App.playPianoNote(MIDIUtils.m2p(note.midiNote), note.velocity);
         }
+
+        // #TODO: Flash the Played Note Briefly.... Not sure how to do this animation with React!
+        // Do we dispatch the notegroup ID, and then the notegroup ID needs to re-render itself briefly with a CSS animation??? WTF? :-)
+        /*
         let $noteGroup = $(`#t${t}_n${n}`);
         $noteGroup.addClass("played-note");
         setTimeout(function () {
             $noteGroup.removeClass("played-note");
         }, 400);
+        */
     }
 
     export const playAndGoBackwardOnCurrentTrack = throttle(function () {
@@ -905,6 +867,8 @@ namespace UI {
             Highlight.setupIndexes(numTracks);
         }
 
+        export function addNewTrack() {}
+
         export function getTextFileFromTracks(): string {
             console.log("getTextFileFromTracks Song Version: " + App.getSongVersion());
             const noteGroups = Song.getNoteGroupsFromTracks();
@@ -940,6 +904,7 @@ namespace UI {
             }
             setCheckedCallbacks[trackNumber] = setTrackChecked;
         }
+
         export function setChecked(trackNumber: number, checked: boolean) {
             console.log("setChecked " + trackNumber + " => " + checked);
 
@@ -954,6 +919,7 @@ namespace UI {
                 Song.resetCache();
             }
         }
+
         export function isChecked(trackNumber: number): boolean {
             const isCheckedCB = isCheckedCallbacks[trackNumber];
             if (!isCheckedCB) {
@@ -963,6 +929,7 @@ namespace UI {
                 return isCheckedCB();
             }
         }
+
         export function checkAllNonEmptyTracks() {
             const numTracks = Song.getNumTracks();
             for (let trackNumber = 0; trackNumber < numTracks; trackNumber++) {
@@ -1227,7 +1194,7 @@ namespace App {
             return;
         }
 
-        Tracks.setup(midiFile.tracks.length);
+        UI.Tracks.setup(midiFile.tracks.length);
 
         // Remember the most recently processed event so that we can merge notes that are played at the same time and on the same track.
         let lastNoteGroup: NoteGroup = null;

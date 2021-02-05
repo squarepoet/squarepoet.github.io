@@ -13,35 +13,41 @@ defaultInitialState[Keys.SONG_VERSION] = 1; // 1 | 2
 defaultInitialState[Keys.FILE_TIMESTAMP] = 0;
 defaultInitialState[Keys.UPDATED_TRACKS_LIST] = [];
 defaultInitialState[Keys.UPDATED_TRACKS_TIMESTAMP] = 0;
+defaultInitialState[Keys.TRACK_NUMBER_TO_CHECKBOX_VALUE] = {}; // { trackNumber: true|false}. If the key doesn't exist, we consider it unchecked.
 
 const reducer = (state = defaultInitialState, action) => {
-    let retVal = { ...state };
+    const updatedState = { ...state };
     switch (action.type) {
         case Actions.Toggle.onSongVersionFormatChanged: {
-            let songVersion = action.payload[Constants.StoreKeys.SONG_VERSION];
+            let songVersion = action.payload[Keys.SONG_VERSION];
             if (typeof songVersion !== "number" || songVersion < Constants.MIN_SONG_VERSION || songVersion > Constants.MAX_SONG_VERSION) {
                 songVersion = defaultInitialState[Keys.SONG_VERSION];
             }
-            console.log(`Song version set to ${songVersion}`);
-            retVal[Keys.SONG_VERSION] = songVersion;
+            updatedState[Keys.SONG_VERSION] = songVersion;
             break;
         }
         case Actions.FileChooser.onFileLoaded: {
-            retVal[Keys.FILE_TIMESTAMP] = new Date().getTime();
+            updatedState[Keys.FILE_TIMESTAMP] = new Date().getTime();
             break;
         }
         case Actions.Song.onTracksUpdated: {
-            const trackNumbers = action.payload[Constants.StoreKeys.UPDATED_TRACKS_LIST];
-            retVal[Keys.UPDATED_TRACKS_LIST] = trackNumbers;
-            retVal[Keys.UPDATED_TRACKS_TIMESTAMP] = new Date().getTime();
-            console.log("Tracks  " + trackNumbers + " Updated!");
+            const trackNumbers = action.payload[Keys.UPDATED_TRACKS_LIST];
+            updatedState[Keys.UPDATED_TRACKS_LIST] = trackNumbers;
+            updatedState[Keys.UPDATED_TRACKS_TIMESTAMP] = new Date().getTime();
+            break;
+        }
+        case Actions.Toggle.onCheckboxChanged: {
+            const trackNumber = action.payload[Keys.TRACK_NUMBER];
+            const checkboxValue = action.payload[Keys.CHECKBOX_VALUE];
+            const trackNumberToCheckboxValue = updatedState[Keys.TRACK_NUMBER_TO_CHECKBOX_VALUE];
+            trackNumberToCheckboxValue[trackNumber] = checkboxValue;
             break;
         }
         default: {
             break;
         }
     }
-    return retVal;
+    return updatedState;
 };
 
 function createStoreWithState(preloadedState = defaultInitialState) {
