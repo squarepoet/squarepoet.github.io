@@ -7,7 +7,7 @@ import KeyboardShortcuts from "apps/author/piano/v2/KeyboardShortcuts";
 import MIDIFileChooser from "apps/author/piano/v2/MIDIFileChooser";
 import PianoKeyboard from "apps/author/piano/v2/PianoKeyboard";
 import PlayPauseStop from "apps/author/piano/v2/PlayPauseStop";
-import Tracks from "apps/author/piano/v2/Tracks";
+import TrackContainer from "apps/author/piano/v2/tracks/TrackContainer";
 import VersionToggle from "apps/author/piano/v2/VersionToggle";
 import Constants from "apps/shared/Constants";
 import MIDIFileIO from "apps/shared/midi/MIDIFileIO";
@@ -22,6 +22,10 @@ const Keys = Constants.StoreKeys;
 //     console.log(new Date().getTime());
 // }
 
+const Playback = PianoAuthorV2.Playback;
+const Song = PianoAuthorV2.Song;
+const UI = PianoAuthorV2.UI;
+
 const AppContainer = () => {
     // const workerRef = useRef<Worker>();
     const [showPreloadDialog, setShowPreloadDialog] = useState(true);
@@ -35,7 +39,7 @@ const AppContainer = () => {
     const dispatch = useDispatch();
 
     useEffect(() => {
-        Highlight.setupCallbacks(setHighlightedTrackNumber, setHighlightedNoteGroupNumber, PianoAuthorV2.UI.drawPiano, PianoAuthorV2.Song.getNumTracks, PianoAuthorV2.Song.getNumNoteGroupsInTrack, PianoAuthorV2.UI.scrollNoteGroupIntoView);
+        Highlight.setupCallbacks(setHighlightedTrackNumber, setHighlightedNoteGroupNumber, UI.drawPiano, Song.getNumTracks, Song.getNumNoteGroupsInTrack, UI.scrollNoteGroupIntoView);
         PianoAuthorV2.setDispatchFunction(dispatch);
 
         const isFocusedOnInputs = () => {
@@ -80,7 +84,7 @@ const AppContainer = () => {
         });
     }
 
-    function startAudio() {
+    function onDialogDismissedStartAudio() {
         PianoAuthorV2.startAudio();
         setShowPreloadDialog(false);
     }
@@ -113,13 +117,13 @@ const AppContainer = () => {
 
     return (
         <>
-            {showPreloadDialog ? <PreloadDialog initialOpenState={showPreloadDialog} preloadNow={startAudio} /> : null}
+            {showPreloadDialog ? <PreloadDialog initialOpenState={showPreloadDialog} preloadNow={onDialogDismissedStartAudio} /> : null}
             <DownloadSong />
             <VersionToggle />
             <KeyboardShortcuts />
             <SharpsAndFlats ref={sharpsAndFlatsInput} style={{ float: "right" }} />
             <div id="content" className="content">
-                <Tracks highlightedTrackNumber={highlightedTrackNumber} highlightedNoteGroupNumber={highlightedNoteGroupNumber} />
+                <TrackContainer highlightedTrackNumber={highlightedTrackNumber} highlightedNoteGroupNumber={highlightedNoteGroupNumber} />
                 <PianoKeyboard />
             </div>
             <BottomPanel>
@@ -130,7 +134,7 @@ const AppContainer = () => {
                 <div id="song-info" className="bottom-info">
                     {songInfo}
                 </div>
-                <PlayPauseStop onPlay={PianoAuthorV2.Playback.play} onPause={PianoAuthorV2.Playback.pause} onStop={PianoAuthorV2.Playback.stop} />
+                <PlayPauseStop onPlay={Playback.play} onPause={Playback.pause} onStop={Playback.stop} />
             </BottomPanel>
             <style jsx global>{`
                 html {
@@ -162,25 +166,6 @@ const AppContainer = () => {
                 ::-webkit-scrollbar-thumb {
                     border-radius: 0px;
                     background-color: rgba(0, 0, 0, 0.18);
-                }
-
-                /* animate the played notegroup */
-
-                /* The animation code */
-                @keyframes played-note-animation {
-                    0% {
-                        background-color: rgba(55, 180, 255, 0.85);
-                        color: #cdf;
-                    }
-                    100% {
-                        background-color: rgba(55, 180, 255, 0);
-                        color: #59f;
-                    }
-                }
-
-                .played-note {
-                    animation-name: played-note-animation;
-                    animation-duration: 0.4s;
                 }
 
                 /* tweak the margins on half-width display */

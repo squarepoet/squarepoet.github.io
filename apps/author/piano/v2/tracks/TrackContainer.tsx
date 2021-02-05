@@ -1,7 +1,7 @@
 import PianoAuthorV2 from "apps/author/piano/v2/App";
-import TrackCheckbox from "apps/author/piano/v2/TrackCheckbox";
-import TrackInfo from "apps/author/piano/v2/TrackInfo";
-import TrackNoteGroups from "apps/author/piano/v2/TrackNoteGroups";
+import TrackCheckbox from "apps/author/piano/v2/tracks/Checkbox";
+import TrackInfo from "apps/author/piano/v2/tracks/Info";
+import NoteGroupContainer from "apps/author/piano/v2/tracks/NoteGroupContainer";
 import Constants from "apps/shared/Constants";
 import classNames from "classnames";
 import React, { useEffect, useState } from "react";
@@ -18,27 +18,33 @@ type Props = {
     highlightedNoteGroupNumber: number;
 };
 
-const Tracks = ({ highlightedTrackNumber, highlightedNoteGroupNumber }: Props) => {
-    const updatedTrackNumbers = useSelector((state) => state[Keys.UPDATED_TRACKS_LIST]);
+// Contains multiple Tracks, which each consist of:
+// 1) a checkbox
+// 2) a info box showing how many notegroups there are in this track
+// 3) a container for all the notegroups.
+const TrackContainer = ({ highlightedTrackNumber, highlightedNoteGroupNumber }: Props) => {
     const updatedTracksTimestamp = useSelector((state) => state[Keys.UPDATED_TRACKS_TIMESTAMP]);
 
+    // const updatedTrackNumbers = useSelector((state) => state[Keys.UPDATED_TRACKS_LIST]);
+    //
     // useEffect(() => {
     //     console.log(`Tracks updated at ${updatedTracksTimestamp}. Need to rerender tracks: ${updatedTrackNumbers}`);
     //     console.log("XXXXXXXXX");
     // }, [updatedTrackNumbers, updatedTracksTimestamp]);
 
-    const numTracks = PianoAuthorV2.Song.getNumTracks();
+    const numTracks = Song.getNumTracks();
     const tracks = [];
     for (let trackNumber = 0; trackNumber < numTracks; trackNumber++) {
         const isEmpty = Song.isTrackEmpty(trackNumber);
         const isHighlighted = highlightedTrackNumber == trackNumber;
         const classes = classNames("track", { empty: isEmpty, highlighted: isHighlighted });
         const trackKey = `track-${trackNumber}`;
+        const _highlightedNoteGroupNumber = isHighlighted ? highlightedNoteGroupNumber : -1; // Just pass in -1 if the current track is not highlighted.
         tracks.push(
             <div key={trackKey} id={trackKey} className={classes} last-update={updatedTracksTimestamp}>
                 <TrackCheckbox trackNumber={trackNumber} />
                 <TrackInfo trackNumber={trackNumber} trackIsHighlighted={isHighlighted} />
-                <TrackNoteGroups trackNumber={trackNumber} trackIsHighlighted={isHighlighted} highlightedNoteGroupNumber={highlightedNoteGroupNumber} />
+                <NoteGroupContainer trackNumber={trackNumber} highlightedNoteGroupNumber={_highlightedNoteGroupNumber} />
             </div>
         );
     }
@@ -71,4 +77,4 @@ const Tracks = ({ highlightedTrackNumber, highlightedNoteGroupNumber }: Props) =
         </>
     );
 };
-export default Tracks;
+export default TrackContainer;
