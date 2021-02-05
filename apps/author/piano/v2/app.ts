@@ -625,11 +625,10 @@ namespace UI {
                 Playback.togglePlayPause();
                 break;
             case 33: // PAGE UP | fn + UP_ARROW
-                console.log("fn + UP");
                 // Up an octave.
                 octaveOffset++;
-                if (octaveOffset > 2) {
-                    octaveOffset = 2;
+                if (octaveOffset > 0) {
+                    octaveOffset = 0;
                 }
                 UI.drawPiano();
                 break;
@@ -637,8 +636,8 @@ namespace UI {
                 console.log("fn + DOWN");
                 // Down an octave.
                 octaveOffset--;
-                if (octaveOffset < -2) {
-                    octaveOffset = -2;
+                if (octaveOffset < -1) {
+                    octaveOffset = -1;
                 }
                 UI.drawPiano();
                 break;
@@ -669,6 +668,7 @@ namespace UI {
                 break;
             case 32: // SPACE BAR
                 console.log("SPACE");
+                // xxx
                 break;
             case 27: // ESC
                 console.log("ESC");
@@ -832,7 +832,6 @@ namespace UI {
         c.fillStyle = "#FFF";
         c.textAlign = "center";
 
-        // xxxx
         // draw the current character to press, under the correct key!
         const offset = (octaveOffset + 1) * 7; // start on A (key 13)
         const len = Keyboard.labels.length;
@@ -901,10 +900,11 @@ namespace UI {
 
             Song.reset();
             for (let t = 0; t < numTracks; t++) {
-                Song.addTrack(t);
+                Song.addTrack();
             }
             Highlight.setupIndexes(numTracks);
         }
+
         export function getTextFileFromTracks(): string {
             console.log("getTextFileFromTracks Song Version: " + App.getSongVersion());
             const noteGroups = Song.getNoteGroupsFromTracks();
@@ -998,14 +998,14 @@ namespace UI {
 namespace Song {
     // Support multi track MIDI songs.
     // When we compose by hand, stick everything in track 0.
-    let tracks: Array<Track> = [];
+    const tracks: Array<Track> = [];
 
     let cachedNoteGroups: NoteGroup[] = null;
 
-    let recentlyUpdatedTrackNumbers: Set<number> = new Set();
+    const recentlyUpdatedTrackNumbers: Set<number> = new Set();
 
     export function reset() {
-        tracks = [];
+        tracks.length = 0;
         Song.resetRecentlyUpdatedTrackNumbers();
         Song.resetCache();
     }
@@ -1014,11 +1014,11 @@ namespace Song {
         cachedNoteGroups = null;
     }
 
-    export function addTrack(trackNumber: number) {
+    export function addTrack() {
         const track = new Track();
-        track.trackNumber = trackNumber;
+        track.trackNumber = tracks.length;
         tracks.push(track);
-        recentlyUpdatedTrackNumbers.add(trackNumber);
+        recentlyUpdatedTrackNumbers.add(track.trackNumber);
     }
 
     // Return: the new length of the specified track.
@@ -1080,7 +1080,7 @@ namespace Song {
         if (trackNumber < 0 || trackNumber >= tracks.length) {
             return null;
         }
-        let track = tracks[trackNumber];
+        const track = tracks[trackNumber];
         if (noteGroupNumber < 0 || noteGroupNumber >= track.length) {
             return null;
         }
@@ -1165,7 +1165,7 @@ namespace Song {
     }
 
     export function resetRecentlyUpdatedTrackNumbers() {
-        recentlyUpdatedTrackNumbers = new Set();
+        recentlyUpdatedTrackNumbers.clear();
     }
 }
 
@@ -1228,8 +1228,6 @@ namespace App {
         }
 
         Tracks.setup(midiFile.tracks.length);
-
-        console.log("FILL TRACKS XXX");
 
         // Remember the most recently processed event so that we can merge notes that are played at the same time and on the same track.
         let lastNoteGroup: NoteGroup = null;

@@ -1,16 +1,12 @@
-<!--
-- [ ] This is a todo item.
-[//]: # (This is a comment. Ugly!)
--->
-
 # NEXT
+
+-   [ ] Whenever tracks are loaded from localstorage or a MIDI file, they should be checked!
+    -   [ ] Maybe I should use the global redux store.... :-\
+
+---
 
 -   [ ] Keyboard Events (keyCode is deprecated). We should eventually transition to using either .key or .code, which do different things.
     -   [ ] `KeyboardEvent: key='${event.key}' | code='${event.code}'`;
--   [ ]
--   [ ]
--   [ ] Whenever tracks are loaded from localstorage or a MIDI file, they should be checked!
-    -   [ ] Maybe I should use the global redux store.... :-\
 -   [ ] Save all the file info, so that when we refresh the page, we can restore the song's file name, etc etc.... It should look exactly like after I drag a MIDI file into the bottom panel.
 -   [ ]
 -   [ ] Have a button for me to add empty tracks manually!
@@ -59,18 +55,3 @@
 -   [ ] Learn about Debugging: https://code.visualstudio.com/docs/nodejs/nodejs-debugging#_breakpoints
 
 # DONE
-
--   [x] The piano canvas is not centered within its parent container div.
--   [x] Due to fast refresh during development, when the page first appears, the canvas is blank sometimes.
--   [x] Learn more about Debugging with Chrome and VSCode
-    -   [x] chrome://inspect/
-    -   [x] In VS Code, hit CMD+P and enter >Debug:Start Debugging
-    -   [x] Then add debugger; statements
--   [x] Restore Drag and Drop
--   [x] Restore Playback Buttons
--   [x] When I load a multitrack, it should add multiple tracks and populate all the notes!!!
--   [x] Add checkbox change handlers.
--   [x] Tracks.tsx should be broken down into more components.
--   [x] Fix Sharps & Flats. Use the Guitar Author code.
--   [x] Also Fix Sharps & Flats in the Guitar V1. InputSaved!!!!
--   [x] Reviewed current-status DIV, which was an alternative to console.log()

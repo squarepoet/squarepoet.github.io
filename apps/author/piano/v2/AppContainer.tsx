@@ -3,6 +3,7 @@ import PianoAuthorV2 from "apps/author/piano/v2/App";
 import BottomPanel from "apps/author/piano/v2/BottomPanel";
 import DownloadSong from "apps/author/piano/v2/DownloadSong";
 import Highlight from "apps/author/piano/v2/Highlight";
+import KeyboardShortcuts from "apps/author/piano/v2/KeyboardShortcuts";
 import MIDIFileChooser from "apps/author/piano/v2/MIDIFileChooser";
 import PianoKeyboard from "apps/author/piano/v2/PianoKeyboard";
 import PlayPauseStop from "apps/author/piano/v2/PlayPauseStop";
@@ -115,11 +116,7 @@ const AppContainer = () => {
             {showPreloadDialog ? <PreloadDialog initialOpenState={showPreloadDialog} preloadNow={startAudio} /> : null}
             <DownloadSong />
             <VersionToggle />
-            <div className="shortcuts">
-                ctrl &rarr; flat &nbsp;&nbsp;&nbsp;&nbsp; alt &rarr; sharp &nbsp;&nbsp;&nbsp;&nbsp; shift + esc &rarr; clear
-                <br />
-                up/down &rarr; +/- octave &nbsp;&nbsp;&nbsp;&nbsp; tab &rarr; combine &nbsp;&nbsp;&nbsp;&nbsp; cmd + c &rarr; copy
-            </div>
+            <KeyboardShortcuts />
             <SharpsAndFlats ref={sharpsAndFlatsInput} style={{ float: "right" }} />
             <div id="content" className="content">
                 <Tracks highlightedTrackNumber={highlightedTrackNumber} highlightedNoteGroupNumber={highlightedNoteGroupNumber} />
@@ -151,10 +148,6 @@ const AppContainer = () => {
 
                 .notegroup.multiple {
                     color: #59b;
-                }
-
-                .shortcuts {
-                    float: right;
                 }
 
                 html.drag {
