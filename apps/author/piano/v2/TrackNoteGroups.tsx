@@ -21,17 +21,35 @@ const TrackNoteGroups = (props: Props) => {
         const shouldHighlightThisNoteGroup = trackIsHighlighted && highlightedNoteGroupNumber == noteGroupNumber;
         const noteGroupClasses = classNames("notegroup", { multiple: noteGroupContainsMultipleNotes, highlight: shouldHighlightThisNoteGroup });
         const noteGroupID = Song.getNoteGroupID(trackNumber, noteGroupNumber); // t_0_n_0 stands for track 0 notegroup 0
-        const noteGroupDIV = (
+        noteGroups.push(
             <div key={noteGroupID} id={noteGroupID} className={noteGroupClasses}>
                 {noteGroup.toString()}
             </div>
         );
-        noteGroups.push(noteGroupDIV);
     }
 
     return (
         <>
             <div id={`track-${trackNumber}-notes`}>{noteGroups}</div>
+            <style jsx>{`
+                div {
+                    display: inline-block;
+                    box-sizing: border-box;
+                    width: 90%;
+                    height: 40px;
+                    background-color: #dffafb;
+                    text-align: left;
+                    font-size: 10pt;
+                    overflow-x: scroll;
+                    overflow-y: hidden;
+                    margin: 0;
+                    padding: 0 10px;
+                    white-space: nowrap;
+                    line-height: 100%;
+                    -webkit-user-select: none;
+                    user-select: none;
+                }
+            `}</style>
             <style jsx global>{`
                 .notegroup {
                     box-sizing: border-box;

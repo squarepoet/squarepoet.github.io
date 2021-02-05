@@ -15,23 +15,23 @@ const TrackInfo = ({ trackNumber, trackIsHighlighted }: Props) => {
     return (
         <>
             <div id={`track-${trackNumber}-info`} className={trackInfoClasses}>
-                {isEmpty ? "" : numNoteGroups}
+                {isEmpty ? "✕" : numNoteGroups}
             </div>
             <style jsx>{`
                 div {
                     box-sizing: border-box;
-                    width: 38px;
-                    height: 100%;
                     background-color: #f0f4ff;
                     color: #666;
+                    margin: 0 0;
+                    width: 40px;
+                    height: 40px;
+                    line-height: 40px;
                     text-align: center;
                     font-size: 10pt;
                     overflow-x: scroll;
                     overflow-y: hidden;
                     white-space: nowrap;
-                    margin: 0 0;
                     display: inline-block;
-                    line-height: 40px;
                 }
 
                 div.highlight {

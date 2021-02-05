@@ -49,11 +49,11 @@ const TrackCheckbox = ({ trackNumber }) => {
                 input {
                     box-sizing: border-box;
                     width: 20px;
-                    height: 100%;
-                    border: 0px;
-                    padding: 0px;
-                    margin: 0px;
-                    margin-right: 6px;
+                    height: 40px;
+                    border: 0;
+                    padding: 0;
+                    margin: 0;
+                    margin-right: 8px;
                 }
             `}</style>
         </>

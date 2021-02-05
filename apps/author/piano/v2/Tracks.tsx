@@ -27,28 +27,25 @@ const Tracks = ({ highlightedTrackNumber, highlightedNoteGroupNumber }: Props) =
     //     console.log("XXXXXXXXX");
     // }, [updatedTrackNumbers, updatedTracksTimestamp]);
 
-    function getTracks() {
-        const numTracks = PianoAuthorV2.Song.getNumTracks();
-        const tracks = [];
-        for (let trackNumber = 0; trackNumber < numTracks; trackNumber++) {
-            const isEmpty = Song.isTrackEmpty(trackNumber);
-            const isHighlighted = highlightedTrackNumber == trackNumber;
-            const classes = classNames("track", { empty: isEmpty, highlighted: isHighlighted });
-            const trackKey = `track-${trackNumber}`;
-            tracks.push(
-                <div key={trackKey} id={trackKey} className={classes} last-update={updatedTracksTimestamp}>
-                    <TrackCheckbox trackNumber={trackNumber} />
-                    <TrackInfo trackNumber={trackNumber} trackIsHighlighted={isHighlighted} />
-                    <TrackNoteGroups trackNumber={trackNumber} trackIsHighlighted={isHighlighted} highlightedNoteGroupNumber={highlightedNoteGroupNumber} />
-                </div>
-            );
-        }
-        return tracks;
+    const numTracks = PianoAuthorV2.Song.getNumTracks();
+    const tracks = [];
+    for (let trackNumber = 0; trackNumber < numTracks; trackNumber++) {
+        const isEmpty = Song.isTrackEmpty(trackNumber);
+        const isHighlighted = highlightedTrackNumber == trackNumber;
+        const classes = classNames("track", { empty: isEmpty, highlighted: isHighlighted });
+        const trackKey = `track-${trackNumber}`;
+        tracks.push(
+            <div key={trackKey} id={trackKey} className={classes} last-update={updatedTracksTimestamp}>
+                <TrackCheckbox trackNumber={trackNumber} />
+                <TrackInfo trackNumber={trackNumber} trackIsHighlighted={isHighlighted} />
+                <TrackNoteGroups trackNumber={trackNumber} trackIsHighlighted={isHighlighted} highlightedNoteGroupNumber={highlightedNoteGroupNumber} />
+            </div>
+        );
     }
 
     return (
         <>
-            <div className="track-container">{getTracks()}</div>
+            <div className="track-container">{tracks}</div>
             <style jsx global>{`
                 .track-container {
                     margin-bottom: 40px;
@@ -57,20 +54,9 @@ const Tracks = ({ highlightedTrackNumber, highlightedNoteGroupNumber }: Props) =
                 }
 
                 .track {
+                    height: 48px;
                     box-sizing: border-box;
-                    width: 100%;
-                    height: 40px;
-                    background-color: #dffafb;
-                    text-align: left;
-                    font-size: 11pt;
-                    overflow-x: scroll;
-                    overflow-y: hidden;
-                    margin: 0;
-                    padding: 0 10px;
-                    white-space: nowrap;
-                    line-height: 100%;
-                    -webkit-user-select: none;
-                    user-select: none;
+                    padding-top: 3px;
                 }
 
                 .track.empty {
@@ -78,8 +64,8 @@ const Tracks = ({ highlightedTrackNumber, highlightedNoteGroupNumber }: Props) =
                 }
 
                 .track.highlighted {
-                    /* Add a glow around the track? */
-                    border: 2px solid yellow;
+                    /* Add a glow around the track. */
+                    background-color: #333;
                 }
             `}</style>
         </>
