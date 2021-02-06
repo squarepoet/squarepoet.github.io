@@ -8,6 +8,7 @@ namespace Actions {
     };
     export const Song = {
         onTracksUpdated: "onTracksUpdated",
+        onPlayNoteGroup: "onPlayNoteGroup",
     };
 }
 

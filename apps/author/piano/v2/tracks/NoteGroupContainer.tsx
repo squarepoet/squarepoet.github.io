@@ -14,7 +14,8 @@ const NoteGroupContainer = ({ trackNumber, highlightedNoteGroupNumber }: Props) 
     const noteGroups = [];
     for (let noteGroupNumber = 0; noteGroupNumber < numNoteGroups; noteGroupNumber++) {
         const isHighlighted = noteGroupNumber == highlightedNoteGroupNumber;
-        noteGroups.push(<NoteGroup trackNumber={trackNumber} noteGroupNumber={noteGroupNumber} isHighlighted={isHighlighted} />);
+        const keyAndID = Song.getNoteGroupID(trackNumber, noteGroupNumber); // t_0_n_0 stands for track 0 notegroup 0
+        noteGroups.push(<NoteGroup key={keyAndID} id={keyAndID} trackNumber={trackNumber} noteGroupNumber={noteGroupNumber} isHighlighted={isHighlighted} />);
     }
 
     return (
@@ -54,24 +55,6 @@ const NoteGroupContainer = ({ trackNumber, highlightedNoteGroupNumber }: Props) 
                 }
                 .notegroup.multiple {
                     color: #59b;
-                }
-
-                /* Animate the played notegroup. */
-                /* The animation code. */
-                @keyframes played-note-animation {
-                    0% {
-                        background-color: rgba(55, 180, 255, 0.85);
-                        color: #cdf;
-                    }
-                    100% {
-                        background-color: rgba(55, 180, 255, 0);
-                        color: #59f;
-                    }
-                }
-                /* The CSS class that triggers the animation, which lasts 0.4 seconds. */
-                .played-note {
-                    animation-name: played-note-animation;
-                    animation-duration: 0.4s;
                 }
             `}</style>
         </>

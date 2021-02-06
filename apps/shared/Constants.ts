@@ -14,6 +14,9 @@ namespace Constants {
         export const TRACK_NUMBER = "trackNumber";
         export const CHECKBOX_VALUE = "checkboxValue";
         export const TRACK_NUMBER_TO_CHECKBOX_VALUE = "trackNumber=>checkboxValue";
+
+        // e.g., t2_n78
+        export const PLAYED_NOTEGROUP_ID = "playedNoteGroupID";
     }
 
     export const DEFAULT_DOWNLOAD_DATA = "8J+OtQ=="; // base 64 encoded!

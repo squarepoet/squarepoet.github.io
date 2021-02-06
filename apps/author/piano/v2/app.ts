@@ -9,6 +9,8 @@ import throttle from "lodash.throttle";
 
 const MIDIEvents = require("midievents");
 
+const Keys = Constants.StoreKeys;
+
 const TIME_THRESHOLD_FOR_GROUPING_NEARBY_NOTES = 0; // Adjust this for parsing MIDI recordings of piano performances by humans (i.e., imprecise timing).
 
 // Dispatch events and send data to the global store.
@@ -240,7 +242,7 @@ namespace LocalStorage {
             songVersion = 1;
         }
         const payload = {};
-        payload[Constants.StoreKeys.SONG_VERSION] = songVersion;
+        payload[Keys.SONG_VERSION] = songVersion;
         dispatch({ type: Actions.Toggle.onSongVersionFormatChanged, payload: payload });
     }
 
@@ -484,15 +486,9 @@ namespace Playback {
             App.playPianoNote(MIDIUtils.m2p(note.midiNote), note.velocity);
         }
 
-        // #TODO: Flash the Played Note Briefly.... Not sure how to do this animation with React!
-        // Do we dispatch the notegroup ID, and then the notegroup ID needs to re-render itself briefly with a CSS animation??? WTF? :-)
-        /*
-        let $noteGroup = $(`#t${t}_n${n}`);
-        $noteGroup.addClass("played-note");
-        setTimeout(function () {
-            $noteGroup.removeClass("played-note");
-        }, 400);
-        */
+        const payload = {};
+        payload[Keys.PLAYED_NOTEGROUP_ID] = Song.getNoteGroupID(t, n);
+        dispatch({ type: Actions.Song.onPlayNoteGroup, payload: payload });
     }
 
     export const playAndGoBackwardOnCurrentTrack = throttle(function () {
@@ -531,7 +527,7 @@ namespace UI {
         UI.Tracks.checkAllNonEmptyTracks();
         Highlight.update();
         const payload = {};
-        payload[Constants.StoreKeys.UPDATED_TRACKS_LIST] = Song.getRecentlyUpdatedTrackNumbersAsArray();
+        payload[Keys.UPDATED_TRACKS_LIST] = Song.getRecentlyUpdatedTrackNumbersAsArray();
         dispatch({ type: Actions.Song.onTracksUpdated, payload: payload });
         Song.resetRecentlyUpdatedTrackNumbers();
     }

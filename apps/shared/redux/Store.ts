@@ -14,6 +14,7 @@ defaultInitialState[Keys.FILE_TIMESTAMP] = 0;
 defaultInitialState[Keys.UPDATED_TRACKS_LIST] = [];
 defaultInitialState[Keys.UPDATED_TRACKS_TIMESTAMP] = 0;
 defaultInitialState[Keys.TRACK_NUMBER_TO_CHECKBOX_VALUE] = {}; // { trackNumber: true|false}. If the key doesn't exist, we consider it unchecked.
+defaultInitialState[Keys.PLAYED_NOTEGROUP_ID] = "";
 
 const reducer = (state = defaultInitialState, action) => {
     const updatedState = { ...state };
@@ -31,8 +32,7 @@ const reducer = (state = defaultInitialState, action) => {
             break;
         }
         case Actions.Song.onTracksUpdated: {
-            const trackNumbers = action.payload[Keys.UPDATED_TRACKS_LIST];
-            updatedState[Keys.UPDATED_TRACKS_LIST] = trackNumbers;
+            updatedState[Keys.UPDATED_TRACKS_LIST] = action.payload[Keys.UPDATED_TRACKS_LIST];
             updatedState[Keys.UPDATED_TRACKS_TIMESTAMP] = new Date().getTime();
             break;
         }
@@ -41,6 +41,10 @@ const reducer = (state = defaultInitialState, action) => {
             const checkboxValue = action.payload[Keys.CHECKBOX_VALUE];
             const trackNumberToCheckboxValue = updatedState[Keys.TRACK_NUMBER_TO_CHECKBOX_VALUE];
             trackNumberToCheckboxValue[trackNumber] = checkboxValue;
+            break;
+        }
+        case Actions.Song.onPlayNoteGroup: {
+            updatedState[Keys.PLAYED_NOTEGROUP_ID] = action.payload[Keys.PLAYED_NOTEGROUP_ID];
             break;
         }
         default: {

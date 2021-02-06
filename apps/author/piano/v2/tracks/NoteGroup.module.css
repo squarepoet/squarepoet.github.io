@@ -1,0 +1,18 @@
+/* Animate the played notegroup. */
+/* The animation code. */
+@keyframes played-animation {
+    0% {
+        background-color: rgba(55, 180, 255, 0.85);
+        color: #cdf;
+    }
+    100% {
+        background-color: rgba(55, 180, 255, 0);
+        color: #59f;
+    }
+}
+
+/* The CSS class that triggers the animation, which lasts 0.4 seconds. */
+.played {
+    animation-name: played-animation;
+    animation-duration: 0.4s;
+}
