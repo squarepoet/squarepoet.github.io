@@ -1,6 +1,5 @@
+import SharpsAndFlatsManager from "apps/author/piano/shared/SharpsAndFlatsManager";
 import Instrument, { PianoType } from "apps/shared/sound/Instrument";
-
-import SharpsAndFlatsManager from "../shared/SharpsAndFlatsManager";
 
 export const CANVAS_WIDTH: number = 2080;
 export const CANVAS_HEIGHT: number = 300;
@@ -19,50 +18,6 @@ function selectTextArea() {
 function copyTextArea() {
     document.execCommand("copy");
 }
-
-// function validateSharpsAndFlats(text) {
-//     return text.replace(/[^ABCDEFG]/gi, "");
-// }
-
-// function setSharps(text: string) {
-//     console.log(`setSharps [${text}]`);
-//     text = validateSharpsAndFlats(text);
-//     const sharpsInput = document.getElementById("sharps-text") as HTMLInputElement;
-//     sharpsInput.value = text;
-// }
-
-// function setFlats(text: string) {
-//     console.log(`setFlats [${text}]`);
-//     text = validateSharpsAndFlats(text);
-//     const flatsInput = document.getElementById("flats-text") as HTMLInputElement;
-//     flatsInput.value = text;
-// }
-
-// function getSharps() {
-//     console.log("getSharps");
-//     const sharpsInput = document.getElementById("sharps-text") as HTMLInputElement;
-//     return sharpsInput.value.toUpperCase();
-// }
-
-// function getFlats() {
-//     console.log("getFlats");
-//     const flatsInput = document.getElementById("flats-text") as HTMLInputElement;
-//     return flatsInput.value.toUpperCase();
-// }
-
-// function isFocusedInSharpsOrFlatsInput() {
-//     console.log("isFocusedInSharpsOrFlatsInput");
-//     const flatsInput = document.getElementById("flats-text") as HTMLInputElement;
-//     if (flatsInput === document.activeElement) {
-//         return true;
-//     }
-//     const sharpsInput = document.getElementById("sharps-text") as HTMLInputElement;
-//     if (sharpsInput === document.activeElement) {
-//         return true;
-//     }
-
-//     return false;
-// }
 
 let keyCodeToPianoKey = {
     90: 18, // z => D
@@ -380,14 +335,10 @@ export default (function () {
             piano = new Instrument();
         },
 
-        keydown: (e) => {
+        onKeydown: (e) => {
             if (!piano || !piano.isInitialized) {
                 console.log("Piano is not initialized.");
                 return;
-            }
-
-            if (SharpsAndFlatsManager.isFocusedOnInputs()) {
-                return; // if we are typing in the sharps/flats input, we should ignore the rest of the key handler
             }
 
             // CMD KEY on Mac
@@ -449,16 +400,6 @@ export default (function () {
                     play(e.keyCode, sharpModifier);
                     break;
             }
-        },
-
-        // update our sharps / flats
-        keyup: (e) => {
-            console.log("keyUp");
-            // localStorage.sharps = getSharps();
-            // localStorage.flats = getFlats();
-
-            // TODO: Do something smarter here w/ React!
-            // loadSharpsAndFlats();
         },
     };
 })();

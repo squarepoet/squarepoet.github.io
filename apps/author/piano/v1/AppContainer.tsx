@@ -12,11 +12,14 @@ const Page = () => {
     const [showPreloadDialog, setShowPreloadDialog] = useState(true);
 
     if (typeof window !== "undefined") {
-        useEventListener("keydown", (e) => {
-            PianoAuthorV1.keydown(e);
-        });
-        useEventListener("keyup", (e) => {
-            PianoAuthorV1.keyup(e);
+        useEventListener("keydown", (e: KeyboardEvent) => {
+            // If we are typing in the sharps/flats input box, we should not pass the event to our app.
+            // Let the SharpsAndFlats component handle the update of our sharps / flats.
+            if (SharpsAndFlatsManager.isFocusedOnInputs()) {
+                return;
+            }
+
+            PianoAuthorV1.onKeydown(e);
         });
     }
 
@@ -37,7 +40,7 @@ const Page = () => {
             {showPreloadDialog ? <PreloadDialog initialOpenState={showPreloadDialog} preloadNow={startAudio} /> : null}
             <div>
                 <KeyboardShortcuts />
-                <SharpsAndFlats ref={sharpsAndFlatsInput} style={{ float: "left" }} />
+                <SharpsAndFlats ref={sharpsAndFlatsInput} localStorageKeyPrefix="piano" style={{ float: "left" }} />
                 <div>
                     <style jsx>{`
                         div {

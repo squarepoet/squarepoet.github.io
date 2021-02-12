@@ -1,7 +1,9 @@
 import GuitarAuthorV1 from "apps/author/guitar/v1/App";
 import Shortcuts from "apps/author/guitar/v1/Shortcuts";
+import SharpsAndFlats, { SharpsAndFlatsInterface } from "apps/author/piano/shared/SharpsAndFlats";
+import SharpsAndFlatsManager from "apps/author/piano/shared/SharpsAndFlatsManager";
 import InputSaved, { InputSavedInterface } from "components/InputSaved";
-import { useEffect, useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import { useEventListener } from "use-hooks";
 import createPersistedState from "use-persisted-state";
 
@@ -19,48 +21,28 @@ const Page = () => {
     const guitarTabTextArea = useRef();
     const guitarCanvas = useRef();
 
-    const sharpsInput = useRef<InputSavedInterface>();
-    const flatsInput = useRef<InputSavedInterface>();
-    const isFocusedOnSharpsInput = () => {
-        return sharpsInput.current.hasFocus();
-    };
-    const isFocusedOnFlatsInput = () => {
-        return flatsInput.current.hasFocus();
-    };
+    const sharpsAndFlatsInput = useRef<SharpsAndFlatsInterface>();
 
     if (typeof window !== "undefined") {
         useEventListener("keydown", (e) => {
-            if (isFocusedOnSharpsInput() || isFocusedOnFlatsInput()) {
-                return; // If the user is typing in the sharps/flats input, we not forward the onKeyDown to the app.
-            } else {
-                app.onKeyDown(e);
+            // If we are typing in the sharps/flats input box, we should not pass the event to our app.
+            // Let the SharpsAndFlats component handle the update of our sharps / flats.
+            if (SharpsAndFlatsManager.isFocusedOnInputs()) {
+                return;
             }
+
+            app.onKeyDown(e);
         });
     }
 
     // #TODO: Consider using useLayoutEffect if any of the ref.current values are null!
     useEffect(() => {
-        app.setGuitarTab = setGuitarTab;
-        app.isNoteSharp = (noteLabel: string): boolean => {
-            const sharps = sharpsInput.current.getValue();
-            // Case insensitive test. Does the list of sharps contain the noteLabel?
-            return new RegExp(noteLabel, "i").test(sharps);
-        };
+        SharpsAndFlatsManager.setRef(sharpsAndFlatsInput);
 
-        app.isNoteFlat = (noteLabel: string): boolean => {
-            const flats = flatsInput.current.getValue();
-            // Case insensitive test. Does the list of flats contain the noteLabel?
-            return new RegExp(noteLabel, "i").test(flats);
-        };
-        app.getGuitarTab = () => {
-            return guitarTab;
-        };
-        app.getGuitarTabTextArea = () => {
-            return guitarTabTextArea.current;
-        };
-        app.getGuitarCanvas = () => {
-            return guitarCanvas.current;
-        };
+        app.setGuitarTab = setGuitarTab;
+        app.getGuitarTab = () => guitarTab;
+        app.getGuitarTabTextArea = () => guitarTabTextArea.current;
+        app.getGuitarCanvas = () => guitarCanvas.current;
         app.loadNoteGroupsFromGuitarTab(guitarTab);
         app.drawFrets();
     }, []);
@@ -68,9 +50,8 @@ const Page = () => {
     return (
         <>
             <Shortcuts />
-            <div className="sharps-and-flats">
-                <InputSaved ref={sharpsInput} label="sharps" persistedStateKey="guitar_sharps" />
-                <InputSaved ref={flatsInput} label="flats" persistedStateKey="guitar_flats" />
+            <div>
+                <SharpsAndFlats ref={sharpsAndFlatsInput} localStorageKeyPrefix="ukulele" style={{ float: "left" }} />
             </div>
             <div className="clear"></div>
             <br />
@@ -84,11 +65,6 @@ const Page = () => {
                 }
             `}</style>
             <style jsx>{`
-                .sharps-and-flats {
-                    margin-right: 40px;
-                    float: left;
-                    text-align: right;
-                }
                 .clear {
                     clear: right;
                 }

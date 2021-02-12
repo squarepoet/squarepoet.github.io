@@ -1,3 +1,4 @@
+import SharpsAndFlatsManager from "apps/author/piano/shared/SharpsAndFlatsManager";
 import Highlight from "apps/author/piano/v2/Highlight";
 import { Note, NoteGroup, Track } from "apps/author/piano/v2/Music";
 import Constants from "apps/shared/Constants";
@@ -6,8 +7,6 @@ import MIDIUtils from "apps/shared/midi/MIDIUtils";
 import Actions from "apps/shared/redux/Actions";
 import Instrument from "apps/shared/sound/Instrument";
 import throttle from "lodash.throttle";
-
-import SharpsAndFlatsManager from "../shared/SharpsAndFlatsManager";
 
 const MIDIEvents = require("midievents");
 
@@ -547,12 +546,9 @@ namespace UI {
 
     // MOUSE & KEYBOARD
 
-    export function onKeyDownHandler(e) {
+    export function onKeyDown(e) {
         if (!piano) {
-            console.log("onKeyDownHandler: Piano has not been initialized.");
-            return;
-        } else if (SharpsAndFlatsManager.isFocusedOnInputs()) {
-            // If we are typing in the sharps/flats input, we should ignore the rest of the key handler.
+            console.log("UI.onKeyDown: Piano has not been initialized.");
             return;
         }
 
@@ -682,17 +678,12 @@ namespace UI {
         }
     }
 
-    export function onKeyUpHandler(e) {
-        // update our sharps / flats
-        if (SharpsAndFlatsManager.isFocusedOnInputs()) {
-            // DO NOTHING
-        } else {
-            // Released CTRL or SHIFT
-            if (e.ctrlKey) {
-                sharpOrFlatModifier = 0;
-            } else if (e.shiftKey) {
-                sharpOrFlatModifier = 0;
-            }
+    export function onKeyUp(e) {
+        // Released CTRL or SHIFT
+        if (e.ctrlKey) {
+            sharpOrFlatModifier = 0;
+        } else if (e.shiftKey) {
+            sharpOrFlatModifier = 0;
         }
     }
 
@@ -1170,14 +1161,6 @@ namespace App {
 
     export function startAudio() {
         piano = new Instrument();
-    }
-
-    export function onKeyUp(e) {
-        UI.onKeyUpHandler(e);
-    }
-
-    export function onKeyDown(e) {
-        UI.onKeyDownHandler(e);
     }
 
     export function saveSongVersionToLocalStorage(ver: number) {

@@ -1,3 +1,4 @@
+import SharpsAndFlatsManager from "apps/author/piano/shared/SharpsAndFlatsManager";
 import Instrument, { PianoType } from "apps/shared/sound/Instrument";
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
@@ -27,8 +28,6 @@ export default class GuitarAuthorV1 {
 
     public setGuitarTab: (s: string) => void;
 
-    public isNoteSharp: (n: string) => boolean;
-    public isNoteFlat: (n: string) => boolean;
     public getGuitarTab: () => string;
 
     public getGuitarTabTextArea: () => HTMLTextAreaElement;
@@ -469,11 +468,11 @@ setInterval(() => {
         const noteLabel = NOTE_LABELS[(noteOffset + adjustedFret) % 12].toLowerCase();
 
         // is this note auto-sharped, due to the key signature?
-        if (this.isNoteSharp(noteLabel)) {
+        if (SharpsAndFlatsManager.isNoteSharp(noteLabel)) {
             accidental++; // raise the note a half-step!
         }
         // is this note auto-flattened, due to the key signature?
-        if (this.isNoteFlat(noteLabel)) {
+        if (SharpsAndFlatsManager.isNoteFlat(noteLabel)) {
             accidental--; // lower the note a half-step!
         }
 
@@ -522,13 +521,13 @@ setInterval(() => {
             return;
         }
 
-        let accidental = 0;
+        let accidentalModifier = 0;
         if (e.ctrlKey) {
             // FLAT: Lower the note by a half step.
-            accidental = -1;
+            accidentalModifier = -1;
         } else if (e.shiftKey) {
             // SHARP: Raise the note by a half step.
-            accidental = +1;
+            accidentalModifier = +1;
         }
 
         e.preventDefault();
@@ -587,7 +586,7 @@ setInterval(() => {
                 this.drawFrets();
                 break;
             default:
-                this.play(e.keyCode, accidental);
+                this.play(e.keyCode, accidentalModifier);
                 break;
         }
     }

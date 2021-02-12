@@ -1,4 +1,5 @@
 import SharpsAndFlats, { SharpsAndFlatsInterface } from "apps/author/piano/shared/SharpsAndFlats";
+import SharpsAndFlatsManager from "apps/author/piano/shared/SharpsAndFlatsManager";
 import PianoAuthorV2 from "apps/author/piano/v2/App";
 import BottomPanel from "apps/author/piano/v2/BottomPanel";
 import DownloadSong from "apps/author/piano/v2/DownloadSong";
@@ -15,8 +16,6 @@ import PreloadDialog from "components/dialogs/Preload";
 import React, { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useEventListener } from "use-hooks";
-
-import SharpsAndFlatsManager from "../shared/SharpsAndFlatsManager";
 
 const Keys = Constants.StoreKeys;
 
@@ -58,10 +57,22 @@ const AppContainer = () => {
 
     if (typeof window !== "undefined") {
         useEventListener("keydown", (e: KeyboardEvent) => {
-            PianoAuthorV2.onKeyDown(e);
+            // If we are typing in the sharps/flats input box, we should not pass the event to our app.
+            // Let the SharpsAndFlats component handle the update of our sharps / flats.
+            if (SharpsAndFlatsManager.isFocusedOnInputs()) {
+                return;
+            }
+
+            PianoAuthorV2.UI.onKeyDown(e);
         });
         useEventListener("keyup", (e: KeyboardEvent) => {
-            PianoAuthorV2.onKeyUp(e);
+            // If we are typing in the sharps/flats input box, we should not pass the event to our app.
+            // Let the SharpsAndFlats component handle the update of our sharps / flats.
+            if (SharpsAndFlatsManager.isFocusedOnInputs()) {
+                return;
+            }
+
+            PianoAuthorV2.UI.onKeyUp(e);
         });
     }
 
@@ -102,7 +113,7 @@ const AppContainer = () => {
             <DownloadSong />
             <VersionToggle />
             <KeyboardShortcuts />
-            <SharpsAndFlats ref={sharpsAndFlatsInput} style={{ float: "right" }} />
+            <SharpsAndFlats ref={sharpsAndFlatsInput} localStorageKeyPrefix="piano" style={{ float: "right" }} />
             <div id="content" className="content">
                 <TrackContainer highlightedTrackNumber={highlightedTrackNumber} highlightedNoteGroupNumber={highlightedNoteGroupNumber} />
                 <PianoKeyboard />

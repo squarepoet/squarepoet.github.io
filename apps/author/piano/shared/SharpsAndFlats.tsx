@@ -13,7 +13,12 @@ type SharpsAndFlatsInterface = {
     getFlats(): string;
 };
 
-const SharpsAndFlatsInputs = forwardRef((props: any, ref) => {
+type SharpsAndFlatsProps = {
+    style: any;
+    localStorageKeyPrefix: string;
+};
+
+const SharpsAndFlatsInputs = forwardRef(({ style, localStorageKeyPrefix }: SharpsAndFlatsProps, ref) => {
     const sharpsInput = useRef<InputSavedInterface>();
     const flatsInput = useRef<InputSavedInterface>();
 
@@ -53,9 +58,9 @@ const SharpsAndFlatsInputs = forwardRef((props: any, ref) => {
 
     return (
         <>
-            <div className="sharps-and-flats" style={props.style}>
-                <InputSaved ref={sharpsInput} label="sharps" persistedStateKey="piano_sharps" />
-                <InputSaved ref={flatsInput} label="flats" persistedStateKey="piano_flats" />
+            <div className="sharps-and-flats" style={style}>
+                <InputSaved ref={sharpsInput} label="sharps" persistedStateKey={localStorageKeyPrefix + "_sharps"} />
+                <InputSaved ref={flatsInput} label="flats" persistedStateKey={localStorageKeyPrefix + "_flats"} />
             </div>
             <style jsx>{`
                 div.sharps-and-flats {
