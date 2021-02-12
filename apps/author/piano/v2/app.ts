@@ -7,6 +7,8 @@ import Actions from "apps/shared/redux/Actions";
 import Instrument from "apps/shared/sound/Instrument";
 import throttle from "lodash.throttle";
 
+import SharpsAndFlatsManager from "../shared/SharpsAndFlatsManager";
+
 const MIDIEvents = require("midievents");
 
 const Keys = Constants.StoreKeys;
@@ -549,7 +551,7 @@ namespace UI {
         if (!piano) {
             console.log("onKeyDownHandler: Piano has not been initialized.");
             return;
-        } else if (App.isFocusedOnSharpsOrFlatsInput()) {
+        } else if (SharpsAndFlatsManager.isFocusedOnInputs()) {
             // If we are typing in the sharps/flats input, we should ignore the rest of the key handler.
             return;
         }
@@ -682,7 +684,7 @@ namespace UI {
 
     export function onKeyUpHandler(e) {
         // update our sharps / flats
-        if (App.isFocusedOnSharpsOrFlatsInput()) {
+        if (SharpsAndFlatsManager.isFocusedOnInputs()) {
             // DO NOTHING
         } else {
             // Released CTRL or SHIFT
@@ -1269,11 +1271,11 @@ namespace App {
             modifier = sharpOrFlatModifier; // The user is holding down SHIFT or CTRL
 
             // is this note auto-sharped, due to the key signature?
-            if (App.isNoteSharp(noteLabel)) {
+            if (SharpsAndFlatsManager.isNoteSharp(noteLabel)) {
                 modifier++; // raise the sharp a half-step!
             }
             // is this note auto-flatted, due to the key signature?
-            if (App.isNoteFlat(noteLabel)) {
+            if (SharpsAndFlatsManager.isNoteFlat(noteLabel)) {
                 modifier--; // lower the note a half-step!
             }
         }
@@ -1312,37 +1314,6 @@ namespace App {
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////////////
-    let isFocusedOnInputsCB: Function = () => false;
-    let getSharpsCB: Function = () => "";
-    let getFlatsCB: Function = () => "";
-
-    export function setHandlersForSharpsAndFlatsInput(isFocused: Function, getSharps: Function, getFlats: Function) {
-        isFocusedOnInputsCB = isFocused;
-        getSharpsCB = getSharps;
-        getFlatsCB = getFlats;
-    }
-
-    export function isFocusedOnSharpsOrFlatsInput(): boolean {
-        return isFocusedOnInputsCB();
-    }
-
-    export function getSharps(): string {
-        return getSharpsCB();
-    }
-
-    export function getFlats(): string {
-        return getFlatsCB();
-    }
-
-    export function isNoteSharp(noteLabel: string): boolean {
-        // Case insensitive test. Does the list of sharps contain the noteLabel?
-        return new RegExp(noteLabel, "i").test(App.getSharps());
-    }
-
-    export function isNoteFlat(noteLabel: string): boolean {
-        // Case insensitive test. Does the list of flats contain the noteLabel?
-        return new RegExp(noteLabel, "i").test(App.getFlats());
-    }
 }
 
 export default App;

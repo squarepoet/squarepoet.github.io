@@ -1,5 +1,7 @@
 import Instrument, { PianoType } from "apps/shared/sound/Instrument";
 
+import SharpsAndFlatsManager from "../shared/SharpsAndFlatsManager";
+
 export const CANVAS_WIDTH: number = 2080;
 export const CANVAS_HEIGHT: number = 300;
 
@@ -18,49 +20,49 @@ function copyTextArea() {
     document.execCommand("copy");
 }
 
-function validateSharpsAndFlats(text) {
-    return text.replace(/[^ABCDEFG]/gi, "");
-}
+// function validateSharpsAndFlats(text) {
+//     return text.replace(/[^ABCDEFG]/gi, "");
+// }
 
-function setSharps(text: string) {
-    console.log(`setSharps [${text}]`);
-    text = validateSharpsAndFlats(text);
-    const sharpsInput = document.getElementById("sharps-text") as HTMLInputElement;
-    sharpsInput.value = text;
-}
+// function setSharps(text: string) {
+//     console.log(`setSharps [${text}]`);
+//     text = validateSharpsAndFlats(text);
+//     const sharpsInput = document.getElementById("sharps-text") as HTMLInputElement;
+//     sharpsInput.value = text;
+// }
 
-function setFlats(text: string) {
-    console.log(`setFlats [${text}]`);
-    text = validateSharpsAndFlats(text);
-    const flatsInput = document.getElementById("flats-text") as HTMLInputElement;
-    flatsInput.value = text;
-}
+// function setFlats(text: string) {
+//     console.log(`setFlats [${text}]`);
+//     text = validateSharpsAndFlats(text);
+//     const flatsInput = document.getElementById("flats-text") as HTMLInputElement;
+//     flatsInput.value = text;
+// }
 
-function getSharps() {
-    console.log("getSharps");
-    const sharpsInput = document.getElementById("sharps-text") as HTMLInputElement;
-    return sharpsInput.value.toUpperCase();
-}
+// function getSharps() {
+//     console.log("getSharps");
+//     const sharpsInput = document.getElementById("sharps-text") as HTMLInputElement;
+//     return sharpsInput.value.toUpperCase();
+// }
 
-function getFlats() {
-    console.log("getFlats");
-    const flatsInput = document.getElementById("flats-text") as HTMLInputElement;
-    return flatsInput.value.toUpperCase();
-}
+// function getFlats() {
+//     console.log("getFlats");
+//     const flatsInput = document.getElementById("flats-text") as HTMLInputElement;
+//     return flatsInput.value.toUpperCase();
+// }
 
-function isFocusedInSharpsOrFlatsInput() {
-    console.log("isFocusedInSharpsOrFlatsInput");
-    const flatsInput = document.getElementById("flats-text") as HTMLInputElement;
-    if (flatsInput === document.activeElement) {
-        return true;
-    }
-    const sharpsInput = document.getElementById("sharps-text") as HTMLInputElement;
-    if (sharpsInput === document.activeElement) {
-        return true;
-    }
+// function isFocusedInSharpsOrFlatsInput() {
+//     console.log("isFocusedInSharpsOrFlatsInput");
+//     const flatsInput = document.getElementById("flats-text") as HTMLInputElement;
+//     if (flatsInput === document.activeElement) {
+//         return true;
+//     }
+//     const sharpsInput = document.getElementById("sharps-text") as HTMLInputElement;
+//     if (sharpsInput === document.activeElement) {
+//         return true;
+//     }
 
-    return false;
-}
+//     return false;
+// }
 
 let keyCodeToPianoKey = {
     90: 18, // z => D
@@ -117,9 +119,6 @@ let keyCodeToPianoKey = {
 };
 
 export default (function () {
-    let $text, $sharps, $flats;
-    let sharps = ""; // the string value of the $sharps input
-    let flats = "";
     let noteGroups: string[] = [];
     let octaveOffset = 0;
 
@@ -315,20 +314,6 @@ export default (function () {
         }
     }
 
-    function loadSharpsAndFlats() {
-        if (!localStorage.sharps) {
-            localStorage.sharps = "";
-        }
-        sharps = localStorage.sharps;
-        setSharps(sharps);
-
-        if (!localStorage.flats) {
-            localStorage.flats = "";
-        }
-        flats = localStorage.flats;
-        setFlats(flats);
-    }
-
     function loadNoteGroups() {
         if (!localStorage.text) {
             localStorage.text = "";
@@ -351,15 +336,13 @@ export default (function () {
             let noteLabelUpperCase = noteLabels[whiteKeyNoteIndex].toUpperCase();
 
             console.log("play() noteLabel " + noteLabelUpperCase);
-            console.log("Current Sharps: " + sharps);
-            console.log("Current Flats: " + flats);
 
             // is this note auto-sharped, due to the key signature?
-            if (sharps.indexOf(noteLabelUpperCase) != -1) {
+            if (SharpsAndFlatsManager.isNoteSharp(noteLabelUpperCase)) {
                 sharpModifier++; // raise the sharp a half-step!
             }
             // is this note auto-flatted, due to the key signature?
-            if (flats.indexOf(noteLabelUpperCase) != -1) {
+            if (SharpsAndFlatsManager.isNoteFlat(noteLabelUpperCase)) {
                 sharpModifier--; // lower the note a half-step!
             }
 
@@ -389,7 +372,7 @@ export default (function () {
         startUI: (cRef: React.MutableRefObject<HTMLCanvasElement>) => {
             canvasRef = cRef;
             loadNoteGroups();
-            loadSharpsAndFlats();
+            // loadSharpsAndFlats();
             drawPiano();
         },
 
@@ -403,7 +386,7 @@ export default (function () {
                 return;
             }
 
-            if (isFocusedInSharpsOrFlatsInput()) {
+            if (SharpsAndFlatsManager.isFocusedOnInputs()) {
                 return; // if we are typing in the sharps/flats input, we should ignore the rest of the key handler
             }
 
@@ -471,11 +454,11 @@ export default (function () {
         // update our sharps / flats
         keyup: (e) => {
             console.log("keyUp");
-            localStorage.sharps = getSharps();
-            localStorage.flats = getFlats();
+            // localStorage.sharps = getSharps();
+            // localStorage.flats = getFlats();
 
             // TODO: Do something smarter here w/ React!
-            loadSharpsAndFlats();
+            // loadSharpsAndFlats();
         },
     };
 })();

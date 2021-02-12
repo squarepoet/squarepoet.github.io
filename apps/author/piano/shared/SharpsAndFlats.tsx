@@ -1,5 +1,5 @@
-import InputSaved from "components/InputSaved";
-import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
+import InputSaved, { InputSavedInterface } from "components/InputSaved";
+import React, { forwardRef, useImperativeHandle, useRef } from "react";
 
 // Accept CSS via props.style to allow the parent component to customize this component.
 // For example:
@@ -7,26 +7,32 @@ import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState } f
 
 // Used by Piano Author V1 and V2.
 
+type SharpsAndFlatsInterface = {
+    hasFocus(): boolean;
+    getSharps(): string;
+    getFlats(): string;
+};
+
 const SharpsAndFlatsInputs = forwardRef((props: any, ref) => {
-    const sharpsInput = useRef();
-    const flatsInput = useRef();
+    const sharpsInput = useRef<InputSavedInterface>();
+    const flatsInput = useRef<InputSavedInterface>();
 
     // Expose a .hasFocus() method to any parent that has a ref to us.
     // Return true if either of our input elements has the current focus.
     useImperativeHandle(ref, () => {
         return {
             hasFocus() {
-                if (sharpsInput && sharpsInput.current && (sharpsInput.current as any).hasFocus()) {
+                if (sharpsInput.current && sharpsInput.current.hasFocus()) {
                     return true;
-                } else if (flatsInput && flatsInput.current && (flatsInput.current as any).hasFocus()) {
+                } else if (flatsInput.current && flatsInput.current.hasFocus()) {
                     return true;
                 } else {
                     return false;
                 }
             },
             getSharps() {
-                if (sharpsInput && sharpsInput.current) {
-                    const sharpsValue = (sharpsInput.current as any).getValue();
+                if (sharpsInput.current) {
+                    const sharpsValue = sharpsInput.current.getValue();
                     console.log("SHARPS VALUE " + sharpsValue);
                     return sharpsValue;
                 } else {
@@ -34,8 +40,8 @@ const SharpsAndFlatsInputs = forwardRef((props: any, ref) => {
                 }
             },
             getFlats() {
-                if (flatsInput && flatsInput.current) {
-                    const flatsValue = (flatsInput.current as any).getValue();
+                if (flatsInput.current) {
+                    const flatsValue = flatsInput.current.getValue();
                     console.log("FLATS VALUE " + flatsValue);
                     return flatsValue;
                 } else {
@@ -65,3 +71,4 @@ const SharpsAndFlatsInputs = forwardRef((props: any, ref) => {
 });
 
 export default SharpsAndFlatsInputs;
+export type { SharpsAndFlatsInterface };

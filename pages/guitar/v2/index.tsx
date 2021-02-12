@@ -1,14 +1,7 @@
-import React from "react";
-
-import { Button } from "@material-ui/core";
+import AppContainer from "apps/author/guitar/v2/AppContainer";
 
 const Page = () => {
-    return (
-        <>
-            <div>Guitar Author V2</div>
-            <Button color="primary">Hello Material UI</Button>
-        </>
-    );
+    return <AppContainer />;
 };
 
 export default Page;
@@ -16,7 +9,7 @@ export default Page;
 export async function getStaticProps(context) {
     return {
         props: {
-            title: "Guitar Author V2",
+            title: "Guitar & Ukulele Author V2",
         },
     };
 }

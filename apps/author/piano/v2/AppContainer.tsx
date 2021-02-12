@@ -1,4 +1,4 @@
-import SharpsAndFlats from "apps/author/piano/shared/SharpsAndFlats";
+import SharpsAndFlats, { SharpsAndFlatsInterface } from "apps/author/piano/shared/SharpsAndFlats";
 import PianoAuthorV2 from "apps/author/piano/v2/App";
 import BottomPanel from "apps/author/piano/v2/BottomPanel";
 import DownloadSong from "apps/author/piano/v2/DownloadSong";
@@ -15,6 +15,8 @@ import PreloadDialog from "components/dialogs/Preload";
 import React, { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useEventListener } from "use-hooks";
+
+import SharpsAndFlatsManager from "../shared/SharpsAndFlatsManager";
 
 const Keys = Constants.StoreKeys;
 
@@ -34,7 +36,7 @@ const AppContainer = () => {
     const [highlightedTrackNumber, setHighlightedTrackNumber] = useState(0);
     const [highlightedNoteGroupNumber, setHighlightedNoteGroupNumber] = useState(0);
 
-    const sharpsAndFlatsInput = useRef();
+    const sharpsAndFlatsInput = useRef<SharpsAndFlatsInterface>();
 
     const dispatch = useDispatch();
 
@@ -42,28 +44,7 @@ const AppContainer = () => {
         Highlight.setupCallbacks(setHighlightedTrackNumber, setHighlightedNoteGroupNumber, UI.drawPiano, Song.getNumTracks, Song.getNumNoteGroupsInTrack, UI.scrollNoteGroupIntoView);
         PianoAuthorV2.setDispatchFunction(dispatch);
 
-        const isFocusedOnInputs = () => {
-            if (sharpsAndFlatsInput && sharpsAndFlatsInput.current) {
-                return (sharpsAndFlatsInput.current as any).hasFocus();
-            } else {
-                return false;
-            }
-        };
-        const getSharps = () => {
-            if (sharpsAndFlatsInput && sharpsAndFlatsInput.current) {
-                return (sharpsAndFlatsInput.current as any).getSharps();
-            } else {
-                return "";
-            }
-        };
-        const getFlats = () => {
-            if (sharpsAndFlatsInput && sharpsAndFlatsInput.current) {
-                return (sharpsAndFlatsInput.current as any).getFlats();
-            } else {
-                return "";
-            }
-        };
-        PianoAuthorV2.setHandlersForSharpsAndFlatsInput(isFocusedOnInputs, getSharps, getFlats);
+        SharpsAndFlatsManager.setRef(sharpsAndFlatsInput);
         PianoAuthorV2.start();
 
         // workerRef.current = new Worker("./clock.worker.js", { type: "module" });
