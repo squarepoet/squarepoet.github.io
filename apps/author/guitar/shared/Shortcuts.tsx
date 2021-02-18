@@ -13,6 +13,7 @@ const Shortcuts = () => {
                     text-align: right;
                     font-size: 70%;
                     line-height: 150%;
+                    margin-left: 20px;
                 }
             `}</style>
         </div>

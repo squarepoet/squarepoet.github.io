@@ -1,12 +1,13 @@
 # NEXT
 
+-   [x] LEARNED that React's setState functions are ASYNCHRONOUS. YOU CANNOT DEPEND ON THE VARIABLE TO CHANGE IMMEDIATELY.
+-   [ ]
+-   [ ] Modify the `_document.tsx` to inject Material UI themes. I need to support the dark theme by default. See https://github.com/mui-org/material-ui/blob/master/examples/nextjs/pages/_document.js
+-   [ ] Use the dark theme to make the guitar/v2 radio buttons have a white outline.
 -   [ ] How to subscribe to changes in state in my App.ts? Do I need to forward changes from my component.tsx?
     -   [ ] Fix the checkbox shit.
 -   [ ] Whenever tracks are loaded from localstorage or a MIDI file, they should be checked!
     -   [x] Maybe I should use the global redux store.... :-\
-
----
-
 -   [ ] Keyboard Events (keyCode is deprecated). We should eventually transition to using either .key or .code, which do different things.
     -   [ ] `KeyboardEvent: key='${event.key}' | code='${event.code}'`;
 -   [ ] Save all the file info, so that when we refresh the page, we can restore the song's file name, etc etc.... It should look exactly like after I drag a MIDI file into the bottom panel.

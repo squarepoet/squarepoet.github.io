@@ -1,6 +1,7 @@
 import Instrument from "apps/shared/sound/Instrument";
 import React, { useEffect, useState } from "react";
 
+// #TODO: Fix or delete this!
 // A dirt simple piano that uses Tone.js
 
 let piano: Instrument;

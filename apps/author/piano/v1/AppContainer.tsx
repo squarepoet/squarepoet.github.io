@@ -3,6 +3,7 @@ import SharpsAndFlatsManager from "apps/author/piano/shared/SharpsAndFlatsManage
 import PianoAuthorV1 from "apps/author/piano/v1/App";
 import KeyboardShortcuts from "apps/author/piano/v1/KeyboardShortcuts";
 import NotesAndPiano from "apps/author/piano/v1/NotesAndPiano";
+import ClearBoth from "components/ClearBoth";
 import PreloadDialog from "components/dialogs/Preload";
 import React, { useEffect, useRef, useState } from "react";
 import { useEventListener } from "use-hooks";
@@ -41,13 +42,7 @@ const Page = () => {
             <div>
                 <KeyboardShortcuts />
                 <SharpsAndFlats ref={sharpsAndFlatsInput} localStorageKeyPrefix="piano" style={{ float: "left" }} />
-                <div>
-                    <style jsx>{`
-                        div {
-                            clear: both;
-                        }
-                    `}</style>
-                </div>
+                <ClearBoth />
                 <br />
                 <NotesAndPiano canvasRef={canvasRef} />
             </div>

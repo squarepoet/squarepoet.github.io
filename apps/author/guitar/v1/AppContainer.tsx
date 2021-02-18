@@ -1,8 +1,8 @@
+import Shortcuts from "apps/author/guitar/shared/Shortcuts";
 import GuitarAuthorV1 from "apps/author/guitar/v1/App";
-import Shortcuts from "apps/author/guitar/v1/Shortcuts";
 import SharpsAndFlats, { SharpsAndFlatsInterface } from "apps/author/piano/shared/SharpsAndFlats";
 import SharpsAndFlatsManager from "apps/author/piano/shared/SharpsAndFlatsManager";
-import InputSaved, { InputSavedInterface } from "components/InputSaved";
+import ClearBoth from "components/ClearBoth";
 import React, { useEffect, useRef } from "react";
 import { useEventListener } from "use-hooks";
 import createPersistedState from "use-persisted-state";
@@ -19,7 +19,7 @@ const Page = () => {
     const [guitarTab, setGuitarTab] = useGuitarTabState("");
 
     const guitarTabTextArea = useRef();
-    const guitarCanvas = useRef();
+    const guitarCanvasRef = useRef();
 
     const sharpsAndFlatsInput = useRef<SharpsAndFlatsInterface>();
 
@@ -42,7 +42,7 @@ const Page = () => {
         app.setGuitarTab = setGuitarTab;
         app.getGuitarTab = () => guitarTab;
         app.getGuitarTabTextArea = () => guitarTabTextArea.current;
-        app.getGuitarCanvas = () => guitarCanvas.current;
+        app.getGuitarCanvas = () => guitarCanvasRef.current;
         app.loadNoteGroupsFromGuitarTab(guitarTab);
         app.drawFrets();
     }, []);
@@ -51,13 +51,13 @@ const Page = () => {
         <>
             <Shortcuts />
             <div>
-                <SharpsAndFlats ref={sharpsAndFlatsInput} localStorageKeyPrefix="ukulele" style={{ float: "left" }} />
+                <SharpsAndFlats ref={sharpsAndFlatsInput} localStorageKeyPrefix="guitar" style={{ float: "left" }} />
             </div>
-            <div className="clear"></div>
+            <ClearBoth />
             <br />
             <div className="content">
                 <textarea ref={guitarTabTextArea} className="textarea" rows={3} cols={80} defaultValue={guitarTab} readOnly />
-                <canvas ref={guitarCanvas} width="1040" height="280" className="canvas"></canvas>
+                <canvas ref={guitarCanvasRef} width="1040" height="280" className="canvas"></canvas>
             </div>
             <style jsx global>{`
                 body {
@@ -65,9 +65,6 @@ const Page = () => {
                 }
             `}</style>
             <style jsx>{`
-                .clear {
-                    clear: right;
-                }
                 .content {
                     width: 100%;
                     text-align: center;
