@@ -14,6 +14,8 @@ const AppContainer = () => {
     const sharpsAndFlatsInput = useRef();
     const [instrumentType, setInstrumentType] = useState(Constants.Instrument.GUITAR);
     const [numStrings, setNumStrings] = useState(6);
+    const [computerKeyboardFretOffset, setComputerKeyboardFretOffset] = useState(0);
+    const [computerKeyboardStringOffset, setComputerKeyboardStringOffset] = useState(0);
 
     useEffect(() => {
         App.setHooks({
@@ -37,7 +39,7 @@ const AppContainer = () => {
                 <FormControlLabel value={Constants.Instrument.UKULELE_LOW_G} control={<Radio />} label="Uke (Low G)" labelPlacement="top" />
             </RadioGroup>
             <ClearBoth />
-            <FretCanvasContainer numStrings={numStrings} />
+            <FretCanvasContainer numStrings={numStrings} computerKeyboardFretOffset={computerKeyboardFretOffset} computerKeyboardStringOffset={computerKeyboardStringOffset} />
         </>
     );
 };

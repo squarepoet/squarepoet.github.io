@@ -1,30 +1,35 @@
 import { Draw } from "tone";
 
+type FretCanvasInfo = {
+    context2d: any;
+    width: number;
+    height: number;
+};
+
 namespace FretCanvas {
     const FRET_DX = 85;
-    const NOTE_LABELS = ["A", "A#", "B", "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#"];
+    const SF = "♯♭"; // SF == SHARPS_FLATS
+    const NOTE_LABELS = ["A", SF, "B", "C", SF, "D", SF, "E", "F", SF, "G", SF];
 
-    export function draw(elem: HTMLCanvasElement, numStrings: number) {
+    export function getContext(elem: HTMLCanvasElement): FretCanvasInfo {
         if (!elem || !elem.getContext) {
-            return;
+            return null;
         }
         const c = elem.getContext("2d");
-        if (!c) {
-            return;
+        if (c) {
+            const width = elem.width;
+            const height = elem.height;
+            return { context2d: c, width: width, height: height };
+        } else {
+            return null;
         }
+    }
 
-        const width = elem.width;
-        const height = elem.height;
-
+    export function drawStringsAndFrets(c: CanvasRenderingContext2D, width: number, height: number, numStrings: number) {
         // Clear the background.
         c.fillStyle = "#131313";
         c.fillRect(0, 0, width, height);
 
-        drawStringsAndFrets(c, width, height, numStrings);
-        drawKeyLabels(c, numStrings);
-    }
-
-    function drawStringsAndFrets(c: CanvasRenderingContext2D, width: number, height: number, numStrings: number) {
         // 0th fret
         c.fillStyle = "rgba(255,255,255,0.1)";
         c.fillRect(0, 0, 30, height);
@@ -58,51 +63,62 @@ namespace FretCanvas {
         }
     }
 
-    let noteOffsetForString = [0, 7, 2, 10, 5, 0, 7]; // [X] E B G D A E
-    // which character to type to get the corresponding note
-    let keyboardLabels = [
+    const noteOffsetForString = [0, 7, 2, 10, 5, 0, 7]; // [X] E B G D A E
+
+    // Which computer character to type to get the corresponding music note.
+    const keyboardLabels = [
         ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"],
         ["q", "w", "e", "r", "t", "y", "u", "i", "o", "p"],
         ["a", "s", "d", "f", "g", "h", "j", "k", "l", ";"],
         ["z", "x", "c", "v", "b", "n", "m", ",", ".", "/"],
     ];
 
-    // XXX CUSTOMIZE THIS
-    let fretOffset = 0;
-    let stringOffset = 0;
-
-    function drawKeyLabels(c, numStrings: number) {
+    export function drawNoteLabels(c: CanvasRenderingContext2D, numStrings: number) {
         c.font = "14px Tahoma";
-        c.lineJoin = "round";
-        c.lineWidth = 6;
+        // c.lineJoin = "round";
+        // c.lineWidth = 6;
+        c.textAlign = "center";
 
-        // draw the note name
+        // Draw the note name
         for (let s = 1; s <= numStrings; s++) {
             for (let f = 0; f <= 12; f++) {
-                let localFretOffset = f == 0 ? 10 : 15 - FRET_DX / 2;
+                const isFretZero = f === 0;
+                let localFretOffset = isFretZero ? 15 : 20 - FRET_DX / 2;
                 let noteOffset = noteOffsetForString[s];
                 let noteLabel = NOTE_LABELS[(noteOffset + f) % 12];
                 if (noteLabel === "C") {
                     c.fillStyle = "#F55";
+                } else if (noteLabel === SF) {
+                    c.fillStyle = "#525252";
                 } else {
                     c.fillStyle = "#FFF";
                 }
                 let x = f * FRET_DX + localFretOffset;
-                let y = s * 40 + 6;
+                let y = s * 40 + 5;
+
+                c.shadowOffsetX = 0;
+                c.shadowOffsetY = 0;
+                c.shadowColor = "rgba(0,0,0,1.0)";
+                c.shadowBlur = 6;
                 c.fillText(noteLabel, x, y);
             }
         }
+    }
 
+    export function drawComputerKeyboardLabels(c: CanvasRenderingContext2D, numStrings: number, fretOffset, stringOffset) {
         // draw the keyboard labels
-        c.font = "15px Hack, Consolas, Courier";
-        c.fillStyle = "#FF4";
+        c.font = "14px Hack, Consolas, Courier";
+        c.fillStyle = "rgba(255,255,0,0.85)";
+        c.textAlign = "center";
         for (let s = 1; s <= 4; s++) {
             for (let f = 0; f < 10; f++) {
-                let keyLabel = keyboardLabels[s - 1][f];
-                let adjustedFret = f + fretOffset;
-                let localFretOffset = adjustedFret == 0 ? 10 : 15 - FRET_DX * 0.5;
-                let x = adjustedFret * FRET_DX + localFretOffset;
-                let y = (s + stringOffset) * 40 + 22;
+                const keyLabel = keyboardLabels[s - 1][f];
+                const adjustedFret = f + fretOffset;
+                const isFretZero = adjustedFret === 0;
+                const localFretOffset = isFretZero ? 15 : 20 - FRET_DX * 0.5;
+                const x = adjustedFret * FRET_DX + localFretOffset;
+                const y = (s + stringOffset) * 40 + 22;
+                console.log(keyLabel, x, y);
                 c.fillText(keyLabel, x, y);
             }
         }
