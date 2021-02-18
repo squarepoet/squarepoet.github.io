@@ -18,7 +18,7 @@ function SimpleDialog(props) {
 
     return (
         <div>
-            <Dialog onClose={handleDialogClose} aria-labelledby="dialog-title" aria-describedby="dialog-description" open={open}>
+            <Dialog onClose={handleDialogClose} open={open}>
                 <DialogTitle id="dialog-title">My Title</DialogTitle>
                 <DialogContent>
                     <DialogContentText id="dialog-description">Some awesome content!</DialogContentText>

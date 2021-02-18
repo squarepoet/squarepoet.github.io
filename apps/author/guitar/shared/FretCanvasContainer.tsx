@@ -3,6 +3,7 @@ import { useEffect, useRef } from "react";
 import FretCanvas from "./FretCanvas";
 
 type FretCanvasProps = {
+    instrumentType: string;
     numStrings: number;
     computerKeyboardFretOffset: number; // Press a key on the keyboard to play the corresponding {string, fret}
     computerKeyboardStringOffset: number;
@@ -10,7 +11,7 @@ type FretCanvasProps = {
 
 const PADDING_H = 40;
 
-const FretCanvasContainer = ({ numStrings, computerKeyboardFretOffset, computerKeyboardStringOffset }: FretCanvasProps) => {
+const FretCanvasContainer = ({ instrumentType, numStrings, computerKeyboardFretOffset, computerKeyboardStringOffset }: FretCanvasProps) => {
     const canvasRef = useRef();
 
     const canvasWidth = 1040;
@@ -21,11 +22,11 @@ const FretCanvasContainer = ({ numStrings, computerKeyboardFretOffset, computerK
         if (context2d) {
             context2d.scale(2, 2); // Support retina displays by drawing @ 2x resolution.
             FretCanvas.drawStringsAndFrets(context2d, width, height, numStrings);
-            FretCanvas.drawNoteLabels(context2d, numStrings);
+            FretCanvas.drawNoteLabels(context2d, instrumentType, numStrings);
             FretCanvas.drawComputerKeyboardLabels(context2d, numStrings, computerKeyboardFretOffset, computerKeyboardStringOffset);
             context2d.setTransform(1, 0, 0, 1, 0, 0); // Reset the scale.
         }
-    }, [numStrings, computerKeyboardFretOffset, computerKeyboardStringOffset]);
+    }, [instrumentType, numStrings, computerKeyboardFretOffset, computerKeyboardStringOffset]);
 
     return (
         <>

@@ -1,3 +1,4 @@
+import Constants from "apps/shared/Constants";
 import { Draw } from "tone";
 
 type FretCanvasInfo = {
@@ -63,17 +64,31 @@ namespace FretCanvas {
         }
     }
 
-    const noteOffsetForString = [0, 7, 2, 10, 5, 0, 7]; // [X] E B G D A E
-
     // Which computer character to type to get the corresponding music note.
-    const keyboardLabels = [
+    const computerKeyboardLabels = [
         ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"],
         ["q", "w", "e", "r", "t", "y", "u", "i", "o", "p"],
         ["a", "s", "d", "f", "g", "h", "j", "k", "l", ";"],
         ["z", "x", "c", "v", "b", "n", "m", ",", ".", "/"],
     ];
 
-    export function drawNoteLabels(c: CanvasRenderingContext2D, numStrings: number) {
+    export function drawNoteLabels(c: CanvasRenderingContext2D, instrumentType: string, numStrings: number) {
+        // Set up indexes into the NOTE_LABELS array.
+        // Pull out the note labels to display on the frets.
+        let noteOffsetForString = null;
+        switch (instrumentType) {
+            case Constants.Instrument.GUITAR:
+            default:
+                noteOffsetForString = [0, 7, 2, 10, 5, 0, 7]; // [X] E B G D A E
+                break;
+            case Constants.Instrument.UKULELE_HIGH_G:
+                noteOffsetForString = [0, 0, 7, 3, 10]; // [X] A E C High-G
+                break;
+            case Constants.Instrument.UKULELE_LOW_G:
+                noteOffsetForString = [0, 0, 7, 3, 10]; // [X] A E C Low-G
+                break;
+        }
+
         c.font = "14px Tahoma";
         // c.lineJoin = "round";
         // c.lineWidth = 6;
@@ -83,9 +98,9 @@ namespace FretCanvas {
         for (let s = 1; s <= numStrings; s++) {
             for (let f = 0; f <= 12; f++) {
                 const isFretZero = f === 0;
-                let localFretOffset = isFretZero ? 15 : 20 - FRET_DX / 2;
-                let noteOffset = noteOffsetForString[s];
-                let noteLabel = NOTE_LABELS[(noteOffset + f) % 12];
+                const localFretOffset = isFretZero ? 15 : 20 - FRET_DX / 2;
+                const noteOffset = noteOffsetForString[s];
+                const noteLabel = NOTE_LABELS[(noteOffset + f) % 12];
                 if (noteLabel === "C") {
                     c.fillStyle = "#F55";
                 } else if (noteLabel === SF) {
@@ -93,8 +108,8 @@ namespace FretCanvas {
                 } else {
                     c.fillStyle = "#FFF";
                 }
-                let x = f * FRET_DX + localFretOffset;
-                let y = s * 40 + 5;
+                const x = f * FRET_DX + localFretOffset;
+                const y = s * 40 + 5;
 
                 c.shadowOffsetX = 0;
                 c.shadowOffsetY = 0;
@@ -107,20 +122,43 @@ namespace FretCanvas {
 
     export function drawComputerKeyboardLabels(c: CanvasRenderingContext2D, numStrings: number, fretOffset, stringOffset) {
         // draw the keyboard labels
-        c.font = "14px Hack, Consolas, Courier";
-        c.fillStyle = "rgba(255,255,0,0.85)";
+        c.font = "11px Hack, Consolas, Courier";
+        c.fillStyle = "rgba(0,255,255,0.75)";
         c.textAlign = "center";
         for (let s = 1; s <= 4; s++) {
             for (let f = 0; f < 10; f++) {
-                const keyLabel = keyboardLabels[s - 1][f];
+                const label = computerKeyboardLabels[s - 1][f];
                 const adjustedFret = f + fretOffset;
                 const isFretZero = adjustedFret === 0;
                 const localFretOffset = isFretZero ? 15 : 20 - FRET_DX * 0.5;
                 const x = adjustedFret * FRET_DX + localFretOffset;
                 const y = (s + stringOffset) * 40 + 22;
-                console.log(keyLabel, x, y);
-                c.fillText(keyLabel, x, y);
+                c.fillText(label, x, y);
             }
+        }
+    }
+
+    export function drawNoteGroup(c) {
+        if (this.noteGroups.length == 0) {
+            return;
+        }
+
+        let items = this.getMostRecentNoteGroup();
+        for (let s = 1; s <= 6; s++) {
+            let f = items[s];
+            if (f == "X") {
+                continue;
+            }
+            f = parseInt(f);
+
+            let localFretOffset = f == 0 ? 15 : FRET_OFFSET - FRET_DX / 2;
+            let x = f * FRET_DX + localFretOffset;
+            let y = s * 40;
+
+            c.beginPath();
+            c.arc(x, y, 14, 0, 2 * Math.PI);
+            c.fillStyle = "rgba(180,180,0,0.5)";
+            c.fill();
         }
     }
 }

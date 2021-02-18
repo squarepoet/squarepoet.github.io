@@ -216,7 +216,7 @@ export default class GuitarAuthorV1 {
         let result = { 6: "X", 5: "X", 4: "X", 3: "X", 2: "X", 1: "X" };
 
         if (noteGroup.length == 6) {
-            let items = noteGroup.toUpperCase().split("").reverse();
+            const items = noteGroup.toUpperCase().split("").reverse();
             for (let s = 1; s <= 6; s++) {
                 if (items[s - 1] != "X") {
                     result[s] = items[s - 1];
@@ -224,9 +224,9 @@ export default class GuitarAuthorV1 {
             }
         } else {
             // e.g., 3_2
-            let string_fret = noteGroup.split("_");
-            let s: string = string_fret[0];
-            let f = string_fret[1];
+            const string_fret: string[] = noteGroup.split("_");
+            const s: string = string_fret[0];
+            const f: string = string_fret[1];
             result[s] = f;
         }
 
@@ -311,8 +311,8 @@ export default class GuitarAuthorV1 {
     }
 
     getMostRecentNoteGroup() {
-        let lastGroup = this.noteGroups[this.noteGroups.length - 1]; // the last item
-        let items = this.splitNoteGroup(lastGroup);
+        const lastGroup = this.noteGroups[this.noteGroups.length - 1]; // the last item
+        const items = this.splitNoteGroup(lastGroup);
         return items;
     }
 

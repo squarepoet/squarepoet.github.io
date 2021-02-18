@@ -1,7 +1,12 @@
 # NEXT
 
--   [x] LEARNED that React's setState functions are ASYNCHRONOUS. YOU CANNOT DEPEND ON THE VARIABLE TO CHANGE IMMEDIATELY.
+-   [ ] When I hit a key, figure out which note we want to play and add it to our text area.
+
+    -   [ ] Should I have a NoteGroup class that handles Piano Notes and Guitar Notes? Or should they handle both? (Or at least support translating between the two....)
+    -   [ ] Start with..... // XXXX32 => { 6:'X', 5:'X', 4:'X', 3:'X', 2:'3', 1:'2' } splitNoteGroup(noteGroup: string) {
+
 -   [ ]
+-   [x] LEARNED that React's setState functions are ASYNCHRONOUS. YOU CANNOT DEPEND ON THE VARIABLE TO CHANGE IMMEDIATELY.
 -   [ ] Modify the `_document.tsx` to inject Material UI themes. I need to support the dark theme by default. See https://github.com/mui-org/material-ui/blob/master/examples/nextjs/pages/_document.js
 -   [ ] Use the dark theme to make the guitar/v2 radio buttons have a white outline.
 -   [ ] How to subscribe to changes in state in my App.ts? Do I need to forward changes from my component.tsx?

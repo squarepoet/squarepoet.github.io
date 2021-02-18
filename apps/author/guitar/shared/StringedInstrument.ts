@@ -5,6 +5,7 @@ const Instrument = Constants.Instrument;
 class StringedInstrument {
     type: string;
     numStrings: number;
+    numFrets: number = 13; // 0 ... 12th fret
     pianoNoteAtOpenString: number[]; // This indicates the tuning of the guitar or ukulele. Index 1 is the highest pitched string.
 
     constructor(instrumentType: string) {

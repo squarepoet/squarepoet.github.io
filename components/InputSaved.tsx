@@ -32,6 +32,13 @@ const InputSaved = forwardRef(({ label, persistedStateKey }: Props, ref) => {
         console.log(`InputSaved: onKeyUp key = ${e.key} | code = ${e.code}`);
         setInputElementValue((e.target as HTMLInputElement).value.toUpperCase().replace(/[^ABCDEFG]+/g, ""));
         console.dir(localStorage);
+
+        // ESC to remove focus from this element.
+        if (e.code === "Escape") {
+            if (document.activeElement instanceof HTMLElement) {
+                document.activeElement.blur();
+            }
+        }
     };
 
     const onChange = (e: ChangeEvent<HTMLInputElement>) => {

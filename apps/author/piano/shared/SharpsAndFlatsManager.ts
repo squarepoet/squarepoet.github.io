@@ -13,7 +13,7 @@ namespace SharpsAndFlatsManager {
         // #QUESTION will the inputRef ever be null here?
         // Will this function be called before our DOM is ready and our <SharpsAndFlats/> component is available?
         // I think it shouldn't be null if we call the useRef before the useEffect in our AppContainer.tsx
-        console.log(`isFocusedOnInputs: SharpsAndFlats inputRef is ${inputRef}`);
+        // console.log(`isFocusedOnInputs: SharpsAndFlats inputRef is ${inputRef}`);
         if (inputRef.current) {
             return inputRef.current.hasFocus();
         } else {
@@ -21,9 +21,9 @@ namespace SharpsAndFlatsManager {
         }
     }
     function getSharps(): string {
-        console.log(`getSharps: SharpsAndFlats inputRef is ${inputRef}`);
+        // console.log(`getSharps: SharpsAndFlats inputRef is ${inputRef}`);
         if (inputRef.current) {
-            console.log("Current Sharps: " + inputRef.current.getSharps());
+            // console.log("Current Sharps: " + inputRef.current.getSharps());
             return inputRef.current.getSharps();
         } else {
             return "";
@@ -31,9 +31,9 @@ namespace SharpsAndFlatsManager {
     }
 
     function getFlats(): string {
-        console.log(`getFlats: SharpsAndFlats inputRef is ${inputRef}`);
+        // console.log(`getFlats: SharpsAndFlats inputRef is ${inputRef}`);
         if (inputRef.current) {
-            console.log("Current Flats: " + inputRef.current.getFlats());
+            // console.log("Current Flats: " + inputRef.current.getFlats());
             return inputRef.current.getFlats();
         } else {
             return "";
