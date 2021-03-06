@@ -1,7 +1,7 @@
 import { Spacer20px } from "components/Spacer";
 import React, { useEffect, useState } from "react";
 
-export default () => {
+const KeyboardShortcuts = () => {
     return (
         <>
             <div>
@@ -21,3 +21,5 @@ export default () => {
         </>
     );
 };
+
+export default KeyboardShortcuts;

@@ -32,6 +32,7 @@
         "tone": "latest",
         "use-hooks": "latest",
         "use-persisted-state": "latest",
+        "webmidi": "^2.5.2",
         "worker-plugin": "latest"
     },
     "devDependencies": {

@@ -138,22 +138,17 @@ namespace FretCanvas {
         }
     }
 
-    export function drawNoteGroup(c) {
-        if (this.noteGroups.length == 0) {
-            return;
-        }
-
-        let items = this.getMostRecentNoteGroup();
+    export function drawNoteGroup(c, noteGroup, fretOffset) {
         for (let s = 1; s <= 6; s++) {
-            let f = items[s];
+            let f = noteGroup[s];
             if (f == "X") {
                 continue;
             }
             f = parseInt(f);
 
-            let localFretOffset = f == 0 ? 15 : FRET_OFFSET - FRET_DX / 2;
-            let x = f * FRET_DX + localFretOffset;
-            let y = s * 40;
+            const localFretOffset = f == 0 ? 15 : fretOffset - FRET_DX / 2;
+            const x = f * FRET_DX + localFretOffset;
+            const y = s * 40;
 
             c.beginPath();
             c.arc(x, y, 14, 0, 2 * Math.PI);
