@@ -85,62 +85,71 @@ namespace Keyboard {
         "=", // C
     ];
 
+    // TODO: Extract "z" and "keyCodeToPianoKeyNumber" give it a better name!
+    // #TODO: #XKWIALDZA FIGURE THIS OUT
+    // The goal is to match the Apple GarageBand Musical Typing key mapping.
+    // Type A and K should invoke the piano key "C".
+    // Z should be one octave lower than A. Comma should be the same as A.
+    // Q should be the same as K. I should be one octave higher than K.
+    // Allowing for a customizable offset means that when we change key signatures, we can change the offset by a couple of semitones.
+    // Anyways... figure this out yo!
+    const z = -2;
     export const keyCodeToPianoKeyNumber = {
-        90: 13, // z => A
-        88: 15, // x => B
+        90: 13 + z, // z => A
+        88: 15 + z, // x => B
         //
-        67: 16, // c => C2
-        86: 18, // v => D
-        66: 20, // b => E
-        78: 21, // n => F
-        77: 23, // m => G
-        188: 25, // , => A
-        190: 27, // . => B
+        67: 16 + z, // c => C2
+        86: 18 + z, // v => D
+        66: 20 + z, // b => E
+        78: 21 + z, // n => F
+        77: 23 + z, // m => G
+        188: 25 + z, // , => A
+        190: 27 + z, // . => B
         //
-        191: 28, // / => C3
-        65: 30, // a => D
-        83: 32, // s => E
-        68: 33, // d => F
-        70: 35, // f => G
-        71: 37, // g => A
-        72: 39, // h => B
+        191: 28 + z, // / => C3
+        65: 30 + z, // a => D
+        83: 32 + z, // s => E
+        68: 33 + z, // d => F
+        70: 35 + z, // f => G
+        71: 37 + z, // g => A
+        72: 39 + z, // h => B
         //
-        74: 40, // j => C4 (Middle C)
-        75: 42, // k => D
-        76: 44, // l => E
-        186: 45, // ; => F in Chrome
-        59: 45, // ; => F in Firefox
-        222: 47, // ' => G
-        81: 47, // q => G
-        87: 49, // w => A
-        69: 51, // e => B
+        74: 40 + z, // j => C4 (Middle C)
+        75: 42 + z, // k => D
+        76: 44 + z, // l => E
+        186: 45 + z, // ; => F in Chrome
+        59: 45 + z, // ; => F in Firefox
+        222: 47 + z, // ' => G
+        81: 47 + z, // q => G
+        87: 49 + z, // w => A
+        69: 51 + z, // e => B
         //
-        82: 52, // r => C5
-        84: 54, // t => D
-        89: 56, // y => E
-        85: 57, // u => F
-        73: 59, // i => G
-        79: 61, // o => A
-        80: 63, // p => B
+        82: 52 + z, // r => C5
+        84: 54 + z, // t => D
+        89: 56 + z, // y => E
+        85: 57 + z, // u => F
+        73: 59 + z, // i => G
+        79: 61 + z, // o => A
+        80: 63 + z, // p => B
         //
-        219: 64, // [ => C6
-        221: 66, // ] => D
-        220: 68, // \ => E
+        219: 64 + z, // [ => C6
+        221: 66 + z, // ] => D
+        220: 68 + z, // \ => E
 
-        49: 69, // 1 => F
-        50: 71, // 2 => G
-        51: 73, // 3 => A
-        52: 75, // 4 => B
+        49: 69 + z, // 1 => F
+        50: 71 + z, // 2 => G
+        51: 73 + z, // 3 => A
+        52: 75 + z, // 4 => B
         //
-        53: 76, // 5 => C7
-        54: 78, // 6 => D
-        55: 80, // 7 => E
-        56: 81, // 8 => F
-        57: 83, // 9 => G
-        48: 85, // 0 => A
-        189: 87, // - => B
+        53: 76 + z, // 5 => C7
+        54: 78 + z, // 6 => D
+        55: 80 + z, // 7 => E
+        56: 81 + z, // 8 => F
+        57: 83 + z, // 9 => G
+        48: 85 + z, // 0 => A
+        189: 87 + z, // - => B
         //
-        187: 88, // = => C8
+        187: 88 + z, // = => C8
     };
 }
 

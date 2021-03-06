@@ -55,6 +55,12 @@ const Page = () => {
             // Xkey Air 37 BLE Bluetooth id: 1748751320
             input = WebMidi.getInputByName("LUMI Keys Block KJ7T Bluetooth");
 
+            if (!input) {
+                console.log("Input is: " + input);
+                console.log("Cannot Find LUMI Keys");
+                return;
+            }
+
             input.addListener("sysex", "all", function (e) {
                 console.log("SYSEX");
                 console.log(e);
@@ -150,6 +156,8 @@ const Page = () => {
     };
 
     /*
+    #PQLEKLUMI
+    Add Brightness Toggles.
     BRIGHTNESS
     10 40 04 00 00 00 00 00 // 0%
     10 40 24 06 00 00 00 00 // 25%

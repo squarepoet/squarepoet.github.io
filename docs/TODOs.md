@@ -1,5 +1,10 @@
 # NEXT
 
+-   [ ] See #PQLEKLUMI. Make lots of progress on LUMI keys, and allow for customizing the device ID (at least support the one on github). Is there a way to query the device ID? How does ROLI Connect / Dashboard / Studio talk to LUMI? Must return it on Monday.
+-   [ ] See #XKWIALDZA. Make the computer keyboard to piano key mapping customizable via an offset.
+
+# More Stuff
+
 -   [ ] When I hit a key, figure out which note we want to play and add it to our text area.
 
     -   [ ] Should I have a NoteGroup class that handles Piano Notes and Guitar Notes? Or should they handle both? (Or at least support translating between the two....)
