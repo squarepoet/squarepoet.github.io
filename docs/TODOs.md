@@ -1,5 +1,6 @@
 # NEXT
 
+-   [ ] See #MIDIAWEIIZAI. Use MIDI Keyboard to author!
 -   [ ] See #PQLEKLUMI. Make lots of progress on LUMI keys, and allow for customizing the device ID (at least support the one on github). Is there a way to query the device ID? How does ROLI Connect / Dashboard / Studio talk to LUMI? Must return it on Monday.
 -   [ ] See #XKWIALDZA. Make the computer keyboard to piano key mapping customizable via an offset.
 

@@ -153,22 +153,28 @@ namespace Keyboard {
     };
 }
 
+// #TODO Use the webmidi module instead!
+// #MIDIAWEIIZAI
 namespace MIDIPianoInput {
     let numNotesPressed: number = 0;
 
     export function setup() {
         if (navigator["requestMIDIAccess"]) {
-            navigator["requestMIDIAccess"]({ sysex: false }).then(onMIDISuccess, onMIDIFailure);
+            navigator["requestMIDIAccess"]({ sysex: true }).then(onMIDISuccess, onMIDIFailure);
         } else {
             alert("No MIDI support in your browser.");
         }
     }
 
     function onMIDISuccess(midiAccess) {
+        console.log("MIDI SUCCESS");
         let midi = midiAccess;
-        var inputs = midi.inputs.values();
-        for (var input = inputs.next(); input && !input.done; input = inputs.next()) {
-            input.value.onmidimessage = onMIDIMessage;
+        console.dir(midi);
+        let inputs = midi.inputs.values();
+        let outputs = midi.outputs.values();
+        for (let input of inputs) {
+            console.log(input);
+            input.onmidimessage = onMIDIMessage;
         }
     }
 
@@ -177,6 +183,7 @@ namespace MIDIPianoInput {
     }
 
     function onMIDIMessage(message) {
+        console.log("onMIDIMessage");
         var data = message.data; // this gives us our [command/channel, note, velocity] data.
 
         var cmd = data[0] >> 4;
@@ -204,8 +211,8 @@ namespace MIDIPianoInput {
                 break;
             default:
                 // ignore for now
-                // console.log('MIDI data', data);
-                // console.log(`cmd: ${cmd}  channel: ${channel}  type: ${type}  note: ${note}  velocity: ${velocity}`);
+                console.log("MIDI data", data);
+                console.log(`cmd: ${cmd}  channel: ${channel}  type: ${type}  note: ${note}  velocity: ${velocity}`);
                 break;
         }
     }

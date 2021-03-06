@@ -16,6 +16,7 @@ import PreloadDialog from "components/dialogs/Preload";
 import React, { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useEventListener } from "use-hooks";
+import WebMidi from "webmidi";
 
 const Keys = Constants.StoreKeys;
 
