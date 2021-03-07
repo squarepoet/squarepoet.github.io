@@ -163,62 +163,135 @@ const Page = () => {
                 </div>
             </div>
             <br />
-            <div>
-                <div>Color Mode 1</div>
-                <div>
-                    <button onClick={LUMIKeys.getClickHandler_SetColorMode(1, "pro")}>pro</button> highlight root note with single rainbow color
-                    <br />
-                    <button onClick={LUMIKeys.getClickHandler_SetColorMode(1, "user")}>user</button> highlight root note with user selected color
-                    <br />
-                    <button onClick={LUMIKeys.getClickHandler_SetColorMode(1, "piano")}>piano</button>
-                    <br />
-                    <button onClick={LUMIKeys.getClickHandler_SetColorMode(1, "stage")}>stage</button>
-                    <br />
-                    <button onClick={LUMIKeys.getClickHandler_SetColorMode(1, "rainbow")}>rainbow</button>
+            <div className="dt" style={{ border: "10px solid #000" }}>
+                <div className="dtHead">
+                    <div className="dtCell">Color Mode 1</div>
+                    <div className="dtCell">Color Mode 2</div>
+                    <div className="dtCell">Color Mode 3</div>
+                    <div className="dtCell">Color Mode 4</div>
                 </div>
-            </div>
-            <div>
-                <div>Color Mode 2</div>
-                <div>
-                    <button onClick={LUMIKeys.getClickHandler_SetColorMode(2, "pro")}>pro</button> highlight root note with single rainbow color
-                    <br />
-                    <button onClick={LUMIKeys.getClickHandler_SetColorMode(2, "user")}>user</button> highlight root note with user selected color
-                    <br />
-                    <button onClick={LUMIKeys.getClickHandler_SetColorMode(2, "piano")}>piano</button>
-                    <br />
-                    <button onClick={LUMIKeys.getClickHandler_SetColorMode(2, "stage")}>stage</button>
-                    <br />
-                    <button onClick={LUMIKeys.getClickHandler_SetColorMode(2, "rainbow")}>rainbow</button>
+                <div className="dtBody">
+                    <div className="dtRow">
+                        <div className="dtCell">
+                            <button onClick={LUMIKeys.getClickHandler_SetColorMode(1, "pro")}>pro</button>
+                            <div className="dtCellNote">highlight root note with single rainbow color</div>
+                        </div>
+                        <div className="dtCell">
+                            <button onClick={LUMIKeys.getClickHandler_SetColorMode(2, "pro")}>pro</button>
+                            <div className="dtCellNote">highlight root note with single rainbow color</div>
+                        </div>
+                        <div className="dtCell">
+                            <button onClick={LUMIKeys.getClickHandler_SetColorMode(3, "pro")}>pro</button>
+                            <div className="dtCellNote">highlight root note with single rainbow color</div>
+                        </div>
+                        <div className="dtCell">
+                            <button onClick={LUMIKeys.getClickHandler_SetColorMode(4, "pro")}>pro</button>
+                            <div className="dtCellNote">highlight root note with single rainbow color</div>
+                        </div>
+                    </div>
+                    <div className="dtRow">
+                        <div className="dtCell">
+                            <button onClick={LUMIKeys.getClickHandler_SetColorMode(1, "user")}>user</button>
+                            <div className="dtCellNote">highlight root note with user selected color</div>
+                        </div>
+                        <div className="dtCell">
+                            <button onClick={LUMIKeys.getClickHandler_SetColorMode(2, "user")}>user</button>
+                            <div className="dtCellNote">highlight root note with user selected color</div>
+                        </div>
+                        <div className="dtCell">
+                            <button onClick={LUMIKeys.getClickHandler_SetColorMode(3, "user")}>user</button>
+                            <div className="dtCellNote">highlight root note with user selected color</div>
+                        </div>
+                        <div className="dtCell">
+                            <button onClick={LUMIKeys.getClickHandler_SetColorMode(4, "user")}>user</button>
+                            <div className="dtCellNote">highlight root note with user selected color</div>
+                        </div>
+                    </div>
+                    <div className="dtRow">
+                        <div className="dtCell">
+                            <button onClick={LUMIKeys.getClickHandler_SetColorMode(1, "piano")}>piano</button>
+                            <div className="dtCellNote">white and black keys</div>
+                        </div>
+                        <div className="dtCell">
+                            <button onClick={LUMIKeys.getClickHandler_SetColorMode(2, "piano")}>piano</button>
+                            <div className="dtCellNote">white and black keys</div>
+                        </div>
+                        <div className="dtCell">
+                            <button onClick={LUMIKeys.getClickHandler_SetColorMode(3, "piano")}>piano</button>
+                            <div className="dtCellNote">white and black keys</div>
+                        </div>
+                        <div className="dtCell">
+                            <button onClick={LUMIKeys.getClickHandler_SetColorMode(4, "piano")}>piano</button>
+                            <div className="dtCellNote">white and black keys</div>
+                        </div>
+                    </div>
+                    <div className="dtRow">
+                        <div className="dtCell">
+                            <button onClick={LUMIKeys.getClickHandler_SetColorMode(1, "stage")}>stage</button>
+                            <div className="dtCellNote">dim rainbow colors, appropriate for a dark room</div>
+                        </div>
+                        <div className="dtCell">
+                            <button onClick={LUMIKeys.getClickHandler_SetColorMode(2, "stage")}>stage</button>
+                            <div className="dtCellNote">dim rainbow colors, appropriate for a dark room</div>
+                        </div>
+                        <div className="dtCell">
+                            <button onClick={LUMIKeys.getClickHandler_SetColorMode(3, "stage")}>stage</button>
+                            <div className="dtCellNote">dim rainbow colors, appropriate for a dark room</div>
+                        </div>
+                        <div className="dtCell">
+                            <button onClick={LUMIKeys.getClickHandler_SetColorMode(4, "stage")}>stage</button>
+                            <div className="dtCellNote">dim rainbow colors, appropriate for a dark room</div>
+                        </div>
+                    </div>
+                    <div className="dtRow">
+                        <div className="dtCell">
+                            <button onClick={LUMIKeys.getClickHandler_SetColorMode(1, "rainbow")}>rainbow</button>
+                            <div className="dtCellNote">bright rainbow colors, black sharps/flats</div>
+                        </div>
+                        <div className="dtCell">
+                            <button onClick={LUMIKeys.getClickHandler_SetColorMode(2, "rainbow")}>rainbow</button>
+                            <div className="dtCellNote">bright rainbow colors, black sharps/flats</div>
+                        </div>
+                        <div className="dtCell">
+                            <button onClick={LUMIKeys.getClickHandler_SetColorMode(3, "rainbow")}>rainbow</button>
+                            <div className="dtCellNote">bright rainbow colors, black sharps/flats</div>
+                        </div>
+                        <div className="dtCell">
+                            <button onClick={LUMIKeys.getClickHandler_SetColorMode(4, "rainbow")}>rainbow</button>
+                            <div className="dtCellNote">bright rainbow colors, black sharps/flats</div>
+                        </div>
+                    </div>
                 </div>
+                <style jsx global>{`
+                    .dt {
+                        display: table;
+                        width: 100%;
+                    }
+                    .dtHead {
+                        display: table-header-group;
+                        background-color: #333;
+                    }
+                    .dtBody {
+                        display: table-row-group;
+                    }
+                    .dtRow {
+                        display: table-row;
+                    }
+                    .dtCell {
+                        border: 1px solid #999999;
+                        display: table-cell;
+                        padding: 3px 10px;
+                    }
+                    .dtCell button {
+                        width: 100%;
+                    }
+                    .dtCellNote {
+                        font-size: 11px;
+                        line-height: 100%;
+                    }
+                `}</style>
             </div>
-            <div>
-                <div>Color Mode 3</div>
-                <div>
-                    <button onClick={LUMIKeys.getClickHandler_SetColorMode(3, "pro")}>pro</button> highlight root note with single rainbow color
-                    <br />
-                    <button onClick={LUMIKeys.getClickHandler_SetColorMode(3, "user")}>user</button> highlight root note with user selected color
-                    <br />
-                    <button onClick={LUMIKeys.getClickHandler_SetColorMode(3, "piano")}>piano</button>
-                    <br />
-                    <button onClick={LUMIKeys.getClickHandler_SetColorMode(3, "stage")}>stage</button>
-                    <br />
-                    <button onClick={LUMIKeys.getClickHandler_SetColorMode(3, "rainbow")}>rainbow</button>
-                </div>
-            </div>
-            <div>
-                <div>Color Mode 4</div>
-                <div>
-                    <button onClick={LUMIKeys.getClickHandler_SetColorMode(4, "pro")}>pro</button> highlight root note with single rainbow color
-                    <br />
-                    <button onClick={LUMIKeys.getClickHandler_SetColorMode(4, "user")}>user</button> highlight root note with user selected color
-                    <br />
-                    <button onClick={LUMIKeys.getClickHandler_SetColorMode(4, "piano")}>piano</button>
-                    <br />
-                    <button onClick={LUMIKeys.getClickHandler_SetColorMode(4, "stage")}>stage</button>
-                    <br />
-                    <button onClick={LUMIKeys.getClickHandler_SetColorMode(4, "rainbow")}>rainbow</button>
-                </div>
-            </div>
+            <br />
             <div>
                 <div>User Colors</div>
                 <div>

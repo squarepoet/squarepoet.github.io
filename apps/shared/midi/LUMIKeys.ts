@@ -179,6 +179,7 @@ namespace LUMIKeys {
     // 10 40 0C 01 00 00 00 00 2D F7
     export function getClickHandler_SetColorMode(modeNumber, modeType) {
         return () => {
+            console.log("Set color of mode: " + modeNumber + " to " + modeType);
             let command = null;
             switch (modeType) {
                 case "pro":
