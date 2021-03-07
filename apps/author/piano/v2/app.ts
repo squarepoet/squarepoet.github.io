@@ -201,6 +201,7 @@ namespace MIDIPianoInput {
                 if (numNotesPressed > 1) {
                     Song.mergeLastTwoGroups();
                 }
+                // #TODO: #RESETACQWIEIFK If we press down the B, C, C# at the same time, we reset the text field to empty!!!!
                 break;
             case 128: // note off
                 // console.log("piano key up: " + pianoKey);

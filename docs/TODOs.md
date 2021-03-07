@@ -1,7 +1,12 @@
 # NEXT
 
+-   [ ] Make progress on LUMI keys, and allow for customizing the device ID (at least support the one on github). Is there a way to query the device ID? How does ROLI Connect / Dashboard / Studio talk to LUMI? Must return it on Monday.
+
+//
+
 -   [ ] See #MIDIAWEIIZAI. Use MIDI Keyboard to author!
--   [ ] See #PQLEKLUMI. Make lots of progress on LUMI keys, and allow for customizing the device ID (at least support the one on github). Is there a way to query the device ID? How does ROLI Connect / Dashboard / Studio talk to LUMI? Must return it on Monday.
+    -   [ ] IMPORTANT: It should initialize the same things as if we pressed a computer key. It needs to go through the same setup path (and dismiss the preload popup)!
+    -   [ ] See #RESETACQWIEIFK.f If we press down the B, C, C# at the same time, we reset the text field to empty!!!!
 -   [ ] See #XKWIALDZA. Make the computer keyboard to piano key mapping customizable via an offset.
 
 # More Stuff

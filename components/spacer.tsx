@@ -26,6 +26,10 @@ const Spacer30px = () => {
     return <Spacer width={30} />;
 };
 
-export { Spacer20px, Spacer30px };
+const Spacer60px = () => {
+    return <Spacer width={60} />;
+};
+
+export { Spacer20px, Spacer30px, Spacer60px };
 
 export default Spacer;
