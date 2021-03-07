@@ -16,7 +16,8 @@ enum AudioSDKType {
     Musical,
 }
 
-const INSTRUMENT_TYPE: InstrumentType = InstrumentType.Electric_1;
+// const INSTRUMENT_TYPE: InstrumentType = InstrumentType.Electric_1;
+const INSTRUMENT_TYPE: InstrumentType = InstrumentType.FM;
 
 class Instrument {
     sdk: AudioSDKType;
@@ -99,18 +100,28 @@ class Instrument {
     }
 
     stop(pianoKeyNumber: number) {
-        const noteName = Tone.Frequency(pianoKeyNumber + 20, "midi").toNote();
-        console.log("TRIGGER RELEASE " + pianoKeyNumber + " / " + noteName);
-        this.instrument.triggerRelease(noteName);
+        if (this.sdk === AudioSDKType.Tone) {
+            const noteName = Tone.Frequency(pianoKeyNumber + 20, "midi").toNote();
+            console.log("TRIGGER RELEASE " + pianoKeyNumber + " / " + noteName);
+            this.instrument.triggerRelease(noteName);
+        } else {
+            // Musical.js
+            console.log("stop is NOT IMPLEMENTED FOR MUSICAL.JS");
+        }
     }
 
     stopAllNotes() {
         console.log(this.type);
-        if (this.type === InstrumentType.Sampled_1 || this.type === InstrumentType.Sampled_2) {
-            console.log("stopAllNotes!");
-            (this.instrument as Tone.Sampler).releaseAll(Tone.now());
+        if (this.sdk === AudioSDKType.Tone) {
+            if (this.type === InstrumentType.Sampled_1 || this.type === InstrumentType.Sampled_2) {
+                console.log("stopAllNotes!");
+                (this.instrument as Tone.Sampler).releaseAll(Tone.now());
+            } else {
+                console.log("stopAllNotes is NOT IMPLEMENTED FOR SYNTHS.");
+            }
         } else {
-            console.log("NOT IMPLEMENTED FOR SYNTHS: TRIGGER RELEASE ALL");
+            // Musical.js
+            console.log("stopAllNotes is NOT IMPLEMENTED FOR MUSICAL.JS");
         }
     }
 

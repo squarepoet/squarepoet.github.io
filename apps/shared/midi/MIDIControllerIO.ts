@@ -1,5 +1,6 @@
 import WebMidi, { Input, Output } from "webmidi";
 
+import Instrument from "../sound/Instrument";
 import LUMIKeys from "./LUMIKeys";
 
 // Manufacturers:
@@ -7,6 +8,8 @@ import LUMIKeys from "./LUMIKeys";
 namespace MIDIControllerIO {
     let inputs: Input[] = [];
     let outputs: Output[] = [];
+
+    let soundOutput: Instrument = null;
 
     export function start() {
         WebMidi.enable(function (err) {
@@ -21,6 +24,15 @@ namespace MIDIControllerIO {
 
             for (const i of WebMidi.inputs) {
                 inputs.push(i);
+
+                i.addListener("noteon", "all", function (e) {
+                    console.log(e);
+                    playMIDINote(e.note.number, e.rawVelocity);
+                });
+                i.addListener("noteoff", "all", function (e) {
+                    console.log(e);
+                    stopMIDINote(e.note.number, e.rawVelocity);
+                });
             }
 
             for (const o of WebMidi.outputs) {
@@ -62,7 +74,7 @@ namespace MIDIControllerIO {
             // o.playNote("C3")
             // o.stopNote("C3")
 
-            WebMidi.MIDI_SYSTEM_MESSAGES.sysex; // #F0 == 240
+            // WebMidi.MIDI_SYSTEM_MESSAGES.sysex; // #F0 == 240
 
             // Manufacturer IDs (Hexadecimal)
             // CME XKey Air 00 20 63
@@ -93,6 +105,30 @@ namespace MIDIControllerIO {
         WebMidi.outputs.forEach((output) => {
             console.log(output);
         });
+    }
+
+    export function attachSoundOutput(instrument: Instrument) {
+        soundOutput = instrument;
+    }
+
+    function playMIDINote(midiNoteNumber, velocity = 127.0) {
+        if (soundOutput === null) {
+            console.log("playPianoNote: Piano has not been initialized.");
+            return;
+        }
+        const duration = 0; // Setting duration to 0 means the note will NOT turn off automatically.
+        const pianoKeyNumber = midiNoteNumber - 20;
+        soundOutput.play(pianoKeyNumber, duration, velocity / 127.0);
+    }
+
+    function stopMIDINote(midiNoteNumber, velocity = 127.0) {
+        if (soundOutput === null) {
+            console.log("playPianoNote: Piano has not been initialized.");
+            return;
+        }
+        const duration = 0; // Setting duration to 0 means the note will NOT turn off automatically.
+        const pianoKeyNumber = midiNoteNumber - 20;
+        soundOutput.stop(pianoKeyNumber);
     }
 }
 

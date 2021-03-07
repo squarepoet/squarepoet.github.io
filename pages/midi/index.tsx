@@ -1,9 +1,13 @@
 import LUMIKeys from "apps/shared/midi/LUMIKeys";
 import MIDIControllerIO from "apps/shared/midi/MIDIControllerIO";
-import Spacer, { Spacer30px, Spacer60px } from "components/Spacer";
-import { useEffect } from "react";
+import Instrument from "apps/shared/sound/Instrument";
+import PreloadDialog from "components/dialogs/Preload";
+import { Spacer30px, Spacer60px } from "components/Spacer";
+import { useEffect, useState } from "react";
 
 const Page = () => {
+    const [showPreloadDialog, setShowPreloadDialog] = useState(true);
+
     if (typeof window !== "undefined") {
         MIDIControllerIO.start();
     }
@@ -12,8 +16,15 @@ const Page = () => {
         console.log("MOUNT");
     }, []);
 
+    function onDialogDismissedStartAudio() {
+        const piano = new Instrument();
+        MIDIControllerIO.attachSoundOutput(piano);
+        setShowPreloadDialog(false);
+    }
+
     return (
         <div>
+            {showPreloadDialog ? <PreloadDialog initialOpenState={showPreloadDialog} preloadNow={onDialogDismissedStartAudio} /> : null}
             <h1>MIDI Test Page</h1>
             <h2>LUMI</h2>
             <div>
