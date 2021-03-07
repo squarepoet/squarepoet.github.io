@@ -1,9 +1,7 @@
 # NEXT
 
 -   [ ] Make progress on LUMI keys, and allow for customizing the device ID (at least support the one on github). Is there a way to query the device ID? How does ROLI Connect / Dashboard / Studio talk to LUMI? Must return it on Monday.
-
-//
-
+-   [ ] Fix bug where COPYRIGHT 2021 SquarePoet is NOT on the bottom right of the page when the page contents are too tall! It should be always at the bottom right once you scroll to the end of the contents.
 -   [ ] See #MIDIAWEIIZAI. Use MIDI Keyboard to author!
     -   [ ] IMPORTANT: It should initialize the same things as if we pressed a computer key. It needs to go through the same setup path (and dismiss the preload popup)!
     -   [ ] See #RESETACQWIEIFK.f If we press down the B, C, C# at the same time, we reset the text field to empty!!!!

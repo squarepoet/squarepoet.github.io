@@ -153,17 +153,67 @@ const Page = () => {
             </div>
             <br />
             <div>
-                <div>Color Mode</div>
+                <div>Color Mode 1</div>
                 <div>
-                    <button onClick={LUMIKeys.getClickHandler_SetColorMode("pro")}>pro (highlights root note with single rainbow color)</button>
+                    <button onClick={LUMIKeys.getClickHandler_SetColorMode(1, "pro")}>pro</button> highlight root note with single rainbow color
                     <br />
-                    <button onClick={LUMIKeys.getClickHandler_SetColorMode("user")}>user (highlights root note with user selected color)</button>
+                    <button onClick={LUMIKeys.getClickHandler_SetColorMode(1, "user")}>user</button> highlight root note with user selected color
                     <br />
-                    <button onClick={LUMIKeys.getClickHandler_SetColorMode("piano")}>piano</button>
+                    <button onClick={LUMIKeys.getClickHandler_SetColorMode(1, "piano")}>piano</button>
                     <br />
-                    <button onClick={LUMIKeys.getClickHandler_SetColorMode("stage")}>stage</button>
+                    <button onClick={LUMIKeys.getClickHandler_SetColorMode(1, "stage")}>stage</button>
                     <br />
-                    <button onClick={LUMIKeys.getClickHandler_SetColorMode("rainbow")}>rainbow</button>
+                    <button onClick={LUMIKeys.getClickHandler_SetColorMode(1, "rainbow")}>rainbow</button>
+                </div>
+            </div>
+            <div>
+                <div>Color Mode 2</div>
+                <div>
+                    <button onClick={LUMIKeys.getClickHandler_SetColorMode(2, "pro")}>pro</button> highlight root note with single rainbow color
+                    <br />
+                    <button onClick={LUMIKeys.getClickHandler_SetColorMode(2, "user")}>user</button> highlight root note with user selected color
+                    <br />
+                    <button onClick={LUMIKeys.getClickHandler_SetColorMode(2, "piano")}>piano</button>
+                    <br />
+                    <button onClick={LUMIKeys.getClickHandler_SetColorMode(2, "stage")}>stage</button>
+                    <br />
+                    <button onClick={LUMIKeys.getClickHandler_SetColorMode(2, "rainbow")}>rainbow</button>
+                </div>
+            </div>
+            <div>
+                <div>Color Mode 3</div>
+                <div>
+                    <button onClick={LUMIKeys.getClickHandler_SetColorMode(3, "pro")}>pro</button> highlight root note with single rainbow color
+                    <br />
+                    <button onClick={LUMIKeys.getClickHandler_SetColorMode(3, "user")}>user</button> highlight root note with user selected color
+                    <br />
+                    <button onClick={LUMIKeys.getClickHandler_SetColorMode(3, "piano")}>piano</button>
+                    <br />
+                    <button onClick={LUMIKeys.getClickHandler_SetColorMode(3, "stage")}>stage</button>
+                    <br />
+                    <button onClick={LUMIKeys.getClickHandler_SetColorMode(3, "rainbow")}>rainbow</button>
+                </div>
+            </div>
+            <div>
+                <div>Color Mode 4</div>
+                <div>
+                    <button onClick={LUMIKeys.getClickHandler_SetColorMode(4, "pro")}>pro</button> highlight root note with single rainbow color
+                    <br />
+                    <button onClick={LUMIKeys.getClickHandler_SetColorMode(4, "user")}>user</button> highlight root note with user selected color
+                    <br />
+                    <button onClick={LUMIKeys.getClickHandler_SetColorMode(4, "piano")}>piano</button>
+                    <br />
+                    <button onClick={LUMIKeys.getClickHandler_SetColorMode(4, "stage")}>stage</button>
+                    <br />
+                    <button onClick={LUMIKeys.getClickHandler_SetColorMode(4, "rainbow")}>rainbow</button>
+                </div>
+            </div>
+            <div>
+                <div>User Colors</div>
+                <div>
+                    <button onClick={LUMIKeys.getClickHandler_SetColorGlobalKey()}>Global Key Color</button>
+                    <br />
+                    <button onClick={LUMIKeys.getClickHandler_SetColorRootKey()}>Root Key Color</button>
                 </div>
             </div>
             <br />

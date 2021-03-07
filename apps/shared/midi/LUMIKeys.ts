@@ -14,7 +14,8 @@ namespace LUMIKeys {
     // 0x00    => Works 100% for ronyeh's LUMI.
     // 0x07    => Works 100% for ronyeh's LUMI.
     // 0x37    => Works for benob's LUMI, but NOT for ronyeh's LUMI.
-    let deviceID = 0x07;
+    // let deviceID = 0x07;
+    let deviceID = 0x00;
     function setDeviceID(devID) {
         deviceID = devID;
     }
@@ -23,16 +24,50 @@ namespace LUMIKeys {
         return io.manufacturer.startsWith("ROLI") && io.name.startsWith("LUMI");
     }
 
+    function messageMatches(msgData: Uint8Array, msgString: string) {
+        return getDataAsHexString(msgData) === msgString;
+    }
+
+    // Return MIDI data as an uppercase string of hex numbers, space delimited.
+    // We do not include the prefix 0x.
+    // Example:
+    //     "F0 00 21 10 77 47 00 00 00 00 00 04 00 00 2C F7"
+    function getDataAsHexString(msgData: Uint8Array) {
+        if (!msgData || msgData.length === 0) {
+            return "";
+        }
+
+        let hexStrings = [];
+        for (const byte of msgData) {
+            hexStrings.push(byte.toString(16).padStart(2, "0").toUpperCase());
+        }
+        return hexStrings.join(" ");
+    }
+
+    function logMessageAsHex(msgData: Uint8Array) {
+        console.log(getDataAsHexString(msgData));
+    }
+
     export function connect() {
         for (const i of WebMidi.inputs) {
             if (isLUMIKeys(i)) {
                 inputs.push(i);
 
                 i.addListener("midimessage", "all", function (e) {
-                    console.log("LUMI Keys: midimessage");
-                    console.log(e);
-                    const dataString = new TextDecoder("utf-8").decode(e.data);
-                    console.log(dataString);
+                    // const dataString = new TextDecoder("utf-8").decode(e.data);
+                    // console.log(dataString);
+
+                    logMessageAsHex(e.data);
+
+                    if (messageMatches(e.data, "F0 00 21 10 77 47 00 00 00 00 00 04 00 00 2C F7")) {
+                        console.log("POWER BUTTON PRESSED");
+                    }
+                    if (messageMatches(e.data, "F0 00 21 10 77 47 00 00 00 00 00 04 04 00 38 F7")) {
+                        console.log("OCTAVE DOWN PRESSED");
+                    }
+                    if (messageMatches(e.data, "F0 00 21 10 77 47 00 00 00 00 00 04 08 00 44 F7")) {
+                        console.log("OCTAVE UP PRESSED");
+                    }
                 });
             }
         }
@@ -142,25 +177,69 @@ namespace LUMIKeys {
     // 10 40 6C 00 00 00 00 00 7C F7
     // RAINBOW
     // 10 40 0C 01 00 00 00 00 2D F7
-    export function getClickHandler_SetColorMode(modeName) {
+    export function getClickHandler_SetColorMode(modeNumber, modeType) {
         return () => {
             let command = null;
-            switch (modeName) {
+            switch (modeType) {
                 case "pro":
-                    command = [0x10, 0x40, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00];
+                    switch (modeNumber) {
+                        case 1:
+                        default:
+                            command = [0x10, 0x40, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00]; // Mode 1
+                            break;
+                        case 2:
+                            command = [0x10, 0x30, 0x0d, 0x00, 0x00, 0x00, 0x00, 0x00]; // Mode 2
+                            break;
+                        case 3:
+                            command = [0x10, 0x20, 0x0e, 0x00, 0x00, 0x00, 0x00, 0x00]; // Mode 3
+                            break;
+                        case 4:
+                            command = [0x10, 0x10, 0x0f, 0x00, 0x00, 0x00, 0x00, 0x00]; // Mode 4
+                            break;
+                    }
                     break;
                 case "user":
-                    command = [0x10, 0x40, 0x2c, 0x00, 0x00, 0x00, 0x00, 0x00];
+                    command = [0x10, 0x40, 0x2c, 0x00, 0x00, 0x00, 0x00, 0x00]; // Mode 1
+                    console.log("ONLY MODE 1 IMPLEMENTED");
                     break;
                 case "piano":
-                    command = [0x10, 0x40, 0x4c, 0x00, 0x00, 0x00, 0x00, 0x00];
+                    command = [0x10, 0x40, 0x4c, 0x00, 0x00, 0x00, 0x00, 0x00]; // Mode 1
+                    console.log("ONLY MODE 1 IMPLEMENTED");
                     break;
                 case "stage":
-                    command = [0x10, 0x40, 0x6c, 0x00, 0x00, 0x00, 0x00, 0x00];
+                    switch (modeNumber) {
+                        case 1:
+                        default:
+                            command = [0x10, 0x40, 0x6c, 0x00, 0x00, 0x00, 0x00, 0x00]; // Mode 1
+                            break;
+                        case 2:
+                            command = [0x10, 0x30, 0x6d, 0x00, 0x00, 0x00, 0x00, 0x00]; // Mode 2
+                            break;
+                        case 3:
+                            command = [0x10, 0x20, 0x6e, 0x00, 0x00, 0x00, 0x00, 0x00]; // Mode 3
+                            break;
+                        case 4:
+                            command = [0x10, 0x10, 0x6f, 0x00, 0x00, 0x00, 0x00, 0x00]; // Mode 4
+                            break;
+                    }
                     break;
                 case "rainbow":
                 default:
-                    command = [0x10, 0x40, 0x0c, 0x01, 0x00, 0x00, 0x00, 0x00];
+                    switch (modeNumber) {
+                        case 1:
+                        default:
+                            command = [0x10, 0x40, 0x0c, 0x01, 0x00, 0x00, 0x00, 0x00]; // Mode 1
+                            break;
+                        case 2:
+                            command = [0x10, 0x30, 0x0d, 0x01, 0x00, 0x00, 0x00, 0x00]; // Mode 2
+                            break;
+                        case 3:
+                            command = [0x10, 0x20, 0x0e, 0x01, 0x00, 0x00, 0x00, 0x00]; // Mode 3
+                            break;
+                        case 4:
+                            command = [0x10, 0x10, 0x0f, 0x01, 0x00, 0x00, 0x00, 0x00]; // Mode 4
+                            break;
+                    }
                     break;
             }
             sendCommandToAllDevices(command);
@@ -248,6 +327,29 @@ namespace LUMIKeys {
             for (const output of outputs) {
                 output.playNote(noteName, "all", { duration: 1200 /* ms */ });
             }
+        };
+    }
+
+    export function getClickHandler_SetColorGlobalKey() {
+        return () => {
+            //const command = [0x10, 0x20, 0x64, 0x3f, 0x00, 0x00, 0x7e, 0x03]; // blue
+            const command = [0x10, 0x20, 0x04, 0x40, 0x7f, 0x7f, 0x7f, 0x03]; // yellow
+            // 10 20 64 3F 00 00 7E 03 // blue
+            // 10 20 04 40 7F 00 7E 03 // green
+            // 10 20 04 00 00 7F 7F 03 // red
+            // 10 20 04 40 7F 7F 7F 03 // yellow
+            // 10 20 64 3F 00 7F 7F 03 // magenta
+            // 10 20 64 7F 7F 00 7E 03 // cyan
+
+            sendCommandToAllDevices(command);
+        };
+    }
+
+    export function getClickHandler_SetColorRootKey() {
+        return () => {
+            // const command = [0x10, 0x30, 0x64, 0x3f, 0x00, 0x00, 0x7e, 0x03]; // blue
+            const command = [0x10, 0x30, 0x64, 0x3f, 0x00, 0x00, 0x7e, 0x03]; // blue
+            sendCommandToAllDevices(command);
         };
     }
 
