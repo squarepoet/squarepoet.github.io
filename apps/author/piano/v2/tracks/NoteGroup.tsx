@@ -6,6 +6,7 @@ import { useDispatch, useSelector } from "react-redux";
 import styles from "./NoteGroup.module.css";
 
 type Props = {
+    id: string;
     trackNumber: number;
     noteGroupNumber: number;
     isHighlighted: boolean;
@@ -14,7 +15,7 @@ type Props = {
 const Song = PianoAuthorV2.Song;
 const Keys = Constants.StoreKeys;
 
-const NoteGroup = ({ trackNumber, noteGroupNumber, isHighlighted }: Props) => {
+const NoteGroup = ({ id, trackNumber, noteGroupNumber, isHighlighted }: Props) => {
     const noteGroup = Song.getNoteGroupFromTrack(noteGroupNumber, trackNumber);
 
     // PROBABLY BAD PERFORMANCE!!!!
@@ -26,7 +27,9 @@ const NoteGroup = ({ trackNumber, noteGroupNumber, isHighlighted }: Props) => {
 
     return (
         <>
-            <div className={classes}>{noteGroup.toString()}</div>
+            <div id={id} className={classes}>
+                {noteGroup.toString()}
+            </div>
         </>
     );
 };

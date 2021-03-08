@@ -9,11 +9,11 @@ let notesPlaying = new Set();
 
 const SimplePiano = () => {
     useEffect(() => {
-        piano = new Instrument();
+        // MOUNT
     }, []);
 
     function startTone() {
-        piano.initWebAudio();
+        piano = new Instrument();
     }
 
     function playPianoNote(keyNumber: number) {
@@ -47,6 +47,7 @@ const SimplePiano = () => {
                     <option value="amajor">A Major</option>
                 </select>
             </div>
+            <div onClick={stopSounds}>STOP ALL SOUNDS</div>
             <div>
                 <div>1</div>
                 <div>2</div>
@@ -61,8 +62,8 @@ const SimplePiano = () => {
                 <div>4</div>
                 <div>5</div>
                 <div>6</div>
-                <div onClick={() => playPianoNote(51)}>7</div>
-                <div onClick={() => stopPianoNote(40)}>1</div>
+                <div onClick={() => playPianoNote(51)}>B</div>
+                <div onClick={() => playPianoNote(52)}>C</div>
                 <div>2</div>
                 <div>3</div>
                 <div>4</div>

@@ -490,8 +490,7 @@ setInterval(() => {
     onKeyDown(e: KeyboardEvent) {
         if (!piano) {
             console.log("Init Web Audio");
-            piano = new Instrument(PianoType.Sampled_1);
-            piano.initWebAudio();
+            piano = new Instrument();
         }
 
         // CMD KEY on Mac

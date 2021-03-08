@@ -1,12 +1,15 @@
 import LUMIKeys from "apps/shared/midi/LUMIKeys";
 import MIDIControllerIO from "apps/shared/midi/MIDIControllerIO";
 import Instrument from "apps/shared/sound/Instrument";
+import ClearBoth from "components/ClearBoth";
 import PreloadDialog from "components/dialogs/Preload";
 import { Spacer30px, Spacer60px } from "components/Spacer";
 import { useEffect, useState } from "react";
 
 const Page = () => {
     const [showPreloadDialog, setShowPreloadDialog] = useState(true);
+
+    const [deviceList, setDeviceList] = useState("[ ] List Devices Here");
 
     const [midiEventsLog, setMIDIEventsLog] = useState("");
     const midiEventsLogArray = [];
@@ -46,12 +49,17 @@ const Page = () => {
                 {showPreloadDialog ? <PreloadDialog initialOpenState={showPreloadDialog} preloadNow={onDialogDismissedStartAudio} /> : null}
                 <h1>MIDI Test Page</h1>
                 <h2>Devices</h2>
-                <div className="eventsLog">
-                    <pre>{midiEventsLog}</pre>
+                <div className="devicesSectionLayout">
+                    <div className="eventsLog midi">
+                        <pre>{midiEventsLog}</pre>
+                    </div>
+                    <div className="deviceList">
+                        <pre>{deviceList}</pre>
+                    </div>
                 </div>
                 <br />
                 <h2>LUMI Keys</h2>
-                <div className="eventsLog">
+                <div className="eventsLog lumi">
                     <pre>{lumiEventsLog}</pre>
                 </div>
                 <p>The buttons below are specific to LUMI Keys by ROLI.</p>
@@ -184,16 +192,16 @@ const Page = () => {
                 <div className="dt" style={{ border: "10px solid #000" }}>
                     <div className="dtHead">
                         <div className="dtCell">
-                            <a onClick={LUMIKeys.getClickHandler_SwitchToColorMode(1)}>Color Mode 1</a>
+                            <a onClick={LUMIKeys.getClickHandler_SwitchToMode(1)}>Mode 1</a>
                         </div>
                         <div className="dtCell">
-                            <a onClick={LUMIKeys.getClickHandler_SwitchToColorMode(2)}>Color Mode 2</a>
+                            <a onClick={LUMIKeys.getClickHandler_SwitchToMode(2)}>Mode 2</a>
                         </div>
                         <div className="dtCell">
-                            <a onClick={LUMIKeys.getClickHandler_SwitchToColorMode(3)}>Color Mode 3</a>
+                            <a onClick={LUMIKeys.getClickHandler_SwitchToMode(3)}>Mode 3</a>
                         </div>
                         <div className="dtCell">
-                            <a onClick={LUMIKeys.getClickHandler_SwitchToColorMode(4)}>Color Mode 4</a>
+                            <a onClick={LUMIKeys.getClickHandler_SwitchToMode(4)}>Mode 4</a>
                         </div>
                     </div>
                     <div className="dtBody">
@@ -287,6 +295,24 @@ const Page = () => {
                                 <div className="dtCellNote">bright rainbow colors, black sharps/flats</div>
                             </div>
                         </div>
+                        <div className="dtRow">
+                            <div className="dtCell">
+                                <div className="dtCellNote">pitch bend</div>
+                                <button onClick={LUMIKeys.getClickHandler_PitchBend(1, true)}>on</button> <button onClick={LUMIKeys.getClickHandler_PitchBend(1, false)}>off</button>
+                            </div>
+                            <div className="dtCell">
+                                <div className="dtCellNote">pitch bend</div>
+                                <button onClick={LUMIKeys.getClickHandler_PitchBend(2, true)}>on</button> <button onClick={LUMIKeys.getClickHandler_PitchBend(2, false)}>off</button>
+                            </div>
+                            <div className="dtCell">
+                                <div className="dtCellNote">pitch bend</div>
+                                <button onClick={LUMIKeys.getClickHandler_PitchBend(3, true)}>on</button> <button onClick={LUMIKeys.getClickHandler_PitchBend(3, false)}>off</button>
+                            </div>
+                            <div className="dtCell">
+                                <div className="dtCellNote">pitch bend</div>
+                                <button onClick={LUMIKeys.getClickHandler_PitchBend(4, true)}>on</button> <button onClick={LUMIKeys.getClickHandler_PitchBend(4, false)}>off</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <br />
@@ -300,12 +326,33 @@ const Page = () => {
                 </div>
                 <br />
                 <div>
+                    <div>Set Octave</div>
+                    <div>
+                        <button onClick={LUMIKeys.getClickHandler_SetOctave(-4)}>-4</button>
+                        <button onClick={LUMIKeys.getClickHandler_SetOctave(-3)}>-3</button>
+                        <button onClick={LUMIKeys.getClickHandler_SetOctave(-2)}>-2</button>
+                        <button onClick={LUMIKeys.getClickHandler_SetOctave(-1)}>-1</button>
+                        <button onClick={LUMIKeys.getClickHandler_SetOctave(0)} style={{ width: "100px" }}>
+                            0
+                        </button>
+                        <button onClick={LUMIKeys.getClickHandler_SetOctave(1)}>1</button>
+                        <button onClick={LUMIKeys.getClickHandler_SetOctave(2)}>2</button>
+                        <button onClick={LUMIKeys.getClickHandler_SetOctave(3)}>3</button>
+                        <button onClick={LUMIKeys.getClickHandler_SetOctave(4)}>4</button>
+                        <button onClick={LUMIKeys.getClickHandler_SetOctave(5)}>5</button>
+                    </div>
+                </div>
+                <br />
+                <div>
                     <div>Brightness</div>
                     <div>
                         <button onClick={LUMIKeys.getClickHandler_SetBrightness(100)}>100%</button>
                         <button onClick={LUMIKeys.getClickHandler_SetBrightness(75)}>75%</button>
                         <button onClick={LUMIKeys.getClickHandler_SetBrightness(50)}>50%</button>
                         <button onClick={LUMIKeys.getClickHandler_SetBrightness(25)}>25%</button>
+                        <button onClick={LUMIKeys.getClickHandler_SetBrightness(20)}>20%</button>
+                        <button onClick={LUMIKeys.getClickHandler_SetBrightness(10)}>10%</button>
+                        <button onClick={LUMIKeys.getClickHandler_SetBrightness(1)}>1%</button>
                         <button onClick={LUMIKeys.getClickHandler_SetBrightness(0)}>0%</button>
                     </div>
                 </div>
@@ -318,12 +365,32 @@ const Page = () => {
                 .eventsLog {
                     border: 1px solid #000;
                     background-color: #111;
-                    min-height: 200px;
-                    max-height: 360px;
+                    height: 300px;
                     overflow: auto;
                     font-size: 12px;
                     padding: 10px 24px;
                 }
+
+                .devicesSectionLayout {
+                    display: flex;
+                }
+
+                .eventsLog.midi {
+                    flex: 6;
+                    margin-right: 10px;
+                }
+
+                .deviceList {
+                    border: 1px solid #000;
+                    background-color: #181818;
+                    height: 300px;
+                    overflow: auto;
+                    font-size: 12px;
+                    padding: 10px 24px;
+                    margin-left: 10px;
+                    flex: 4;
+                }
+
                 pre {
                     font-family: Hack, Menlo, Consolas, Courier, monospace;
                     line-height: 180%;
@@ -346,6 +413,10 @@ const Page = () => {
                     border: 1px solid #999999;
                     display: table-cell;
                     padding: 3px 10px;
+                }
+                .dtCell a {
+                    cursor: pointer;
+                    text-decoration: underline;
                 }
                 .dtCell button {
                     width: 100%;

@@ -159,6 +159,15 @@ namespace LUMIKeys {
                 case 0:
                     command = [0x10, 0x40, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00];
                     break;
+                case 1:
+                    command = [0x10, 0x40, 0x24, 0x00, 0x00, 0x00, 0x00, 0x00];
+                    break;
+                case 10:
+                    command = [0x10, 0x40, 0x44, 0x02, 0x00, 0x00, 0x00, 0x00];
+                    break;
+                case 20:
+                    command = [0x10, 0x40, 0x04, 0x05, 0x00, 0x00, 0x00, 0x00];
+                    break;
                 case 25:
                     command = [0x10, 0x40, 0x24, 0x06, 0x00, 0x00, 0x00, 0x00];
                     break;
@@ -179,12 +188,13 @@ namespace LUMIKeys {
 
     export function getClickHandler_ResetToFactorySettings() {
         return () => {
-            logOutput("Factory Reset");
+            logOutput("Factory Reset!");
+            sendSysExToAllDevices([0x77, 0x07, 0x11, 0x14]);
             sendSysExToAllDevices([0x49]);
         };
     }
 
-    export function getClickHandler_SwitchToColorMode(modeNumber) {
+    export function getClickHandler_SwitchToMode(modeNumber) {
         return () => {
             let command = null;
             logOutput("Switch to Mode " + modeNumber);
@@ -240,12 +250,38 @@ namespace LUMIKeys {
                     }
                     break;
                 case "user":
-                    command = [0x10, 0x40, 0x2c, 0x00, 0x00, 0x00, 0x00, 0x00]; // Mode 1
-                    logOutput("ONLY MODE 1 IMPLEMENTED");
+                    switch (modeNumber) {
+                        case 1:
+                        default:
+                            command = [0x10, 0x40, 0x2c, 0x00, 0x00, 0x00, 0x00, 0x00]; // Mode 1
+                            break;
+                        case 2:
+                            command = [0x10, 0x30, 0x2d, 0x00, 0x00, 0x00, 0x00, 0x00]; // Mode 2
+                            break;
+                        case 3:
+                            command = [0x10, 0x20, 0x2e, 0x00, 0x00, 0x00, 0x00, 0x00]; // Mode 3
+                            break;
+                        case 4:
+                            command = [0x10, 0x10, 0x2f, 0x00, 0x00, 0x00, 0x00, 0x00]; // Mode 4
+                            break;
+                    }
                     break;
                 case "piano":
-                    command = [0x10, 0x40, 0x4c, 0x00, 0x00, 0x00, 0x00, 0x00]; // Mode 1
-                    logOutput("ONLY MODE 1 IMPLEMENTED");
+                    switch (modeNumber) {
+                        case 1:
+                        default:
+                            command = [0x10, 0x40, 0x4c, 0x00, 0x00, 0x00, 0x00, 0x00]; // Mode 1
+                            break;
+                        case 2:
+                            command = [0x10, 0x30, 0x4d, 0x00, 0x00, 0x00, 0x00, 0x00]; // Mode 2
+                            break;
+                        case 3:
+                            command = [0x10, 0x20, 0x4e, 0x00, 0x00, 0x00, 0x00, 0x00]; // Mode 3
+                            break;
+                        case 4:
+                            command = [0x10, 0x10, 0x4f, 0x00, 0x00, 0x00, 0x00, 0x00]; // Mode 4
+                            break;
+                    }
                     break;
                 case "stage":
                     switch (modeNumber) {
@@ -393,6 +429,97 @@ namespace LUMIKeys {
         };
     }
 
+    /*
+    10 40 00 7F 7F 7F 7F 03 // -4
+    10 40 20 7F 7F 7F 7F 03 // -3
+    10 40 40 7F 7F 7F 7F 03 // -2
+    10 40 60 7F 7F 7F 7F 03 // -1
+    10 40 00 00 00 00 00 00 // 0
+    10 40 20 00 00 00 00 00 // 1
+    10 40 40 00 00 00 00 00 // 2
+    10 40 60 01 00 00 00 00 // 3
+    10 40 00 01 00 00 00 00 // 4
+    10 40 20 01 00 00 00 00 // 5
+    */
+    // 0x7F is 0111_1111 in binary
+    export function getClickHandler_SetOctave(octaveNumber) {
+        return () => {
+            let command = null;
+            switch (octaveNumber) {
+                case 0:
+                default:
+                    command = [0x10, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00];
+                    break;
+                case 1:
+                    command = [0x10, 0x40, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00];
+                    break;
+                case 2:
+                    command = [0x10, 0x40, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00];
+                    break;
+                case 3:
+                    command = [0x10, 0x40, 0x60, 0x00, 0x00, 0x00, 0x00, 0x00];
+                    break;
+                case 4:
+                    command = [0x10, 0x40, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00];
+                    break;
+                case 5:
+                    command = [0x10, 0x40, 0x20, 0x01, 0x00, 0x00, 0x00, 0x00];
+                    break;
+                case -1:
+                    command = [0x10, 0x40, 0x60, 0x7f, 0x7f, 0x7f, 0x7f, 0x03];
+                    break;
+                case -2:
+                    command = [0x10, 0x40, 0x40, 0x7f, 0x7f, 0x7f, 0x7f, 0x03];
+                    break;
+                case -3:
+                    command = [0x10, 0x40, 0x20, 0x7f, 0x7f, 0x7f, 0x7f, 0x03];
+                    break;
+                case -4:
+                    command = [0x10, 0x40, 0x00, 0x7f, 0x7f, 0x7f, 0x7f, 0x03];
+                    break;
+            }
+            sendCommandToAllDevices(command);
+        };
+    }
+
+    export function getClickHandler_PitchBend(modeNumber, enableFlag) {
+        return () => {
+            let command = null;
+            switch (modeNumber) {
+                case 1:
+                default:
+                    if (enableFlag) {
+                        command = [0x10, 0x60, 0x2c, 0x00, 0x00, 0x00, 0x00, 0x00]; // Mode 1 Pitch Bend ON
+                    } else {
+                        command = [0x10, 0x60, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00]; // Mode 1 Pitch Bend OFF
+                    }
+                    break;
+                case 2:
+                    if (enableFlag) {
+                        command = [0x10, 0x50, 0x2d, 0x00, 0x00, 0x00, 0x00, 0x00]; // Mode 1 Pitch Bend ON
+                    } else {
+                        command = [0x10, 0x50, 0x0d, 0x00, 0x00, 0x00, 0x00, 0x00]; // Mode 1 Pitch Bend OFF
+                    }
+                    break;
+                case 3:
+                    if (enableFlag) {
+                        command = [0x10, 0x40, 0x2e, 0x00, 0x00, 0x00, 0x00, 0x00]; // Mode 1 Pitch Bend ON
+                    } else {
+                        command = [0x10, 0x40, 0x0e, 0x00, 0x00, 0x00, 0x00, 0x00]; // Mode 1 Pitch Bend OFF
+                    }
+                    break;
+                case 4:
+                    if (enableFlag) {
+                        command = [0x10, 0x30, 0x2f, 0x00, 0x00, 0x00, 0x00, 0x00]; // Mode 1 Pitch Bend ON
+                    } else {
+                        command = [0x10, 0x30, 0x0f, 0x00, 0x00, 0x00, 0x00, 0x00]; // Mode 1 Pitch Bend OFF
+                    }
+                    break;
+            }
+            sendCommandToAllDevices(command);
+        };
+    }
+
     // Unknown command: 01 03 00
     // - DEFINITELY NOT BATTERY LEVEL
     // Maybe it tells the lumi to stay awake? Don't dim?
@@ -408,9 +535,9 @@ namespace LUMIKeys {
 
     export function getClickHandler_TestXXX2() {
         return () => {
-            const command = [0x10, 0x77, 0x00, 0x01, 0x01, 0x00, 0x5d];
+            // const command = [0x10, 0x77, 0x00, 0x01, 0x01, 0x00, 0x5d];
             // const command = [0x77, 0x07, 0x10, 0x02, 0x44];
-            sendSysExToAllDevices(command);
+            // sendSysExToAllDevices(command);
         };
     }
 

@@ -17,3 +17,5 @@ class NoteGroup {
     notes: Array<GuitarNote | PianoNote> = null;
     constructor() {}
 }
+
+export default NoteGroup;

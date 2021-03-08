@@ -19,10 +19,13 @@ enum AudioSDKType {
 // const INSTRUMENT_TYPE: InstrumentType = InstrumentType.Electric_1;
 const INSTRUMENT_TYPE: InstrumentType = InstrumentType.FM;
 
+type ToneJS_Instrument = Tone.PolySynth | Tone.Synth | Tone.FMSynth | Tone.AMSynth | Tone.Sampler;
+type MusicalJS_Instrument = Musical.Instrument;
+
 class Instrument {
     sdk: AudioSDKType;
     type: InstrumentType = InstrumentType.Basic;
-    instrument: Tone.PolySynth | Tone.Synth | Tone.FMSynth | Tone.AMSynth | Tone.Sampler | Musical.Instrument = null; // Tone.Instrument or Musical.Instrument
+    instrument: ToneJS_Instrument | MusicalJS_Instrument = null;
     private isReady: boolean = false;
 
     // For setting up Tone.Sampler
@@ -86,16 +89,16 @@ class Instrument {
             console.log("Play " + pianoKeyNumber + " <=> " + noteName);
 
             if (durationInSeconds <= 0) {
-                this.instrument.triggerAttack(noteName, 0, velocity);
+                (this.instrument as ToneJS_Instrument).triggerAttack(noteName, 0, velocity);
             } else {
                 // this.instrument.triggerAttackRelease(noteName, "4n");
-                this.instrument.triggerAttackRelease(noteName, durationInSeconds);
+                (this.instrument as ToneJS_Instrument).triggerAttackRelease(noteName, durationInSeconds);
                 // this.instrument.triggerAttackRelease(noteName, durationInSeconds, 0 /* time from now */, velocity);
             }
         } else {
             // Musical.js
             // numerically (in Hz), or with midi numbers (as negative integers).
-            this.instrument.tone(-(pianoKeyNumber + 20)); // Musical.js accepts negative MIDI numbers 60 == Middle C (pianoKeyNumber === 40)
+            (this.instrument as MusicalJS_Instrument).tone(-(pianoKeyNumber + 20)); // Musical.js accepts negative MIDI numbers 60 == Middle C (pianoKeyNumber === 40)
         }
     }
 
@@ -103,7 +106,7 @@ class Instrument {
         if (this.sdk === AudioSDKType.Tone) {
             const noteName = Tone.Frequency(pianoKeyNumber + 20, "midi").toNote();
             console.log("TRIGGER RELEASE " + pianoKeyNumber + " / " + noteName);
-            this.instrument.triggerRelease(noteName);
+            (this.instrument as ToneJS_Instrument).triggerRelease(noteName);
         } else {
             // Musical.js
             console.log("stop is NOT IMPLEMENTED FOR MUSICAL.JS");
