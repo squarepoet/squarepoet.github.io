@@ -1,12 +1,16 @@
 import WebMidi, { Input, Output } from "webmidi";
 
-// This approach was inspired by:
+// This approach was informed by:
 // https://github.com/benob/LUMI-lights/blob/master/SYSEX.txt
+// https://github.com/WeAreROLI/roli_blocks_basics/blob/main/blocks/roli_BlockConfigId.h
+// Note: You can drag *.littlefoot programs into the ROLI Dashboard to customize the program running on the LUMI Keys.
 namespace LUMIKeys {
     const ROLI_MANUFACTURER_ID = [0x00, 0x21, 0x10];
 
     let inputs: Input[] = [];
     let outputs: Output[] = [];
+
+    let logOutput: (msg: string) => void = null;
 
     // The DEVICE_ID might be different!
     // We should allow the user of this page to customize the device ID.
@@ -45,7 +49,12 @@ namespace LUMIKeys {
     }
 
     function logMessageAsHex(msgData: Uint8Array) {
-        console.log(getDataAsHexString(msgData));
+        logOutput(getDataAsHexString(msgData));
+    }
+
+    function logMessageAsUTF8(msgData: Uint8Array) {
+        const dataString = new TextDecoder("utf-8").decode(msgData);
+        logOutput(dataString);
     }
 
     export function connect() {
@@ -54,19 +63,17 @@ namespace LUMIKeys {
                 inputs.push(i);
 
                 i.addListener("midimessage", "all", function (e) {
-                    // const dataString = new TextDecoder("utf-8").decode(e.data);
-                    // console.log(dataString);
-
                     logMessageAsHex(e.data);
+                    // logMessageAsUTF8(e.data);
 
                     if (messageMatches(e.data, "F0 00 21 10 77 47 00 00 00 00 00 04 00 00 2C F7")) {
-                        console.log("POWER BUTTON PRESSED");
+                        logOutput("POWER BUTTON PRESSED");
                     }
                     if (messageMatches(e.data, "F0 00 21 10 77 47 00 00 00 00 00 04 04 00 38 F7")) {
-                        console.log("OCTAVE DOWN PRESSED");
+                        logOutput("OCTAVE DOWN PRESSED");
                     }
                     if (messageMatches(e.data, "F0 00 21 10 77 47 00 00 00 00 00 04 08 00 44 F7")) {
-                        console.log("OCTAVE UP PRESSED");
+                        logOutput("OCTAVE UP PRESSED");
                     }
                 });
             }
@@ -74,10 +81,15 @@ namespace LUMIKeys {
 
         for (const o of WebMidi.outputs) {
             if (isLUMIKeys(o)) {
-                console.log("Found LUMI Keys");
-                console.log("Output Port ID: " + o.id);
+                logOutput("Found LUMI Keys with output port ID: " + o.id);
                 outputs.push(o);
             }
+        }
+    }
+
+    function sendSysExToAllDevices(sysexCMD) {
+        for (const output of outputs) {
+            output.sendSysex(ROLI_MANUFACTURER_ID, sysexCMD);
         }
     }
 
@@ -85,9 +97,7 @@ namespace LUMIKeys {
         const commandWithHeader = [0x77, deviceID].concat(command);
         const checksum = createChecksum(command);
         const commandWithHeaderAndCheckSum = commandWithHeader.concat(checksum);
-        for (const output of outputs) {
-            output.sendSysex(ROLI_MANUFACTURER_ID, commandWithHeaderAndCheckSum);
-        }
+        sendSysExToAllDevices(commandWithHeaderAndCheckSum);
     }
 
     function createChecksum(values) {
@@ -167,6 +177,36 @@ namespace LUMIKeys {
         };
     }
 
+    export function getClickHandler_ResetToFactorySettings() {
+        return () => {
+            logOutput("Factory Reset");
+            sendSysExToAllDevices([0x49]);
+        };
+    }
+
+    export function getClickHandler_SwitchToColorMode(modeNumber) {
+        return () => {
+            let command = null;
+            logOutput("Switch to Mode " + modeNumber);
+            switch (modeNumber) {
+                case 1:
+                default:
+                    command = [0x10, 0x40, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00]; // Activate Mode 1
+                    break;
+                case 2:
+                    command = [0x10, 0x40, 0x22, 0x00, 0x00, 0x00, 0x00, 0x00]; // Activate Mode 2
+                    break;
+                case 3:
+                    command = [0x10, 0x40, 0x42, 0x00, 0x00, 0x00, 0x00, 0x00]; // Activate Mode 3
+                    break;
+                case 4:
+                    command = [0x10, 0x40, 0x62, 0x00, 0x00, 0x00, 0x00, 0x00]; // Activate Mode 4
+                    break;
+            }
+            sendCommandToAllDevices(command);
+        };
+    }
+
     // PRO
     // 10 40 0C 00 00 00 00 00 5C F7
     // USER
@@ -179,33 +219,33 @@ namespace LUMIKeys {
     // 10 40 0C 01 00 00 00 00 2D F7
     export function getClickHandler_SetColorMode(modeNumber, modeType) {
         return () => {
-            console.log("Set color of mode: " + modeNumber + " to " + modeType);
+            logOutput("Set color of mode: " + modeNumber + " to " + modeType);
             let command = null;
             switch (modeType) {
                 case "pro":
                     switch (modeNumber) {
                         case 1:
                         default:
-                            command = [0x10, 0x40, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00]; // Mode 1
+                            command = [0x10, 0x40, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00]; // Mode 1 => pro
                             break;
                         case 2:
-                            command = [0x10, 0x30, 0x0d, 0x00, 0x00, 0x00, 0x00, 0x00]; // Mode 2
+                            command = [0x10, 0x30, 0x0d, 0x00, 0x00, 0x00, 0x00, 0x00]; // Mode 2 => pro
                             break;
                         case 3:
-                            command = [0x10, 0x20, 0x0e, 0x00, 0x00, 0x00, 0x00, 0x00]; // Mode 3
+                            command = [0x10, 0x20, 0x0e, 0x00, 0x00, 0x00, 0x00, 0x00]; // Mode 3 => pro
                             break;
                         case 4:
-                            command = [0x10, 0x10, 0x0f, 0x00, 0x00, 0x00, 0x00, 0x00]; // Mode 4
+                            command = [0x10, 0x10, 0x0f, 0x00, 0x00, 0x00, 0x00, 0x00]; // Mode 4 => pro
                             break;
                     }
                     break;
                 case "user":
                     command = [0x10, 0x40, 0x2c, 0x00, 0x00, 0x00, 0x00, 0x00]; // Mode 1
-                    console.log("ONLY MODE 1 IMPLEMENTED");
+                    logOutput("ONLY MODE 1 IMPLEMENTED");
                     break;
                 case "piano":
                     command = [0x10, 0x40, 0x4c, 0x00, 0x00, 0x00, 0x00, 0x00]; // Mode 1
-                    console.log("ONLY MODE 1 IMPLEMENTED");
+                    logOutput("ONLY MODE 1 IMPLEMENTED");
                     break;
                 case "stage":
                     switch (modeNumber) {
@@ -314,11 +354,10 @@ namespace LUMIKeys {
         };
     }
 
+    // QUERY SERIAL NUMBER => LKBD84CWA95KKJ7T
     export function getClickHandler_GetSerialNumber() {
         return () => {
-            for (const output of outputs) {
-                output.sendSysex(ROLI_MANUFACTURER_ID, [0x78, 0x3f]); // QUERY SERIAL NUMBER => LKBD84CWA95KKJ7T
-            }
+            sendSysExToAllDevices([0x78, 0x3f]);
         };
     }
 
@@ -361,21 +400,22 @@ namespace LUMIKeys {
     // LUMI responds 8 times with:
     //   F0 00 21 10 77 47 00 00 00 00 20 00 00 6D F7
     export function getClickHandler_TestXXX1() {
-        const command = [0x01, 0x03, 0x00];
         return () => {
+            const command = [0x01, 0x03, 0x00];
             sendCommandToAllDevices(command);
         };
     }
 
     export function getClickHandler_TestXXX2() {
-        //
         return () => {
-            for (const output of outputs) {
-                // F0 00 21 10 77 00 01 01 00 5D
-                output.sendSysex(ROLI_MANUFACTURER_ID, [0x10, 0x77, 0x00, 0x01, 0x01, 0x00, 0x5d]);
-                // output.sendSysex(ROLI_MANUFACTURER_ID, [0x77, 0x07, 0x10, 0x02, 0x44]);
-            }
+            const command = [0x10, 0x77, 0x00, 0x01, 0x01, 0x00, 0x5d];
+            // const command = [0x77, 0x07, 0x10, 0x02, 0x44];
+            sendSysExToAllDevices(command);
         };
+    }
+
+    export function attachLogOutput(logHandler) {
+        logOutput = logHandler;
     }
 }
 

@@ -59,7 +59,8 @@ const Layout = ({ title, children }: Props) => {
 
                 footer {
                     text-align: left;
-                    position: absolute;
+                    position: fixed;
+                    font-size: 12pt;
                     bottom: 10px;
                     right: 10px;
                 }

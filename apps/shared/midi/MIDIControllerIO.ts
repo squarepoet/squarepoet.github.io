@@ -10,6 +10,7 @@ namespace MIDIControllerIO {
     let outputs: Output[] = [];
 
     let soundOutput: Instrument = null;
+    let logOutput: (msg: string) => void = null;
 
     export function start() {
         WebMidi.enable(function (err) {
@@ -26,12 +27,12 @@ namespace MIDIControllerIO {
                 inputs.push(i);
 
                 i.addListener("noteon", "all", function (e) {
-                    console.log(e);
                     playMIDINote(e.note.number, e.rawVelocity);
+                    logOutput("Note On: " + e.note.number + "  Velocity: " + e.rawVelocity);
                 });
                 i.addListener("noteoff", "all", function (e) {
-                    console.log(e);
                     stopMIDINote(e.note.number, e.rawVelocity);
+                    logOutput("Note Off: " + e.note.number + "  Velocity: " + e.rawVelocity);
                 });
             }
 
@@ -129,6 +130,10 @@ namespace MIDIControllerIO {
         const duration = 0; // Setting duration to 0 means the note will NOT turn off automatically.
         const pianoKeyNumber = midiNoteNumber - 20;
         soundOutput.stop(pianoKeyNumber);
+    }
+
+    export function attachLogOutput(logHandler) {
+        logOutput = logHandler;
     }
 }
 
