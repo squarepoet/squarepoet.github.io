@@ -10,6 +10,9 @@ import createPersistedState from "use-persisted-state";
 type Props = {
     label: string;
     persistedStateKey: string; // e.g., "sharps" | "flats"
+    illegalCharactersRegExpStr?: string;
+    placeholder?: string;
+    onChange?: (val: string) => void;
 };
 
 type InputSavedInterface = {
@@ -17,39 +20,51 @@ type InputSavedInterface = {
     getValue(): string;
 };
 
-const InputSaved = forwardRef(({ label, persistedStateKey }: Props, ref) => {
+const InputSaved = forwardRef((props: Props, ref) => {
+    const { label, persistedStateKey, illegalCharactersRegExpStr, placeholder } = props;
+
     // Instead of React's default useState(), we use a different function that saves to localstorage.
     const useInputState = createPersistedState(persistedStateKey);
     const [inputElementValue, setInputElementValue] = useInputState("");
     const inputElementRef = useRef();
 
+    let illegalCharacters = null;
+    if (illegalCharactersRegExpStr) {
+        illegalCharacters = new RegExp(illegalCharactersRegExpStr, "g");
+    } else {
+        // Default to accepting ONLY ABCDEFG
+        illegalCharacters = /[^ABCDEFG]+/g; // Anything that is NOT ABCDEFG will be eliminated!
+    }
+
     const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
         console.log(`InputSaved: onKeyDown key = ${e.key} | code = ${e.code}`);
-        console.dir(localStorage);
     };
 
     const onKeyUp = (e: KeyboardEvent<HTMLInputElement>) => {
         console.log(`InputSaved: onKeyUp key = ${e.key} | code = ${e.code}`);
-        setInputElementValue((e.target as HTMLInputElement).value.toUpperCase().replace(/[^ABCDEFG]+/g, ""));
-        console.dir(localStorage);
+        // setInputElementValue((e.target as HTMLInputElement).value.toUpperCase().replace(illegalCharacters, ""));
 
-        // ESC to remove focus from this element.
-        if (e.code === "Escape") {
+        // ESC or Enter to commit changes and remove focus from this element.
+        if (e.code === "Escape" || e.code === "Enter") {
             if (document.activeElement instanceof HTMLElement) {
                 document.activeElement.blur();
             }
+        } else {
+            // console.log(e.code);
         }
     };
 
     const onChange = (e: ChangeEvent<HTMLInputElement>) => {
         console.log("InputSaved: onChange");
-        setInputElementValue(e.target.value.toUpperCase().replace(/[^ABCDEFG]+/g, ""));
-        console.dir(localStorage);
+        const val = e.target.value.toUpperCase().replace(illegalCharacters, "");
+        setInputElementValue(val);
+        if (props.onChange) {
+            props.onChange(val);
+        }
     };
 
     const onBlur = (e: FocusEvent<HTMLInputElement>) => {
         console.log("InputSaved: onBlur");
-        console.dir(localStorage);
     };
 
     // Expose methods to our parent
@@ -68,8 +83,9 @@ const InputSaved = forwardRef(({ label, persistedStateKey }: Props, ref) => {
     return (
         <>
             <div>
-                {label} &nbsp;
-                <input ref={inputElementRef} value={inputElementValue} onChange={onChange} onKeyDown={onKeyDown} onKeyUp={onKeyUp} onBlur={onBlur} />
+                <label>
+                    {label} <input ref={inputElementRef} value={inputElementValue} onChange={onChange} onKeyDown={onKeyDown} onKeyUp={onKeyUp} onBlur={onBlur} placeholder={placeholder} />
+                </label>
             </div>
             <style jsx>{`
                 div {

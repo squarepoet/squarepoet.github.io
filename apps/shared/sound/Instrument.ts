@@ -35,6 +35,7 @@ class Instrument {
 
     // Only call this from a user gesture, so we can call this.initWebAudio()!
     constructor() {
+        console.log("NEW INSTRUMENT");
         this.type = INSTRUMENT_TYPE;
         this.initWebAudio();
     }

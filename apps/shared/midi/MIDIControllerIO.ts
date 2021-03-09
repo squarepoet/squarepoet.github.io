@@ -11,8 +11,11 @@ namespace MIDIControllerIO {
 
     let soundOutput: Instrument = null;
     let logOutput: (msg: string) => void = null;
+    let deviceListOutput: (deviceList: string) => void = null;
 
     export function start() {
+        soundOutput = new Instrument();
+
         WebMidi.enable(function (err) {
             if (err) {
                 console.log("WebMidi could not be enabled.", err);
@@ -23,8 +26,10 @@ namespace MIDIControllerIO {
             setVariablesForDebugging();
             printOutAllInputsAndOutputs();
 
+            const inputDeviceInfo = [];
             for (const i of WebMidi.inputs) {
                 inputs.push(i);
+                inputDeviceInfo.push([i.manufacturer, i.name].join(" / "));
 
                 i.addListener("noteon", "all", function (e) {
                     playMIDINote(e.note.number, e.rawVelocity);
@@ -36,9 +41,14 @@ namespace MIDIControllerIO {
                 });
             }
 
+            const outputDeviceInfo = [];
             for (const o of WebMidi.outputs) {
                 outputs.push(o);
+                outputDeviceInfo.push([o.manufacturer, o.name].join(" / "));
             }
+
+            const deviceListInfo = ["Connected Devices", "", "Inputs:", ...inputDeviceInfo, "", "Outputs:", ...outputDeviceInfo];
+            deviceListOutput(deviceListInfo.join("\n"));
 
             LUMIKeys.connect();
 
@@ -108,10 +118,6 @@ namespace MIDIControllerIO {
         });
     }
 
-    export function attachSoundOutput(instrument: Instrument) {
-        soundOutput = instrument;
-    }
-
     function playMIDINote(midiNoteNumber, velocity = 127.0) {
         if (soundOutput === null) {
             console.log("playPianoNote: Piano has not been initialized.");
@@ -132,8 +138,11 @@ namespace MIDIControllerIO {
         soundOutput.stop(pianoKeyNumber);
     }
 
-    export function attachLogOutput(logHandler) {
-        logOutput = logHandler;
+    export function attachLogOutput(logOutputHandler) {
+        logOutput = logOutputHandler;
+    }
+    export function attachDeviceListOutput(deviceListOutputHandler) {
+        deviceListOutput = deviceListOutputHandler;
     }
 }
 

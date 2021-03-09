@@ -1,5 +1,10 @@
 # NEXT
 
+-   [ ] LUMI Light up multiple keys (like I copied from ROLI Studio)
+-   [ ] Pretend to be lumi. Respond to ROLI Studio with my played back device config? :-)
+-   [ ] onChange for InputSaved. Then get the value and if it's hex, break it up, then update colors real time.
+-   [ ] RETURN THE LUMI!
+
 -   [ ] Make progress on LUMI keys, and allow for customizing the device ID (at least support the one on github). Is there a way to query the device ID? How does ROLI Connect / Dashboard / Studio talk to LUMI? Must return it on Monday.
 -   [ ] Fix bug where COPYRIGHT 2021 SquarePoet is NOT on the bottom right of the page when the page contents are too tall! It should be always at the bottom right once you scroll to the end of the contents.
 -   [ ] See #MIDIAWEIIZAI. Use MIDI Keyboard to author!

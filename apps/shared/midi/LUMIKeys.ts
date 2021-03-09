@@ -24,6 +24,8 @@ namespace LUMIKeys {
     // This might have something to do with topology.
     // See: https://github.com/juce-framework/JUCE/blob/master/modules/juce_blocks_basics/protocol/juce_BitPackingUtilities.h#L34
     //
+    // When LUMI Keys responds with a SysEx, the deviceID (or topology ID?) is 47.
+    //
     // let deviceID = 0x07;
     let deviceID = 0x00;
     function setDeviceID(devID) {
@@ -111,7 +113,9 @@ namespace LUMIKeys {
         for (let i = 0; i < values.length; i++) {
             sum = (sum * 3 + values[i]) & 0xff;
         }
-        return sum & 0x7f;
+        const returnVal = sum & 0x7f;
+        console.log("Checksum: " + returnVal.toString(16));
+        return returnVal;
     }
 
     export function getClickHandler_SetScaleRoot(rootNote) {
@@ -472,78 +476,101 @@ namespace LUMIKeys {
     v5 = (r >> 7) | 0x7e,
     */
     // Remember in the MIDI world 0x7f is the same as a row of all 1s.
-    export function getClickHandler_SetColorGlobalKey(color: string) {
+    export function getClickHandler_SetColorGlobalKey(color: string, red?: number, green?: number, blue?: number) {
         return () => {
-            let command = [0x10, 0x20];
-            switch (color) {
-                case "blue":
-                    command.push(...[0x64, 0x3f, 0x00, 0x00, 0x7e]); // blue
-                    break;
-                case "green":
-                    command.push(...[0x04, 0x40, 0x7f, 0x00, 0x7e]); // green
-                    break;
-                case "red":
-                    command.push(...[0x04, 0x00, 0x00, 0x7f, 0x7f]); // red
-                    break;
-                case "yellow":
-                    command.push(...[0x04, 0x40, 0x7f, 0x7f, 0x7f]); // yellow
-                    break;
-                case "magenta":
-                    command.push(...[0x64, 0x3f, 0x00, 0x7f, 0x7f]); // magenta
-                    break;
-                case "cyan":
-                    command.push(...[0x64, 0x7f, 0x7f, 0x00, 0x7e]); // cyan
-                    break;
-                case "black":
-                    console.log("BLACK");
-                    command.push(...[0x04, 0x00, 0x00, 0x00, 0x7e]); // black
-                    break;
-                case "white":
-                default:
-                    command.push(...[0x64, 0x7f, 0x7f, 0x7f, 0x7f]); // white
-                    break;
-            }
-            command.push(0x03);
-            console.log(command);
-            sendCommandToAllDevices(command);
+            setColorGlobalKey(color, red, green, blue);
         };
     }
 
-    export function getClickHandler_SetColorRootKey(color: string) {
+    export function setColorGlobalKey(color: string, red?: number, green?: number, blue?: number) {
+        let command = [0x10, 0x20];
+        switch (color) {
+            case "rgb":
+                let v1 = ((blue & 0x3) << 5) | 0x4;
+                let v2 = ((blue >> 2) & 0x3f) | (green & 1);
+                let v3 = green >> 1;
+                let v4 = red & 0x7f;
+                let v5 = (red >> 7) | 0x7e;
+                command.push(...[v1, v2, v3, v4, v5]);
+                break;
+            case "blue":
+                command.push(...[0x64, 0x3f, 0x00, 0x00, 0x7e]); // blue
+                break;
+            case "green":
+                command.push(...[0x04, 0x40, 0x7f, 0x00, 0x7e]); // green
+                break;
+            case "red":
+                command.push(...[0x04, 0x00, 0x00, 0x7f, 0x7f]); // red
+                break;
+            case "yellow":
+                command.push(...[0x04, 0x40, 0x7f, 0x7f, 0x7f]); // yellow
+                break;
+            case "magenta":
+                command.push(...[0x64, 0x3f, 0x00, 0x7f, 0x7f]); // magenta
+                break;
+            case "cyan":
+                command.push(...[0x64, 0x7f, 0x7f, 0x00, 0x7e]); // cyan
+                break;
+            case "black":
+                console.log("BLACK");
+                command.push(...[0x04, 0x00, 0x00, 0x00, 0x7e]); // black
+                break;
+            case "white":
+            default:
+                command.push(...[0x64, 0x7f, 0x7f, 0x7f, 0x7f]); // white
+                break;
+        }
+        command.push(0x03);
+        console.log(command);
+        sendCommandToAllDevices(command);
+    }
+
+    export function getClickHandler_SetColorRootKey(color: string, red?: number, green?: number, blue?: number) {
         return () => {
-            let command = [0x10, 0x30];
-            switch (color) {
-                case "blue":
-                    command.push(...[0x64, 0x3f, 0x00, 0x00, 0x7e]); // blue
-                    break;
-                case "green":
-                    command.push(...[0x04, 0x40, 0x7f, 0x00, 0x7e]); // green
-                    break;
-                case "red":
-                    command.push(...[0x04, 0x00, 0x00, 0x7f, 0x7f]); // red
-                    break;
-                case "yellow":
-                    command.push(...[0x04, 0x40, 0x7f, 0x7f, 0x7f]); // yellow
-                    break;
-                case "magenta":
-                    command.push(...[0x64, 0x3f, 0x00, 0x7f, 0x7f]); // magenta
-                    break;
-                case "cyan":
-                    command.push(...[0x64, 0x7f, 0x7f, 0x00, 0x7e]); // cyan
-                    break;
-                case "black":
-                    console.log("BLACK");
-                    command.push(...[0x04, 0x00, 0x00, 0x00, 0x7e]); // black
-                    break;
-                case "white":
-                default:
-                    command.push(...[0x64, 0x7f, 0x7f, 0x7f, 0x7f]); // white
-                    break;
-            }
-            command.push(0x03);
-            console.log(command);
-            sendCommandToAllDevices(command);
+            setColorRootKey(color, red, green, blue);
         };
+    }
+
+    export function setColorRootKey(color: string, red?: number, green?: number, blue?: number) {
+        let command = [0x10, 0x30];
+        switch (color) {
+            case "rgb":
+                let v1 = ((blue & 0x3) << 5) | 0x4;
+                let v2 = ((blue >> 2) & 0x3f) | (green & 1);
+                let v3 = green >> 1;
+                let v4 = red & 0x7f;
+                let v5 = (red >> 7) | 0x7e;
+                command.push(...[v1, v2, v3, v4, v5]);
+                break;
+            case "blue":
+                command.push(...[0x64, 0x3f, 0x00, 0x00, 0x7e]); // blue
+                break;
+            case "green":
+                command.push(...[0x04, 0x40, 0x7f, 0x00, 0x7e]); // green
+                break;
+            case "red":
+                command.push(...[0x04, 0x00, 0x00, 0x7f, 0x7f]); // red
+                break;
+            case "yellow":
+                command.push(...[0x04, 0x40, 0x7f, 0x7f, 0x7f]); // yellow
+                break;
+            case "magenta":
+                command.push(...[0x64, 0x3f, 0x00, 0x7f, 0x7f]); // magenta
+                break;
+            case "cyan":
+                command.push(...[0x64, 0x7f, 0x7f, 0x00, 0x7e]); // cyan
+                break;
+            case "black":
+                command.push(...[0x04, 0x00, 0x00, 0x00, 0x7e]); // black
+                break;
+            case "white":
+            default:
+                command.push(...[0x64, 0x7f, 0x7f, 0x7f, 0x7f]); // white
+                break;
+        }
+        command.push(0x03);
+        console.log(command);
+        sendCommandToAllDevices(command);
     }
 
     /*
@@ -654,16 +681,66 @@ namespace LUMIKeys {
         };
     }
 
-    export function getClickHandler_TestXXX2() {
-        return () => {
-            // const command = [0x10, 0x77, 0x00, 0x01, 0x01, 0x00, 0x5d];
-            // const command = [0x77, 0x07, 0x10, 0x02, 0x44];
-            // sendSysExToAllDevices(command);
-        };
+    export function runCommand_001() {
+        setTimeout(() => {
+            // Highlight G ... D
+            // The below works ONLY WHEN ROLI STUDIO IS THE FRONT APP ON MACOS.
+            // Thus, we add a 5 second delay after clicking this button so we have time to switch apps! :-}
+            sendCommandToAllDevices([0x03, 0x02, 0x00, 0x00, 0x00, 0x70, 0x09, 0x00, 0x00, 0x00, 0x7e, 0x7f, 0x7f, 0x0f, 0x00]);
+            sendCommandToAllDevices([0x03, 0x02, 0x00, 0x00, 0x00, 0x60, 0x0a, 0x00, 0x00, 0x00, 0x40, 0x43, 0x68, 0x0b, 0x00]);
+            sendCommandToAllDevices([0x03, 0x04, 0x00, 0x00, 0x00, 0x70, 0x09, 0x00, 0x00, 0x00, 0x7e, 0x7f, 0x7f, 0x0f, 0x00]);
+            sendCommandToAllDevices([0x03, 0x04, 0x00, 0x00, 0x00, 0x60, 0x0a, 0x00, 0x00, 0x00, 0x40, 0x43, 0x68, 0x0b, 0x00]);
+        }, 5000);
+
+        /*
+            setTimeout(() => {
+                // Highlight C E G ... F
+                // The below works ONLY WHEN ROLI STUDIO IS THE FRONT APP ON MACOS.
+                // Thus, we add a 5 second delay after clicking this button so we have time to switch apps! :-}
+                sendCommandToAllDevices([0x03, 0x02, 0x00, 0x00, 0x00, 0x00, 0x09, 0x00, 0x00, 0x00, 0x7e, 0x7f, 0x7f, 0x0f, 0x00]);
+                sendCommandToAllDevices([0x03, 0x02, 0x00, 0x00, 0x00, 0x40, 0x09, 0x00, 0x00, 0x00, 0x40, 0x43, 0x68, 0x0b, 0x00]);
+                sendCommandToAllDevices([0x03, 0x02, 0x00, 0x00, 0x00, 0x70, 0x09, 0x00, 0x00, 0x00, 0x40, 0x43, 0x68, 0x0b, 0x00]);
+                sendCommandToAllDevices([0x03, 0x02, 0x00, 0x00, 0x00, 0x10, 0x0b, 0x00, 0x00, 0x00, 0x40, 0x43, 0x68, 0x0b, 0x00]);
+                sendCommandToAllDevices([0x03, 0x04, 0x00, 0x00, 0x00, 0x00, 0x09, 0x00, 0x00, 0x00, 0x7e, 0x7f, 0x7f, 0x0f, 0x00]);
+                sendCommandToAllDevices([0x03, 0x04, 0x00, 0x00, 0x00, 0x40, 0x09, 0x00, 0x00, 0x00, 0x40, 0x43, 0x68, 0x0b, 0x00]);
+                sendCommandToAllDevices([0x03, 0x04, 0x00, 0x00, 0x00, 0x70, 0x09, 0x00, 0x00, 0x00, 0x40, 0x43, 0x68, 0x0b, 0x00]);
+                sendCommandToAllDevices([0x03, 0x04, 0x00, 0x00, 0x00, 0x10, 0x0b, 0x00, 0x00, 0x00, 0x40, 0x43, 0x68, 0x0b, 0x00]);
+            }, 5000);
+            */
+    }
+
+    export function runCommand_002() {
+        console.log("runCommand_002");
+
+        // const command = [0x77, 0x00, 0x01, 0x01, 0x00, 0x5d];
+        // ?? LUMI responds with: f000 2110 7747 0000 0000 1010 2000 0066 2521 221c 5a61 6b60 5c5a 6525 651b 6a03 4c61 4121 4c6b 4c2b 0c60 6121 0000 74f7
+
+        const command = [0x77, 0x07, 0x10, 0x02, 0x44];
+        // ?? LUMI responds with 7 messages!!!
+        /*
+            ROLI 97 bytes	F0 00 21 10 77 47 00 00 00 00 00 13 31 48 40 00 00 00 00 00 00 00 00 00 02 00 00 00 00 43 06 40…
+            ROLI 95 bytes	F0 00 21 10 77 47 00 00 00 00 00 43 50 00 00 00 00 00 00 00 00 00 08 00 00 00 00 18 24 01 10 00…
+            ROLI 95 bytes	F0 00 21 10 77 47 00 00 00 00 00 43 1E 00 00 00 00 00 00 00 00 00 08 00 00 00 00 18 04 62 1F 00…
+            ROLI 95 bytes	F0 00 21 10 77 47 00 00 00 00 00 43 44 00 00 70 7F 3F 00 00 00 00 7C 7F 7F 7F 3F 18 34 64 3F 00…
+            ROLI 95 bytes	F0 00 21 10 77 47 00 00 00 00 00 43 48 05 00 00 00 00 00 00 00 00 20 00 00 00 00 18 64 2C 00 00…
+            ROLI 95 bytes	F0 00 21 10 77 47 00 00 00 00 00 43 5C 05 00 00 00 00 00 00 00 00 08 00 00 00 00 18 24 4E 00 00…
+            ROLI 46 bytes	F0 00 21 10 77 47 00 00 00 00 00 43 76 05 00 00 00 00 00 00 00 00 08 00 00 00 00 18 44 0F 00 00 00 00 00 00 00 00 40 00  00 00 00 00 5B F7
+        */
+        sendSysExToAllDevices(command);
     }
 
     export function attachLogOutput(logHandler) {
         logOutput = logHandler;
+    }
+
+    export function startFakeDevice() {
+        // Send out SysEx messages to fake out ROLI Connect / Dashboard / Studio???
+        // #TODO: Is this possible????
+        // THIS PROBABLY WON'T WORK WITHOUT A NATIVE MACOS APP THAT PRETENDS TO BE A LUMI KEYS.
+        // sendSysExToAllDevices([ ... ]);
+        // setInterval(() => {
+        //     sendSysExToAllDevices([0x77, 0x47, 0x00, 0x00, 0x00, 0x00, 0x20, 0x00, 0x00, 0x6d]); // Acknowledge the PING
+        // }, 400);
     }
 }
 
