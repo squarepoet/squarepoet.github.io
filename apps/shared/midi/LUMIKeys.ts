@@ -5,6 +5,8 @@ import WebMidi, { Input, Output } from "webmidi";
 // https://github.com/WeAreROLI/roli_blocks_basics/blob/main/blocks/roli_BlockConfigId.h
 // Note: You can drag *.littlefoot programs into the ROLI Dashboard to customize the program running on the LUMI Keys.
 namespace LUMIKeys {
+    // https://github.com/juce-framework/JUCE/blob/master/modules/juce_blocks_basics/protocol/juce_BitPackingUtilities.h
+    // static const uint8 roliSysexHeader[] = { 0xf0, 0x00, 0x21, 0x10, 0x77 };
     const ROLI_MANUFACTURER_ID = [0x00, 0x21, 0x10];
 
     let inputs: Input[] = [];
@@ -18,6 +20,10 @@ namespace LUMIKeys {
     // 0x00    => Works 100% for ronyeh's LUMI.
     // 0x07    => Works 100% for ronyeh's LUMI.
     // 0x37    => Works for benob's LUMI, but NOT for ronyeh's LUMI.
+    //
+    // This might have something to do with topology.
+    // See: https://github.com/juce-framework/JUCE/blob/master/modules/juce_blocks_basics/protocol/juce_BitPackingUtilities.h#L34
+    //
     // let deviceID = 0x07;
     let deviceID = 0x00;
     function setDeviceID(devID) {
@@ -110,78 +116,94 @@ namespace LUMIKeys {
 
     export function getClickHandler_SetScaleRoot(rootNote) {
         return () => {
+            let command = [0x10, 0x30];
             switch (rootNote) {
                 case "C":
                 default:
-                    sendCommandToAllDevices([0x10, 0x30, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00]);
+                    // [0x10, 0x30, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00]
+                    command.push(...[0x03, 0x00]);
                     break;
                 case "C#":
-                    sendCommandToAllDevices([0x10, 0x30, 0x23, 0x00, 0x00, 0x00, 0x00, 0x00]);
+                    // [0x10, 0x30, 0x23, 0x00, 0x00, 0x00, 0x00, 0x00];
+                    command.push(...[0x23, 0x00]);
                     break;
                 case "D":
-                    sendCommandToAllDevices([0x10, 0x30, 0x43, 0x00, 0x00, 0x00, 0x00, 0x00]);
+                    // [0x10, 0x30, 0x43, 0x00, 0x00, 0x00, 0x00, 0x00];
+                    command.push(...[0x43, 0x00]);
                     break;
                 case "D#":
-                    sendCommandToAllDevices([0x10, 0x30, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00]);
+                    // [0x10, 0x30, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00];
+                    command.push(...[0x63, 0x00]);
                     break;
                 case "E":
-                    sendCommandToAllDevices([0x10, 0x30, 0x03, 0x01, 0x00, 0x00, 0x00, 0x00]);
+                    // [0x10, 0x30, 0x03, 0x01, 0x00, 0x00, 0x00, 0x00];
+                    command.push(...[0x03, 0x01]);
                     break;
                 case "F":
-                    sendCommandToAllDevices([0x10, 0x30, 0x23, 0x01, 0x00, 0x00, 0x00, 0x00]);
+                    // [0x10, 0x30, 0x23, 0x01, 0x00, 0x00, 0x00, 0x00];
+                    command.push(...[0x23, 0x01]);
                     break;
                 case "F#":
-                    sendCommandToAllDevices([0x10, 0x30, 0x43, 0x01, 0x00, 0x00, 0x00, 0x00]);
+                    // [0x10, 0x30, 0x43, 0x01, 0x00, 0x00, 0x00, 0x00];
+                    command.push(...[0x43, 0x01]);
                     break;
                 case "G":
-                    sendCommandToAllDevices([0x10, 0x30, 0x63, 0x01, 0x00, 0x00, 0x00, 0x00]);
+                    // [0x10, 0x30, 0x63, 0x01, 0x00, 0x00, 0x00, 0x00];
+                    command.push(...[0x63, 0x01]);
                     break;
                 case "G#":
-                    sendCommandToAllDevices([0x10, 0x30, 0x03, 0x02, 0x00, 0x00, 0x00, 0x00]);
+                    // [0x10, 0x30, 0x03, 0x02, 0x00, 0x00, 0x00, 0x00];
+                    command.push(...[0x03, 0x02]);
                     break;
                 case "A":
-                    sendCommandToAllDevices([0x10, 0x30, 0x23, 0x02, 0x00, 0x00, 0x00, 0x00]);
+                    // [0x10, 0x30, 0x23, 0x02, 0x00, 0x00, 0x00, 0x00];
+                    command.push(...[0x23, 0x02]);
                     break;
                 case "A#":
-                    sendCommandToAllDevices([0x10, 0x30, 0x43, 0x02, 0x00, 0x00, 0x00, 0x00]);
+                    // [0x10, 0x30, 0x43, 0x02, 0x00, 0x00, 0x00, 0x00];
+                    command.push(...[0x43, 0x02]);
                     break;
                 case "B":
-                    sendCommandToAllDevices([0x10, 0x30, 0x63, 0x02, 0x00, 0x00, 0x00, 0x00]);
+                    // [0x10, 0x30, 0x63, 0x02, 0x00, 0x00, 0x00, 0x00];
+                    command.push(...[0x63, 0x02]);
                     break;
             }
+            command.push(...[0x00, 0x00, 0x00, 0x00]);
+            sendCommandToAllDevices(command);
         };
     }
 
     export function getClickHandler_SetBrightness(brightnessValue: number) {
         return () => {
-            let command = null;
+            const command = [0x10, 0x40];
             switch (brightnessValue) {
                 case 0:
-                    command = [0x10, 0x40, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00];
+                    command.push(...[0x04, 0x00]);
                     break;
                 case 1:
-                    command = [0x10, 0x40, 0x24, 0x00, 0x00, 0x00, 0x00, 0x00];
+                    command.push(...[0x24, 0x00]);
                     break;
                 case 10:
-                    command = [0x10, 0x40, 0x44, 0x02, 0x00, 0x00, 0x00, 0x00];
+                    command.push(...[0x44, 0x02]);
                     break;
                 case 20:
-                    command = [0x10, 0x40, 0x04, 0x05, 0x00, 0x00, 0x00, 0x00];
+                    command.push(...[0x04, 0x05]);
                     break;
                 case 25:
-                    command = [0x10, 0x40, 0x24, 0x06, 0x00, 0x00, 0x00, 0x00];
+                    command.push(...[0x24, 0x06]);
                     break;
                 case 50:
-                    command = [0x10, 0x40, 0x44, 0x0c, 0x00, 0x00, 0x00, 0x00];
+                    command.push(...[0x44, 0x0c]);
                     break;
                 case 75:
-                    command = [0x10, 0x40, 0x64, 0x12, 0x00, 0x00, 0x00, 0x00];
+                    command.push(...[0x64, 0x12]);
                     break;
                 case 100:
                 default:
-                    command = [0x10, 0x40, 0x04, 0x19, 0x00, 0x00, 0x00, 0x00];
+                    command.push(...[0x04, 0x19]);
                     break;
             }
+            command.push(...[0x00, 0x00, 0x00, 0x00]);
             sendCommandToAllDevices(command);
         };
     }
@@ -189,8 +211,22 @@ namespace LUMIKeys {
     export function getClickHandler_ResetToFactorySettings() {
         return () => {
             logOutput("Factory Reset!");
-            sendSysExToAllDevices([0x77, 0x07, 0x11, 0x14]);
+
+            // ROLI Dashboard sends the following:
+            // F0 00 21 10 77 07 11 14 F7
+            // F0 00 21 10 49 F7
+            // F0 00 21 10 78 3F F7
+            // F0 00 21 10 78 3F F7
+
+            sendCommandToAllDevices([0x11]);
+
+            // See: https://github.com/juce-framework/JUCE/blob/master/modules/juce_blocks_basics/protocol/juce_BlocksProtocolDefinitions.h
+            // constexpr uint8 resetMaster[6] = { 0xf0, 0x00, 0x21, 0x10, 0x49, 0xf7 };
             sendSysExToAllDevices([0x49]);
+
+            // Who knows what this does?
+            sendSysExToAllDevices([0x78, 0x3f]);
+            sendSysExToAllDevices([0x78, 0x3f]);
         };
     }
 
@@ -391,6 +427,8 @@ namespace LUMIKeys {
     }
 
     // QUERY SERIAL NUMBER => LKBD84CWA95KKJ7T
+    // See: https://github.com/juce-framework/JUCE/blob/master/modules/juce_blocks_basics/protocol/juce_BlocksProtocolDefinitions.h#L197
+    // bool isLumiKeysBlock() const noexcept       { return hasPrefix ("LKB"); }
     export function getClickHandler_GetSerialNumber() {
         return () => {
             sendSysExToAllDevices([0x78, 0x3f]);
@@ -406,25 +444,104 @@ namespace LUMIKeys {
         };
     }
 
-    export function getClickHandler_SetColorGlobalKey() {
-        return () => {
-            //const command = [0x10, 0x20, 0x64, 0x3f, 0x00, 0x00, 0x7e, 0x03]; // blue
-            const command = [0x10, 0x20, 0x04, 0x40, 0x7f, 0x7f, 0x7f, 0x03]; // yellow
-            // 10 20 64 3F 00 00 7E 03 // blue
-            // 10 20 04 40 7F 00 7E 03 // green
-            // 10 20 04 00 00 7F 7F 03 // red
-            // 10 20 04 40 7F 7F 7F 03 // yellow
-            // 10 20 64 3F 00 7F 7F 03 // magenta
-            // 10 20 64 7F 7F 00 7E 03 // cyan
+    // See: https://github.com/benob/LUMI-lights/blob/master/SYSEX.txt
+    // examples of color changes
+    // 10 20 64 3F 00 00 7E 03 // blue
+    // 10 20 04 40 7F 00 7E 03 // green
+    // 10 20 04 00 00 7F 7F 03 // red
+    // 10 20 04 40 7F 7F 7F 03 // yellow
+    // 10 20 64 3F 00 7F 7F 03 // magenta
+    // 10 20 64 7F 7F 00 7E 03 // cyan
 
+    // bit encoding of colors:
+    // 00100 BLUE_8_BITS GREEN_8_BITS RED_8_BITS 111111
+    // blue    1100100 0111111 0000000 0000000 1111110
+    // green   0000100 1000000 1111111 0000000 1111110
+    // red     0000100 0000000 0000000 1111111 1111111
+    // yellow  0000100 1000000 1111111 1111111 1111111
+    // magenta 1100100 0111111 0000000 1111111 1111111
+    // cyan    1100100 1111111 1111111 0000000 1111110
+    // black   0000100 0000000 0000000 0000000 1111110
+    // white   1100100 1111111 1111111 1111111 1111111
+
+    /*
+    v1 = ((b & 0x3) << 5) | 0x4,
+    v2 = ((b >> 2) & 0x3f) | (g & 1),
+    v3 = g >> 1,
+    v4 = r & 0x7f,
+    v5 = (r >> 7) | 0x7e,
+    */
+    // Remember in the MIDI world 0x7f is the same as a row of all 1s.
+    export function getClickHandler_SetColorGlobalKey(color: string) {
+        return () => {
+            let command = [0x10, 0x20];
+            switch (color) {
+                case "blue":
+                    command.push(...[0x64, 0x3f, 0x00, 0x00, 0x7e]); // blue
+                    break;
+                case "green":
+                    command.push(...[0x04, 0x40, 0x7f, 0x00, 0x7e]); // green
+                    break;
+                case "red":
+                    command.push(...[0x04, 0x00, 0x00, 0x7f, 0x7f]); // red
+                    break;
+                case "yellow":
+                    command.push(...[0x04, 0x40, 0x7f, 0x7f, 0x7f]); // yellow
+                    break;
+                case "magenta":
+                    command.push(...[0x64, 0x3f, 0x00, 0x7f, 0x7f]); // magenta
+                    break;
+                case "cyan":
+                    command.push(...[0x64, 0x7f, 0x7f, 0x00, 0x7e]); // cyan
+                    break;
+                case "black":
+                    console.log("BLACK");
+                    command.push(...[0x04, 0x00, 0x00, 0x00, 0x7e]); // black
+                    break;
+                case "white":
+                default:
+                    command.push(...[0x64, 0x7f, 0x7f, 0x7f, 0x7f]); // white
+                    break;
+            }
+            command.push(0x03);
+            console.log(command);
             sendCommandToAllDevices(command);
         };
     }
 
-    export function getClickHandler_SetColorRootKey() {
+    export function getClickHandler_SetColorRootKey(color: string) {
         return () => {
-            // const command = [0x10, 0x30, 0x64, 0x3f, 0x00, 0x00, 0x7e, 0x03]; // blue
-            const command = [0x10, 0x30, 0x64, 0x3f, 0x00, 0x00, 0x7e, 0x03]; // blue
+            let command = [0x10, 0x30];
+            switch (color) {
+                case "blue":
+                    command.push(...[0x64, 0x3f, 0x00, 0x00, 0x7e]); // blue
+                    break;
+                case "green":
+                    command.push(...[0x04, 0x40, 0x7f, 0x00, 0x7e]); // green
+                    break;
+                case "red":
+                    command.push(...[0x04, 0x00, 0x00, 0x7f, 0x7f]); // red
+                    break;
+                case "yellow":
+                    command.push(...[0x04, 0x40, 0x7f, 0x7f, 0x7f]); // yellow
+                    break;
+                case "magenta":
+                    command.push(...[0x64, 0x3f, 0x00, 0x7f, 0x7f]); // magenta
+                    break;
+                case "cyan":
+                    command.push(...[0x64, 0x7f, 0x7f, 0x00, 0x7e]); // cyan
+                    break;
+                case "black":
+                    console.log("BLACK");
+                    command.push(...[0x04, 0x00, 0x00, 0x00, 0x7e]); // black
+                    break;
+                case "white":
+                default:
+                    command.push(...[0x64, 0x7f, 0x7f, 0x7f, 0x7f]); // white
+                    break;
+            }
+            command.push(0x03);
+            console.log(command);
             sendCommandToAllDevices(command);
         };
     }
@@ -520,13 +637,17 @@ namespace LUMIKeys {
         };
     }
 
-    // Unknown command: 01 03 00
-    // - DEFINITELY NOT BATTERY LEVEL
-    // Maybe it tells the lumi to stay awake? Don't dim?
+    // ROLI Dashboard keeps sending this message every ~400ms.
+    // Maybe it's just a ping to see that it's still connected.
+    // It's DEFINITELY NOT BATTERY LEVEL, because LUMI Keys responds with the same message despite varying battery levels.
+    // See: https://github.com/juce-framework/JUCE/blob/master/modules/juce_blocks_basics/protocol/juce_BlocksProtocolDefinitions.h
+    //
+    //     deviceCommandMessage    = 0x01,
+    //     ping                    = 0x03,
     //
     // LUMI responds 8 times with:
     //   F0 00 21 10 77 47 00 00 00 00 20 00 00 6D F7
-    export function getClickHandler_TestXXX1() {
+    export function getClickHandler_PingDevice() {
         return () => {
             const command = [0x01, 0x03, 0x00];
             sendCommandToAllDevices(command);

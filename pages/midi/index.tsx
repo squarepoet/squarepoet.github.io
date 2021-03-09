@@ -58,14 +58,21 @@ const Page = () => {
                     </div>
                 </div>
                 <br />
+                <hr />
                 <h2>LUMI Keys</h2>
+                <p>The section below only works with LUMI Keys by ROLI.</p>
                 <div className="eventsLog lumi">
                     <pre>{lumiEventsLog}</pre>
                 </div>
-                <p>The buttons below are specific to LUMI Keys by ROLI.</p>
-                <button onClick={LUMIKeys.getClickHandler_GetSerialNumber()}>Serial Number</button>
-                <br />
-                <button onClick={LUMIKeys.getClickHandler_ResetToFactorySettings()}>Factory Reset</button>
+                <div>
+                    <button onClick={LUMIKeys.getClickHandler_GetSerialNumber()}>Serial Number</button>
+                    <br />
+                    <button onClick={LUMIKeys.getClickHandler_ResetToFactorySettings()}>Factory Reset</button>
+                    <br />
+                    <button onClick={LUMIKeys.getClickHandler_PingDevice()}>Ping Device</button>
+                    <br />
+                    <button onClick={LUMIKeys.getClickHandler_TestXXX2()}>Unknown Command</button>
+                </div>
                 <br />
                 <div>
                     <div>Light Up Note</div>
@@ -317,11 +324,27 @@ const Page = () => {
                 </div>
                 <br />
                 <div>
-                    <div>User Colors</div>
+                    <div>Global Key Color</div>
                     <div>
-                        <button onClick={LUMIKeys.getClickHandler_SetColorGlobalKey()}>Global Key Color</button>
-                        <br />
-                        <button onClick={LUMIKeys.getClickHandler_SetColorRootKey()}>Root Key Color</button>
+                        <div className="colorSwatch" style={{ backgroundColor: "#0000FF" }} onClick={LUMIKeys.getClickHandler_SetColorGlobalKey("blue")}></div>
+                        <div className="colorSwatch" style={{ backgroundColor: "#00FF00" }} onClick={LUMIKeys.getClickHandler_SetColorGlobalKey("green")}></div>
+                        <div className="colorSwatch" style={{ backgroundColor: "#FF0000" }} onClick={LUMIKeys.getClickHandler_SetColorGlobalKey("red")}></div>
+                        <div className="colorSwatch" style={{ backgroundColor: "#FFFF00" }} onClick={LUMIKeys.getClickHandler_SetColorGlobalKey("yellow")}></div>
+                        <div className="colorSwatch" style={{ backgroundColor: "#FF00FF" }} onClick={LUMIKeys.getClickHandler_SetColorGlobalKey("magenta")}></div>
+                        <div className="colorSwatch" style={{ backgroundColor: "#00FFFF" }} onClick={LUMIKeys.getClickHandler_SetColorGlobalKey("cyan")}></div>
+                        <div className="colorSwatch" style={{ backgroundColor: "#FFFFFF" }} onClick={LUMIKeys.getClickHandler_SetColorGlobalKey("white")}></div>
+                        <div className="colorSwatch" style={{ backgroundColor: "#000000" }} onClick={LUMIKeys.getClickHandler_SetColorGlobalKey("black")}></div>
+                    </div>
+                    <div>Root Key Color</div>
+                    <div>
+                        <div className="colorSwatch" style={{ backgroundColor: "#0000FF" }} onClick={LUMIKeys.getClickHandler_SetColorRootKey("blue")}></div>
+                        <div className="colorSwatch" style={{ backgroundColor: "#00FF00" }} onClick={LUMIKeys.getClickHandler_SetColorRootKey("green")}></div>
+                        <div className="colorSwatch" style={{ backgroundColor: "#FF0000" }} onClick={LUMIKeys.getClickHandler_SetColorRootKey("red")}></div>
+                        <div className="colorSwatch" style={{ backgroundColor: "#FFFF00" }} onClick={LUMIKeys.getClickHandler_SetColorRootKey("yellow")}></div>
+                        <div className="colorSwatch" style={{ backgroundColor: "#FF00FF" }} onClick={LUMIKeys.getClickHandler_SetColorRootKey("magenta")}></div>
+                        <div className="colorSwatch" style={{ backgroundColor: "#00FFFF" }} onClick={LUMIKeys.getClickHandler_SetColorRootKey("cyan")}></div>
+                        <div className="colorSwatch" style={{ backgroundColor: "#FFFFFF" }} onClick={LUMIKeys.getClickHandler_SetColorRootKey("white")}></div>
+                        <div className="colorSwatch" style={{ backgroundColor: "#000000" }} onClick={LUMIKeys.getClickHandler_SetColorRootKey("black")}></div>
                     </div>
                 </div>
                 <br />
@@ -356,10 +379,6 @@ const Page = () => {
                         <button onClick={LUMIKeys.getClickHandler_SetBrightness(0)}>0%</button>
                     </div>
                 </div>
-                <br />
-                <button onClick={LUMIKeys.getClickHandler_TestXXX1()}>Unknown Command 1</button>
-                <br />
-                <button onClick={LUMIKeys.getClickHandler_TestXXX2()}>Unknown Command 2</button>
             </div>
             <style jsx>{`
                 .eventsLog {
@@ -434,6 +453,14 @@ const Page = () => {
                 .whiteKeys button {
                     width: 60px;
                     height: 60px;
+                }
+
+                .colorSwatch {
+                    border: 1px solid gray;
+                    width: 40px;
+                    height: 40px;
+                    display: inline-block;
+                    cursor: pointer;
                 }
             `}</style>
         </>
