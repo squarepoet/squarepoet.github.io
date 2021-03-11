@@ -447,7 +447,14 @@ const Page = () => {
                 </div>
                 <br />
                 <div>
-                    <button onClick={LUMIKeys.startFakeDevice}>PRETEND TO BE LUMI</button>
+                    <label>
+                        Paste this in Chrome's address bar to view MIDI site settings:&nbsp;
+                        <input type="text" value="chrome://settings/content/midiDevices" size={37} readOnly />
+                    </label>
+                </div>
+                <br />
+                <div>
+                    <button onClick={LUMIKeys.startFakeDevice}>PRETEND TO BE LUMI (doesn't work!)</button>
                 </div>
             </div>
             <style jsx global>{`

@@ -29,7 +29,11 @@ namespace MIDIControllerIO {
             const inputDeviceInfo = [];
             for (const i of WebMidi.inputs) {
                 inputs.push(i);
-                inputDeviceInfo.push([i.manufacturer, i.name].join(" / "));
+                let inputName = "  " + i.name;
+                if (i.manufacturer !== "") {
+                    inputName += "    " + i.manufacturer;
+                }
+                inputDeviceInfo.push(inputName);
 
                 i.addListener("noteon", "all", function (e) {
                     playMIDINote(e.note.number, e.rawVelocity);
@@ -44,7 +48,11 @@ namespace MIDIControllerIO {
             const outputDeviceInfo = [];
             for (const o of WebMidi.outputs) {
                 outputs.push(o);
-                outputDeviceInfo.push([o.manufacturer, o.name].join(" / "));
+                let outputName = "  " + o.name;
+                if (o.manufacturer !== "") {
+                    outputName += "    " + o.manufacturer;
+                }
+                outputDeviceInfo.push(outputName);
             }
 
             const deviceListInfo = ["Connected Devices", "", "Inputs:", ...inputDeviceInfo, "", "Outputs:", ...outputDeviceInfo];
