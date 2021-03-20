@@ -4,7 +4,7 @@ import * as Tone from "tone";
 
 enum InstrumentType {
     Basic,
-    FM,
+    FM, // Electric Organ?
     AM,
     Sampled_1,
     Sampled_2,
@@ -15,9 +15,6 @@ enum AudioSDKType {
     Tone,
     Musical,
 }
-
-// const INSTRUMENT_TYPE: InstrumentType = InstrumentType.Electric_1;
-const INSTRUMENT_TYPE: InstrumentType = InstrumentType.FM;
 
 type ToneJS_Instrument = Tone.PolySynth | Tone.Synth | Tone.FMSynth | Tone.AMSynth | Tone.Sampler;
 type MusicalJS_Instrument = Musical.Instrument;
@@ -34,9 +31,9 @@ class Instrument {
     private baseURL: string = "";
 
     // Only call this from a user gesture, so we can call this.initWebAudio()!
-    constructor() {
+    constructor(type: InstrumentType) {
         console.log("NEW INSTRUMENT");
-        this.type = INSTRUMENT_TYPE;
+        this.type = type;
         this.initWebAudio();
     }
 

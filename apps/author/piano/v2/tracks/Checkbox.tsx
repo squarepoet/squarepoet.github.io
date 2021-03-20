@@ -1,4 +1,3 @@
-import PianoAuthorV2 from "apps/author/piano/v2/App";
 import Constants from "apps/shared/Constants";
 import Actions from "apps/shared/redux/Actions";
 import { useEffect } from "react";

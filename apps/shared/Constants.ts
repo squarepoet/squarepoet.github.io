@@ -19,13 +19,17 @@ namespace Constants {
         export const PLAYED_NOTEGROUP_ID = "playedNoteGroupID";
 
         // Key for localStorage
-        export const INSTRUMENT_TYPE = "instrumentType";
+        export const PIANO_TYPE = "pianoType";
+        export const GUITAR_TYPE = "guitarType";
     }
 
     export const DEFAULT_DOWNLOAD_DATA = "8J+OtQ=="; // base 64 encoded!
 
     export namespace Instrument {
         export const PIANO = "piano";
+        export const ORGAN_1 = "organ1";
+        export const ORGAN_2 = "organ2";
+
         export const GUITAR = "guitar";
         export const UKULELE_HIGH_G = "ukulele_high_g";
         export const UKULELE_LOW_G = "ukulele_low_g";

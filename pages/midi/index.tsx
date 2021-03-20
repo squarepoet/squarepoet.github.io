@@ -1,4 +1,5 @@
 import SetOctaveAndBrightnessPanel from "apps/midi/SetOctaveAndBrightnessPanel";
+import Constants from "apps/shared/Constants";
 import LUMIKeys from "apps/shared/midi/LUMIKeys";
 import MIDIControllerIO from "apps/shared/midi/MIDIControllerIO";
 import ClearBoth from "components/ClearBoth";
@@ -6,8 +7,25 @@ import PreloadDialog from "components/dialogs/Preload";
 import InputSaved, { InputSavedInterface } from "components/InputSaved";
 import { Spacer30px, Spacer60px } from "components/Spacer";
 import React, { useEffect, useRef, useState } from "react";
+import createPersistedState from "use-persisted-state";
+
+import { FormControl, InputLabel, MenuItem, Select } from "@material-ui/core";
+import { makeStyles } from "@material-ui/core/styles";
+
+const useStyles = makeStyles((theme) => ({
+    form: {
+        margin: theme.spacing(1),
+        minWidth: 180,
+    },
+    select: {
+        marginTop: theme.spacing(2),
+        color: "white",
+    },
+}));
 
 const Page = () => {
+    const classes = useStyles();
+
     const lumiRootKeyColorInput = useRef<InputSavedInterface>();
     const lumiGlobalKeyColorInput = useRef<InputSavedInterface>();
 
@@ -20,6 +38,13 @@ const Page = () => {
 
     const [lumiEventsLog, setLUMIEventsLog] = useState("");
     const lumiEventsLogArray = [];
+
+    // Which Tone.js/Musical.js instrument should we use?
+    const useSelectInstrumentState = createPersistedState(Constants.StoreKeys.PIANO_TYPE);
+    const [instrument, setInstrument] = useSelectInstrumentState(Constants.Instrument.PIANO);
+    const onSelectInstrumentChange = (e) => {
+        console.log(e.target.value);
+    };
 
     useEffect(() => {
         console.log("%cHello MIDI 🎹", "color:yellow;font-size:22px;font-weight:bold;background:black;");
@@ -96,6 +121,15 @@ const Page = () => {
                         <pre>{deviceList}</pre>
                     </div>
                 </div>
+                <br />
+                <FormControl variant="filled" className={classes.form}>
+                    <InputLabel id="select-instrument-label">Instrument Sound</InputLabel>
+                    <Select labelId="select-instrument-label" id="select-instrument" value={instrument} onChange={onSelectInstrumentChange} label="Instrument" className={classes.select}>
+                        <MenuItem value={"piano"}>Piano</MenuItem>
+                        <MenuItem value={"organ"}>Organ</MenuItem>
+                        <MenuItem value={"other"}>Other</MenuItem>
+                    </Select>
+                </FormControl>
                 <br />
                 <hr />
                 <h2>LUMI Keys</h2>
@@ -419,14 +453,26 @@ const Page = () => {
                 <br />
                 <div>
                     <label>
-                        Paste this in Chrome's address bar to view MIDI site settings:&nbsp;
-                        <input type="text" value="chrome://settings/content/midiDevices" size={37} readOnly />
+                        Paste this in Chrome's address bar to view MIDI site settings:
+                        <br />
+                        <input
+                            type="text"
+                            value="chrome://settings/content/midiDevices"
+                            size={37}
+                            onClick={(e) => {
+                                const inputElement = e.target as HTMLInputElement;
+                                inputElement.setSelectionRange(0, inputElement.value.length);
+                            }}
+                            readOnly
+                        />
                     </label>
                 </div>
                 <br />
-                <div>
+                <br />
+                <br />
+                {/* <div>
                     <button onClick={LUMIKeys.startFakeDevice}>PRETEND TO BE LUMI (doesn't work!)</button>
-                </div>
+                </div> */}
             </div>
             <style jsx global>{`
                 .eventsLog {
@@ -519,8 +565,6 @@ const Page = () => {
     );
 };
 
-export default Page;
-
 export async function getStaticProps(context) {
     return {
         props: {
@@ -529,4 +573,4 @@ export async function getStaticProps(context) {
     };
 }
 
-// TEST LUMI KEYS
+export default Page;

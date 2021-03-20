@@ -114,7 +114,7 @@ namespace LUMIKeys {
             sum = (sum * 3 + values[i]) & 0xff;
         }
         const returnVal = sum & 0x7f;
-        console.log("Checksum: " + returnVal.toString(16));
+        console.log("Checksum: 0x" + returnVal.toString(16));
         return returnVal;
     }
 
@@ -179,6 +179,7 @@ namespace LUMIKeys {
 
     export function getClickHandler_SetBrightness(brightnessValue: number) {
         return () => {
+            console.log("Set Brightness Level to " + brightnessValue + "%");
             const command = [0x10, 0x40];
             switch (brightnessValue) {
                 case 0:
@@ -574,52 +575,57 @@ namespace LUMIKeys {
     }
 
     /*
-    10 40 00 7F 7F 7F 7F 03 // -4
-    10 40 20 7F 7F 7F 7F 03 // -3
-    10 40 40 7F 7F 7F 7F 03 // -2
-    10 40 60 7F 7F 7F 7F 03 // -1
-    10 40 00 00 00 00 00 00 // 0
-    10 40 20 00 00 00 00 00 // 1
-    10 40 40 00 00 00 00 00 // 2
-    10 40 60 01 00 00 00 00 // 3
-    10 40 00 01 00 00 00 00 // 4
-    10 40 20 01 00 00 00 00 // 5
+        Note that 0x7F is 0111_1111 in binary.
+        MIDI SysEx messages have a beginning status byte and a ending status byte.
+        In between the two status bytes, any number of data bytes may be sent. 
+        These data bytes all range from 0 to 127. The left most bit is always 0.
+        
+        10 40 00 7F 7F 7F 7F 03 // -4
+        10 40 20 7F 7F 7F 7F 03 // -3
+        10 40 40 7F 7F 7F 7F 03 // -2
+        10 40 60 7F 7F 7F 7F 03 // -1
+        10 40 00 00 00 00 00 00 // 0
+        10 40 20 00 00 00 00 00 // 1
+        10 40 40 00 00 00 00 00 // 2
+        10 40 60 01 00 00 00 00 // 3
+        10 40 00 01 00 00 00 00 // 4
+        10 40 20 01 00 00 00 00 // 5
     */
-    // 0x7F is 0111_1111 in binary
-    export function getClickHandler_SetOctave(octaveNumber) {
+    export function getClickHandler_SetOctave(octaveNumber: number) {
         return () => {
-            let command = null;
+            console.log("Set Octave Offset to " + octaveNumber);
+            const command = [0x10, 0x40];
             switch (octaveNumber) {
                 case 0:
                 default:
-                    command = [0x10, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00];
+                    command.push(...[0x00, 0x00, 0x00, 0x00, 0x00, 0x00]);
                     break;
                 case 1:
-                    command = [0x10, 0x40, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00];
+                    command.push(...[0x20, 0x00, 0x00, 0x00, 0x00, 0x00]);
                     break;
                 case 2:
-                    command = [0x10, 0x40, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00];
+                    command.push(...[0x40, 0x00, 0x00, 0x00, 0x00, 0x00]);
                     break;
                 case 3:
-                    command = [0x10, 0x40, 0x60, 0x00, 0x00, 0x00, 0x00, 0x00];
+                    command.push(...[0x60, 0x00, 0x00, 0x00, 0x00, 0x00]);
                     break;
                 case 4:
-                    command = [0x10, 0x40, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00];
+                    command.push(...[0x00, 0x01, 0x00, 0x00, 0x00, 0x00]);
                     break;
                 case 5:
-                    command = [0x10, 0x40, 0x20, 0x01, 0x00, 0x00, 0x00, 0x00];
+                    command.push(...[0x20, 0x01, 0x00, 0x00, 0x00, 0x00]);
                     break;
                 case -1:
-                    command = [0x10, 0x40, 0x60, 0x7f, 0x7f, 0x7f, 0x7f, 0x03];
+                    command.push(...[0x60, 0x7f, 0x7f, 0x7f, 0x7f, 0x03]);
                     break;
                 case -2:
-                    command = [0x10, 0x40, 0x40, 0x7f, 0x7f, 0x7f, 0x7f, 0x03];
+                    command.push(...[0x40, 0x7f, 0x7f, 0x7f, 0x7f, 0x03]);
                     break;
                 case -3:
-                    command = [0x10, 0x40, 0x20, 0x7f, 0x7f, 0x7f, 0x7f, 0x03];
+                    command.push(...[0x20, 0x7f, 0x7f, 0x7f, 0x7f, 0x03]);
                     break;
                 case -4:
-                    command = [0x10, 0x40, 0x00, 0x7f, 0x7f, 0x7f, 0x7f, 0x03];
+                    command.push(...[0x00, 0x7f, 0x7f, 0x7f, 0x7f, 0x03]);
                     break;
             }
             sendCommandToAllDevices(command);
@@ -628,6 +634,7 @@ namespace LUMIKeys {
 
     export function getClickHandler_PitchBend(modeNumber, enableFlag) {
         return () => {
+            console.log("Set Pitch Bend for Mode " + modeNumber + " to " + enableFlag);
             let command = null;
             switch (modeNumber) {
                 case 1:

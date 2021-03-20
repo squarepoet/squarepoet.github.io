@@ -66,7 +66,7 @@ namespace App {
     }
 
     export function loadFromLocalStorage() {
-        const instrumentType = localStorage.getItem(Constants.StoreKeys.INSTRUMENT_TYPE);
+        const instrumentType = localStorage.getItem(Constants.StoreKeys.GUITAR_TYPE);
         updateInstrument(instrumentType);
         updateDOM();
     }
