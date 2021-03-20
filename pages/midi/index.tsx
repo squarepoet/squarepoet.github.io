@@ -9,13 +9,16 @@ import { Spacer30px, Spacer60px } from "components/Spacer";
 import React, { useEffect, useRef, useState } from "react";
 import createPersistedState from "use-persisted-state";
 
-import { FormControl, InputLabel, MenuItem, Select } from "@material-ui/core";
+import { FormControl, FormHelperText, InputLabel, MenuItem, Select } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
 
 const useStyles = makeStyles((theme) => ({
     form: {
         margin: theme.spacing(1),
         minWidth: 180,
+    },
+    label: {
+        color: "gray",
     },
     select: {
         marginTop: theme.spacing(2),
@@ -41,14 +44,18 @@ const Page = () => {
 
     // Which Tone.js/Musical.js instrument should we use?
     const useSelectInstrumentState = createPersistedState(Constants.StoreKeys.PIANO_TYPE);
-    const [instrument, setInstrument] = useSelectInstrumentState(Constants.Instrument.PIANO);
+    const [instrument, setInstrument] = useSelectInstrumentState(Constants.Instrument.PIANO_GRAND);
     const onSelectInstrumentChange = (e) => {
-        console.log(e.target.value);
+        const instrument = e.target.value;
+        setInstrument(instrument);
+        MIDIControllerIO.setInstrument(instrument);
     };
 
     useEffect(() => {
+        // Print a color message to the console.
         console.log("%cHello MIDI 🎹", "color:yellow;font-size:22px;font-weight:bold;background:black;");
 
+        // Add some info to the informational text area.
         setMIDIEventsLog("Press some keys on your MIDI controller to play sounds.");
         setLUMIEventsLog("Connect your LUMI Keys via Bluetooth or USB.");
 
@@ -70,7 +77,7 @@ const Page = () => {
     }, []);
 
     const onDialogDismissedStartAudio = () => {
-        MIDIControllerIO.start();
+        MIDIControllerIO.start(instrument);
         setShowPreloadDialog(false);
     };
 
@@ -122,12 +129,16 @@ const Page = () => {
                     </div>
                 </div>
                 <br />
-                <FormControl variant="filled" className={classes.form}>
-                    <InputLabel id="select-instrument-label">Instrument Sound</InputLabel>
+                <FormControl className={classes.form}>
+                    <InputLabel id="select-instrument-label" className={classes.label}>
+                        Instrument Sound
+                    </InputLabel>
                     <Select labelId="select-instrument-label" id="select-instrument" value={instrument} onChange={onSelectInstrumentChange} label="Instrument" className={classes.select}>
-                        <MenuItem value={"piano"}>Piano</MenuItem>
-                        <MenuItem value={"organ"}>Organ</MenuItem>
-                        <MenuItem value={"other"}>Other</MenuItem>
+                        <MenuItem value={Constants.Instrument.PIANO_GRAND}>Grand Piano</MenuItem>
+                        <MenuItem value={Constants.Instrument.PIANO_ELECTRIC}>Electric Piano</MenuItem>
+                        <MenuItem value={Constants.Instrument.ORGAN_1}>Organ 1</MenuItem>
+                        <MenuItem value={Constants.Instrument.ORGAN_2}>Organ 2</MenuItem>
+                        <MenuItem value={Constants.Instrument.OTHER}>Other</MenuItem>
                     </Select>
                 </FormControl>
                 <br />

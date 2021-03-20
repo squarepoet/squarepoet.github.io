@@ -1,6 +1,7 @@
 import WebMidi, { Input, Output } from "webmidi";
 
-import Instrument from "../sound/Instrument";
+import Constants from "../Constants";
+import Instrument, { InstrumentType } from "../sound/Instrument";
 import LUMIKeys from "./LUMIKeys";
 
 // Manufacturers:
@@ -13,8 +14,8 @@ namespace MIDIControllerIO {
     let logOutput: (msg: string) => void = null;
     let deviceListOutput: (deviceList: string) => void = null;
 
-    export function start() {
-        soundOutput = new Instrument();
+    export function start(instrumentType: string) {
+        setInstrument(instrumentType);
 
         WebMidi.enable(function (err) {
             if (err) {
@@ -151,6 +152,30 @@ namespace MIDIControllerIO {
     }
     export function attachDeviceListOutput(deviceListOutputHandler) {
         deviceListOutput = deviceListOutputHandler;
+    }
+
+    export function setInstrument(instrumentTypeString: string) {
+        let instrumentType = InstrumentType.Basic;
+        switch (instrumentTypeString) {
+            case Constants.Instrument.PIANO_GRAND:
+                instrumentType = InstrumentType.Sampled_1;
+                break;
+            case Constants.Instrument.PIANO_ELECTRIC:
+                instrumentType = InstrumentType.Sampled_2;
+                break;
+            case Constants.Instrument.ORGAN_1:
+                instrumentType = InstrumentType.FM;
+                break;
+            case Constants.Instrument.ORGAN_2:
+                instrumentType = InstrumentType.AM;
+                break;
+            case Constants.Instrument.OTHER:
+            default:
+                instrumentType = InstrumentType.Basic;
+                break;
+        }
+        console.log("Set Instrument Type to " + instrumentTypeString + " / " + instrumentType);
+        soundOutput = new Instrument(instrumentType);
     }
 }
 

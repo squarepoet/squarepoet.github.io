@@ -1,6 +1,6 @@
 // Do some tests with Tone.js here.
 
-import Instrument, { PianoType } from "apps/shared/sound/Instrument";
+import Instrument, { InstrumentType } from "apps/shared/sound/Instrument";
 import React, { useEffect, useState } from "react";
 
 let tone;
@@ -8,12 +8,11 @@ let piano;
 
 const Page = () => {
     useEffect(() => {
-        // One Time
-        piano = new Instrument();
+        // MOUNT
     }, []);
 
     function onClickStart() {
-        piano.initWebAudio();
+        piano = new Instrument(InstrumentType.Basic);
     }
 
     function onClickPlaySomething() {

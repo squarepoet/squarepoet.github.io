@@ -1,5 +1,5 @@
 import SharpsAndFlatsManager from "apps/author/piano/shared/SharpsAndFlatsManager";
-import Instrument, { PianoType } from "apps/shared/sound/Instrument";
+import Instrument from "apps/shared/sound/Instrument";
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
