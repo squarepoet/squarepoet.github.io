@@ -1,3 +1,5 @@
+// #TODO: Haven't been able to get workers working properly in Next.js. :-\
+//
 // a timer loop to drive our MIDI playback
 // use this instead of requestAnimationFrame so that we can have it play in a background tab.
 

@@ -1,6 +1,9 @@
 # NEXT
 
--   [ ] Make Sampled Instruments work again! Why does the audio stop after a while??? Why can't we switch instruments back and forth?
+-   [ ] Make Piano/Guitar Author V1 & V2 work again. If played by computer keyboard, we play the note and stop it a second later. If played by MIDI controller, we wait until we get a NOTE_OFF.
+-   [ ]
+-   [ ] \*\*\* Make Sampled Instruments work again! Why does the audio stop after a while??? Why can't we switch instruments back and forth?
+-   [ ]
 -   [ ] onChange for InputSaved. Then get the value and if it's hex, break it up, then update colors real time.
         LUMI?
 -   [ ] Fix bug where COPYRIGHT 2021 SquarePoet is NOT on the bottom right of the page when the page contents are too tall! It should be always at the bottom right once you scroll to the end of the contents.
