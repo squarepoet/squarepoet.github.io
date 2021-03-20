@@ -160,8 +160,11 @@ namespace MIDIControllerIO {
             case Constants.Instrument.PIANO_GRAND:
                 instrumentType = InstrumentType.Sampled_1;
                 break;
-            case Constants.Instrument.PIANO_ELECTRIC:
+            case Constants.Instrument.PIANO_ROCK:
                 instrumentType = InstrumentType.Sampled_2;
+                break;
+            case Constants.Instrument.PIANO_ELECTRIC:
+                instrumentType = InstrumentType.Electric_1;
                 break;
             case Constants.Instrument.ORGAN_1:
                 instrumentType = InstrumentType.FM;

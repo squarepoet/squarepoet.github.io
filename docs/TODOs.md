@@ -1,11 +1,8 @@
 # NEXT
 
--   [ ] LUMI Light up multiple keys (like I copied from ROLI Studio)
--   [ ] Pretend to be lumi. Respond to ROLI Studio with my played back device config? :-)
+-   [ ] Make Sampled Instruments work again! Why does the audio stop after a while??? Why can't we switch instruments back and forth?
 -   [ ] onChange for InputSaved. Then get the value and if it's hex, break it up, then update colors real time.
--   [ ] RETURN THE LUMI!
-
--   [ ] Make progress on LUMI keys, and allow for customizing the device ID (at least support the one on github). Is there a way to query the device ID? How does ROLI Connect / Dashboard / Studio talk to LUMI? Must return it on Monday.
+        LUMI?
 -   [ ] Fix bug where COPYRIGHT 2021 SquarePoet is NOT on the bottom right of the page when the page contents are too tall! It should be always at the bottom right once you scroll to the end of the contents.
 -   [ ] See #MIDIAWEIIZAI. Use MIDI Keyboard to author!
     -   [ ] IMPORTANT: It should initialize the same things as if we pressed a computer key. It needs to go through the same setup path (and dismiss the preload popup)!
@@ -77,3 +74,7 @@
 -   [ ] Learn about Debugging: https://code.visualstudio.com/docs/nodejs/nodejs-debugging#_breakpoints
 
 # DONE
+
+-   [x] NOPE: LUMI Light up multiple keys (like I copied from ROLI Studio)
+-   [x] NOPE: Pretend to be lumi. Respond to ROLI Studio with my played back device config? :-)
+-   [x] Make progress on LUMI keys, and allow for customizing the device ID (at least support the one on github). Is there a way to query the device ID? How does ROLI Connect / Dashboard / Studio talk to

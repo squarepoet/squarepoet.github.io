@@ -27,6 +27,7 @@ namespace Constants {
 
     export namespace Instrument {
         export const PIANO_GRAND = "piano_grand";
+        export const PIANO_ROCK = "piano_rock";
         export const PIANO_ELECTRIC = "piano_electric";
         export const ORGAN_1 = "organ_1";
         export const ORGAN_2 = "organ_2";
