@@ -38,40 +38,38 @@ class Instrument {
     }
 
     private initWebAudio() {
-        if (!this.instrument) {
-            if (this.type === InstrumentType.Electric_1) {
-                this.sdk = AudioSDKType.Musical;
-                console.log("Start Musical.js");
-                this.instrument = new Musical.Instrument("piano");
-                this.isReady = true;
-            } else {
-                this.sdk = AudioSDKType.Tone;
-                console.log("Start Tone.js");
-                Tone.start().then(() => {
-                    console.log("Tone is Ready!");
-                });
-                switch (this.type) {
-                    case InstrumentType.Sampled_1:
-                        this.setupPreloaderAndSamplesMap_1();
-                        // this.isReady will be true after all the mp3 files load.
-                        break;
-                    case InstrumentType.Sampled_2:
-                        this.setupPreloaderAndSamplesMap_2();
-                        // this.isReady will be true after all the mp3 files load.
-                        break;
-                    case InstrumentType.FM:
-                        this.instrument = new Tone.PolySynth(Tone.FMSynth).toDestination();
-                        this.isReady = true;
-                        break;
-                    case InstrumentType.AM:
-                        this.instrument = new Tone.PolySynth(Tone.AMSynth).toDestination();
-                        this.isReady = true;
-                        break;
-                    default:
-                        this.instrument = new Tone.PolySynth(Tone.Synth).toDestination();
-                        this.isReady = true;
-                        break;
-                }
+        if (this.type === InstrumentType.Electric_1) {
+            this.sdk = AudioSDKType.Musical;
+            console.log("Start Musical.js");
+            this.instrument = new Musical.Instrument("piano");
+            this.isReady = true;
+        } else {
+            this.sdk = AudioSDKType.Tone;
+            console.log("Start Tone.js");
+            Tone.start().then(() => {
+                console.log("Tone is Ready!");
+            });
+            switch (this.type) {
+                case InstrumentType.Sampled_1:
+                    this.setupPreloaderAndSamplesMap_1();
+                    // this.isReady will be true after all the mp3 files load.
+                    break;
+                case InstrumentType.Sampled_2:
+                    this.setupPreloaderAndSamplesMap_2();
+                    // this.isReady will be true after all the mp3 files load.
+                    break;
+                case InstrumentType.FM:
+                    this.instrument = new Tone.PolySynth(Tone.FMSynth).toDestination();
+                    this.isReady = true;
+                    break;
+                case InstrumentType.AM:
+                    this.instrument = new Tone.PolySynth(Tone.AMSynth).toDestination();
+                    this.isReady = true;
+                    break;
+                default:
+                    this.instrument = new Tone.PolySynth(Tone.Synth).toDestination();
+                    this.isReady = true;
+                    break;
             }
         }
     }
@@ -81,6 +79,7 @@ class Instrument {
     }
 
     play(pianoKeyNumber: number, durationInSeconds: number = 0, velocity: number = 1.0) {
+        console.log("PLAY " + pianoKeyNumber + " for " + durationInSeconds + " seconds at velocity = " + velocity);
         if (this.sdk === AudioSDKType.Tone) {
             // Tone.js
             const noteName = Tone.Frequency(pianoKeyNumber + 20, "midi").toNote();
@@ -90,8 +89,9 @@ class Instrument {
                 (this.instrument as ToneJS_Instrument).triggerAttack(noteName, 0, velocity);
             } else {
                 // this.instrument.triggerAttackRelease(noteName, "4n");
-                (this.instrument as ToneJS_Instrument).triggerAttackRelease(noteName, durationInSeconds);
+                // (this.instrument as ToneJS_Instrument).triggerAttackRelease(noteName, durationInSeconds);
                 // this.instrument.triggerAttackRelease(noteName, durationInSeconds, 0 /* time from now */, velocity);
+                (this.instrument as ToneJS_Instrument).triggerAttack(noteName, 0, velocity);
             }
         } else {
             // Musical.js
@@ -101,6 +101,7 @@ class Instrument {
     }
 
     stop(pianoKeyNumber: number) {
+        console.log("STOP " + pianoKeyNumber);
         if (this.sdk === AudioSDKType.Tone) {
             const noteName = Tone.Frequency(pianoKeyNumber + 20, "midi").toNote();
             console.log("TRIGGER RELEASE " + pianoKeyNumber + " / " + noteName);
@@ -188,9 +189,8 @@ class Instrument {
             filesToPreload.push(this.baseURL + fileName);
         }
         // Preload the files now.
-        if (!this.preloader) {
-            this.preloader = new Preloader(filesToPreload);
-        }
+        this.preloader = new Preloader(filesToPreload);
+
         // Create a Tone.Sampler instrument
         const config: any = {
             release: 1,

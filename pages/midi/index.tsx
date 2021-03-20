@@ -135,6 +135,7 @@ const Page = () => {
                     </InputLabel>
                     <Select labelId="select-instrument-label" id="select-instrument" value={instrument} onChange={onSelectInstrumentChange} label="Instrument" className={classes.select}>
                         <MenuItem value={Constants.Instrument.PIANO_GRAND}>Grand Piano</MenuItem>
+                        <MenuItem value={Constants.Instrument.PIANO_ROCK}>Rock Piano</MenuItem>
                         <MenuItem value={Constants.Instrument.PIANO_ELECTRIC}>Electric Piano</MenuItem>
                         <MenuItem value={Constants.Instrument.ORGAN_1}>Organ 1</MenuItem>
                         <MenuItem value={Constants.Instrument.ORGAN_2}>Organ 2</MenuItem>

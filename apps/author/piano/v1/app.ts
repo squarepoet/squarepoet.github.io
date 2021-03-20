@@ -1,5 +1,5 @@
 import SharpsAndFlatsManager from "apps/author/piano/shared/SharpsAndFlatsManager";
-import Instrument from "apps/shared/sound/Instrument";
+import Instrument, { InstrumentType } from "apps/shared/sound/Instrument";
 
 export const CANVAS_WIDTH: number = 2080;
 export const CANVAS_HEIGHT: number = 300;
@@ -332,7 +332,7 @@ export default (function () {
         },
 
         startAudio: () => {
-            piano = new Instrument();
+            piano = new Instrument(InstrumentType.Basic);
         },
 
         onKeydown: (e) => {
