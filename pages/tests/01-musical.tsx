@@ -1,4 +1,4 @@
-// Do some tests with Musical.js here.
+// Test Musical.js
 
 import Musical from "apps/shared/sound/Musical";
 import React, { useEffect, useState } from "react";

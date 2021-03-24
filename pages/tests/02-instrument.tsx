@@ -1,9 +1,7 @@
-// Do some tests with Tone.js here.
-
+// #TODO: Support changing of instruments via button clicks.
 import Instrument, { InstrumentType } from "apps/shared/sound/Instrument";
 import React, { useEffect, useState } from "react";
 
-let tone;
 let piano;
 
 const Page = () => {
@@ -35,8 +33,8 @@ const Page = () => {
 
     return (
         <div>
-            <h1>Piano Demo #1 Tone JS</h1>
-            <button onClick={onClickStart}>START TONE.JS</button>
+            <h1>Instrument Wrapper Demo</h1>
+            <button onClick={onClickStart}>START</button>
             <br></br>
             <button onClick={onClickPlaySomething}>Play Something</button>
             <br></br>
