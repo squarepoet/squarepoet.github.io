@@ -1,5 +1,5 @@
 import SharpsAndFlatsManager from "apps/author/piano/shared/SharpsAndFlatsManager";
-import Instrument from "apps/shared/sound/Instrument";
+import Instrument, { InstrumentType } from "apps/shared/sound/Instrument";
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -490,7 +490,7 @@ setInterval(() => {
     onKeyDown(e: KeyboardEvent) {
         if (!piano) {
             console.log("Init Web Audio");
-            piano = new Instrument();
+            piano = new Instrument(InstrumentType.Basic);
         }
 
         // CMD KEY on Mac

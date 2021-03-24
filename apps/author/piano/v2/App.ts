@@ -5,7 +5,7 @@ import Constants from "apps/shared/Constants";
 import MIDIFileIO from "apps/shared/midi/MIDIFileIO";
 import MIDIUtils from "apps/shared/midi/MIDIUtils";
 import Actions from "apps/shared/redux/Actions";
-import Instrument from "apps/shared/sound/Instrument";
+import Instrument, { InstrumentType } from "apps/shared/sound/Instrument";
 import throttle from "lodash.throttle";
 
 const MIDIEvents = require("midievents");
@@ -1177,7 +1177,7 @@ namespace App {
     }
 
     export function startAudio() {
-        piano = new Instrument();
+        piano = new Instrument(InstrumentType.Basic);
     }
 
     export function saveSongVersionToLocalStorage(ver: number) {

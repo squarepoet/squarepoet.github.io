@@ -1,4 +1,4 @@
-import Instrument from "apps/shared/sound/Instrument";
+import Instrument, { InstrumentType } from "apps/shared/sound/Instrument";
 import React, { useEffect, useState } from "react";
 
 // #TODO: Fix or delete this!
@@ -13,7 +13,7 @@ const SimplePiano = () => {
     }, []);
 
     function startTone() {
-        piano = new Instrument();
+        piano = new Instrument(InstrumentType.Basic);
     }
 
     function playPianoNote(keyNumber: number) {
