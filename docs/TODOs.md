@@ -1,6 +1,6 @@
 # NEXT
 
--   [ ] Fix UpperCase/lowercase issues with file names! DOH!
+-   [x] Fix UpperCase/lowercase issues with file names! DOH!
 -   [ ]
 -   [ ] Make Piano/Guitar Author V1 & V2 work again. If played by computer keyboard, we play the note and stop it a second later. If played by MIDI controller, we wait until we get a NOTE_OFF.
 -   [ ]
