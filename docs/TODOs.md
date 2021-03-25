@@ -1,7 +1,11 @@
 # NEXT
 
--   [x] Fix UpperCase/lowercase issues with file names! DOH!
+-   [ ] I cannot repeatedly play a note without it going silent. Can I repro this somehow on my test page?
+
+-   [ ] For guitar author, use a Karplus Strong Pluck Synth.
+
 -   [ ] When we switch instruments, we should disconnect the old instrument. Is there a way to inspect our output to see how many instruments are currently connected?
+
 -   [ ] See https://beatbucket.io/ to see how we can make our own synthesizers with the various options. Copy synths from AudioKit iPad Synth? (Run it on MACOS).
 -   [ ]
 -   [ ] Make Piano/Guitar Author V1 & V2 work again. If played by computer keyboard, we play the note and stop it a second later. If played by MIDI controller, we wait until we get a NOTE_OFF.
@@ -85,3 +89,4 @@
 -   [x] NOPE: LUMI Light up multiple keys (like I copied from ROLI Studio)
 -   [x] NOPE: Pretend to be lumi. Respond to ROLI Studio with my played back device config? :-)
 -   [x] Make progress on LUMI keys, and allow for customizing the device ID (at least support the one on github). Is there a way to query the device ID? How does ROLI Connect / Dashboard / Studio talk to
+-   [x] Fix UpperCase/lowercase issues with file names! DOH!

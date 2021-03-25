@@ -1,11 +1,12 @@
+import Constants from "apps/shared/Constants";
+import LUMIKeys from "apps/shared/midi/LUMIKeys";
+import Instrument, { InstrumentType } from "apps/shared/sound/Instrument";
 import WebMidi, { Input, Output } from "webmidi";
 
-import Constants from "../Constants";
-import Instrument, { InstrumentType } from "../sound/Instrument";
-import LUMIKeys from "./LUMIKeys";
-
+//
+//
 // Manufacturers:
-// Snoize / MIDI Monitor (Untitled XX)
+//   Snoize / MIDI Monitor (Untitled XX)
 namespace MIDIControllerIO {
     let inputs: Input[] = [];
     let outputs: Output[] = [];
@@ -128,6 +129,7 @@ namespace MIDIControllerIO {
     }
 
     function playMIDINote(midiNoteNumber, velocity = 127.0) {
+        console.log("PLAY MIDI NOTE");
         if (soundOutput === null) {
             console.log("playPianoNote: Piano has not been initialized.");
             return;
@@ -138,11 +140,11 @@ namespace MIDIControllerIO {
     }
 
     function stopMIDINote(midiNoteNumber, velocity = 127.0) {
+        console.log("STOP MIDI NOTE");
         if (soundOutput === null) {
             console.log("playPianoNote: Piano has not been initialized.");
             return;
         }
-        const duration = 0; // Setting duration to 0 means the note will NOT turn off automatically.
         const pianoKeyNumber = midiNoteNumber - 20;
         soundOutput.stop(pianoKeyNumber);
     }
@@ -155,7 +157,7 @@ namespace MIDIControllerIO {
     }
 
     export function setInstrument(instrumentTypeString: string) {
-        let instrumentType = InstrumentType.Basic;
+        let instrumentType = InstrumentType.SynthBasic;
         switch (instrumentTypeString) {
             case Constants.Instrument.PIANO_GRAND:
                 instrumentType = InstrumentType.Sampled_1;
@@ -164,20 +166,23 @@ namespace MIDIControllerIO {
                 instrumentType = InstrumentType.Sampled_2;
                 break;
             case Constants.Instrument.PIANO_ELECTRIC:
-                instrumentType = InstrumentType.Electric_1;
+                instrumentType = InstrumentType.SynthMusicalJS;
                 break;
             case Constants.Instrument.ORGAN_1:
-                instrumentType = InstrumentType.FM;
+                instrumentType = InstrumentType.SynthFM;
                 break;
             case Constants.Instrument.ORGAN_2:
-                instrumentType = InstrumentType.AM;
+                instrumentType = InstrumentType.SynthAM;
                 break;
             case Constants.Instrument.OTHER:
             default:
-                instrumentType = InstrumentType.Basic;
+                instrumentType = InstrumentType.SynthBasic;
                 break;
         }
         console.log("Set Instrument Type to " + instrumentTypeString + " / " + instrumentType);
+        if (soundOutput) {
+            soundOutput.dispose();
+        }
         soundOutput = new Instrument(instrumentType);
     }
 }

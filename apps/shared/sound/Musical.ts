@@ -2029,6 +2029,11 @@ namespace Musical {
                 this.schedule(maxdelay, done);
             }
         }
+
+        dispose() {
+            // TODO
+            console.log("Musical.js Instrument.dispose() is not implemented.");
+        }
     }
 
     //

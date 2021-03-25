@@ -1177,7 +1177,7 @@ namespace App {
     }
 
     export function startAudio() {
-        piano = new Instrument(InstrumentType.Basic);
+        piano = new Instrument(InstrumentType.SynthBasic);
     }
 
     export function saveSongVersionToLocalStorage(ver: number) {

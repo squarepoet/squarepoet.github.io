@@ -33,7 +33,7 @@ namespace LUMIKeys {
     }
 
     function isLUMIKeys(io: Input | Output) {
-        return io.manufacturer.startsWith("ROLI") && io.name.startsWith("LUMI");
+        return io.manufacturer.toUpperCase().startsWith("ROLI") && io.name.toUpperCase().startsWith("LUMI");
     }
 
     function messageMatches(msgData: Uint8Array, msgString: string) {

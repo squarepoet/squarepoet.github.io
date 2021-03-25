@@ -332,7 +332,7 @@ export default (function () {
         },
 
         startAudio: () => {
-            piano = new Instrument(InstrumentType.Basic);
+            piano = new Instrument(InstrumentType.SynthBasic);
         },
 
         onKeydown: (e) => {

@@ -3,7 +3,7 @@ import Instrument, { InstrumentType } from "apps/shared/sound/Instrument";
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
-let piano: Instrument = null;
+let guitar: Instrument = null;
 
 const CANVAS_WIDTH = 1040;
 const CANVAS_HEIGHT = 280;
@@ -339,7 +339,7 @@ export default class GuitarAuthorV1 {
         let duration = 0.8;
         console.log("PLAY " + pianoKeyNumber);
 
-        piano.play(pianoKeyNumber, 0.4 /* seconds */, 0.8 /* volume */);
+        guitar.play(pianoKeyNumber, 0.4 /* seconds */, 0.8 /* volume */);
 
         /*
         TONE JS RIGHT HERE 
@@ -488,9 +488,8 @@ setInterval(() => {
     }
 
     onKeyDown(e: KeyboardEvent) {
-        if (!piano) {
-            console.log("Init Web Audio");
-            piano = new Instrument(InstrumentType.Basic);
+        if (!guitar) {
+            guitar = new Instrument(InstrumentType.SynthBasic);
         }
 
         // CMD KEY on Mac

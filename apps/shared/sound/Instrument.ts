@@ -1,28 +1,26 @@
 import Musical from "apps/shared/sound/Musical";
 import Preloader from "apps/shared/sound/Preloader";
+import ToneInfo from "apps/shared/sound/ToneInfo";
 import * as Tone from "tone";
 
+// #TODO: Can we reimplement the Musical.js sound with Tone.js?
+// See https://tonejs.github.io/docs/14.7.77/Oscillator.html
+
 enum InstrumentType {
-    Basic,
-    FM, // Electric Organ?
-    AM,
+    SynthBasic,
+    SynthFM,
+    SynthAM,
+    SynthMusicalJS, // Musical.js by PencilCode
     Sampled_1,
     Sampled_2,
-    Electric_1, // Musical.js
 }
-
-enum AudioSDKType {
-    Tone,
-    Musical,
-}
-
-type ToneJS_Instrument = Tone.PolySynth | Tone.Synth | Tone.FMSynth | Tone.AMSynth | Tone.Sampler;
-type MusicalJS_Instrument = Musical.Instrument;
 
 class Instrument {
-    sdk: AudioSDKType;
-    type: InstrumentType = InstrumentType.Basic;
-    instrument: ToneJS_Instrument | MusicalJS_Instrument = null;
+    type: InstrumentType = InstrumentType.SynthBasic;
+
+    toneJSInstrument: Tone.PolySynth | Tone.Sampler = null;
+    musicalJSInstrument: Musical.Instrument = null;
+
     private isReady: boolean = false;
 
     // For setting up Tone.Sampler
@@ -30,25 +28,19 @@ class Instrument {
     private samplesMap: any;
     private baseURL: string = "";
 
-    // Only call this from a user gesture, so we can call this.initWebAudio()!
+    // Only call this from a user gesture, so we can start WebAudio!
     constructor(type: InstrumentType) {
-        console.log("NEW INSTRUMENT");
         this.type = type;
-        this.initWebAudio();
-    }
-
-    private initWebAudio() {
-        if (this.type === InstrumentType.Electric_1) {
-            this.sdk = AudioSDKType.Musical;
-            console.log("Start Musical.js");
-            this.instrument = new Musical.Instrument("piano");
+        if (this.type === InstrumentType.SynthMusicalJS) {
+            this.musicalJSInstrument = new Musical.Instrument("piano");
             this.isReady = true;
         } else {
-            this.sdk = AudioSDKType.Tone;
-            console.log("Start Tone.js");
-            Tone.start().then(() => {
-                console.log("Tone is Ready!");
-            });
+            if (!ToneInfo.isRunning) {
+                Tone.start().then(() => {
+                    console.log("Tone is Ready!");
+                    ToneInfo.isRunning = true;
+                });
+            }
             switch (this.type) {
                 case InstrumentType.Sampled_1:
                     this.setupPreloaderAndSamplesMap_1();
@@ -58,72 +50,63 @@ class Instrument {
                     this.setupPreloaderAndSamplesMap_2();
                     // this.isReady will be true after all the mp3 files load.
                     break;
-                case InstrumentType.FM:
-                    this.instrument = new Tone.PolySynth(Tone.FMSynth).toDestination();
+                case InstrumentType.SynthFM:
+                    this.toneJSInstrument = new Tone.PolySynth(Tone.FMSynth).toDestination();
                     this.isReady = true;
                     break;
-                case InstrumentType.AM:
-                    this.instrument = new Tone.PolySynth(Tone.AMSynth).toDestination();
+                case InstrumentType.SynthAM:
+                    this.toneJSInstrument = new Tone.PolySynth(Tone.AMSynth).toDestination();
                     this.isReady = true;
                     break;
+                case InstrumentType.SynthBasic:
                 default:
-                    this.instrument = new Tone.PolySynth(Tone.Synth).toDestination();
+                    // Basic
+                    this.toneJSInstrument = new Tone.PolySynth(Tone.Synth).toDestination();
                     this.isReady = true;
                     break;
             }
         }
     }
 
-    get isInitialized(): boolean {
-        return this.instrument !== null && this.isReady;
+    public get isInitialized() {
+        return this.isReady;
     }
 
     play(pianoKeyNumber: number, durationInSeconds: number = 0, velocity: number = 1.0) {
-        console.log("PLAY " + pianoKeyNumber + " for " + durationInSeconds + " seconds at velocity = " + velocity);
-        if (this.sdk === AudioSDKType.Tone) {
-            // Tone.js
-            const noteName = Tone.Frequency(pianoKeyNumber + 20, "midi").toNote();
-            console.log("Play " + pianoKeyNumber + " <=> " + noteName);
+        const durationInfo = durationInSeconds > 0 ? ` for ${durationInSeconds} seconds` : "";
+        const velocityInfo = " at velocity = " + velocity;
+        console.log("PLAY " + pianoKeyNumber + durationInfo + velocityInfo);
 
-            if (durationInSeconds <= 0) {
-                (this.instrument as ToneJS_Instrument).triggerAttack(noteName, 0, velocity);
+        const midiNoteNumber = pianoKeyNumber + 20;
+
+        if (this.toneJSInstrument) {
+            const noteName = Tone.Frequency(midiNoteNumber, "midi").toNote();
+
+            if (durationInSeconds > 0) {
+                this.toneJSInstrument.triggerAttackRelease(noteName, durationInSeconds, Tone.now(), velocity);
             } else {
-                // this.instrument.triggerAttackRelease(noteName, "4n");
-                // (this.instrument as ToneJS_Instrument).triggerAttackRelease(noteName, durationInSeconds);
-                // this.instrument.triggerAttackRelease(noteName, durationInSeconds, 0 /* time from now */, velocity);
-                (this.instrument as ToneJS_Instrument).triggerAttack(noteName, 0, velocity);
+                this.toneJSInstrument.triggerAttack(noteName, Tone.now(), velocity);
             }
         } else {
             // Musical.js
-            // numerically (in Hz), or with midi numbers (as negative integers).
-            (this.instrument as MusicalJS_Instrument).tone(-(pianoKeyNumber + 20)); // Musical.js accepts negative MIDI numbers 60 == Middle C (pianoKeyNumber === 40)
+            // tone(...) parameter is specified
+            // as a positive integer in Hz
+            //   OR
+            // as a negative integer in MIDI note numbers
+            //   MIDI number 60 == Middle C == pianoKeyNumber 40
+            this.musicalJSInstrument.tone(-midiNoteNumber);
         }
     }
 
     stop(pianoKeyNumber: number) {
         console.log("STOP " + pianoKeyNumber);
-        if (this.sdk === AudioSDKType.Tone) {
-            const noteName = Tone.Frequency(pianoKeyNumber + 20, "midi").toNote();
-            console.log("TRIGGER RELEASE " + pianoKeyNumber + " / " + noteName);
-            (this.instrument as ToneJS_Instrument).triggerRelease(noteName);
+        if (this.toneJSInstrument) {
+            const midiNoteNumber = pianoKeyNumber + 20;
+            const noteName = Tone.Frequency(midiNoteNumber, "midi").toNote();
+            this.toneJSInstrument.triggerRelease(noteName);
         } else {
             // Musical.js
-            console.log("stop is NOT IMPLEMENTED FOR MUSICAL.JS");
-        }
-    }
-
-    stopAllNotes() {
-        console.log(this.type);
-        if (this.sdk === AudioSDKType.Tone) {
-            if (this.type === InstrumentType.Sampled_1 || this.type === InstrumentType.Sampled_2) {
-                console.log("stopAllNotes!");
-                (this.instrument as Tone.Sampler).releaseAll(Tone.now());
-            } else {
-                console.log("stopAllNotes is NOT IMPLEMENTED FOR SYNTHS.");
-            }
-        } else {
-            // Musical.js
-            console.log("stopAllNotes is NOT IMPLEMENTED FOR MUSICAL.JS");
+            console.log("STOP is NOT IMPLEMENTED FOR MUSICAL.JS");
         }
     }
 
@@ -201,6 +184,16 @@ class Instrument {
             },
         };
         this.instrument = new Tone.Sampler(this.samplesMap, config).toDestination();
+    }
+
+    dispose() {
+        console.log("DISPOSE");
+        if (this.sdk === AudioSDKType.Tone) {
+            this.instrument.dispose();
+        } else {
+            // TODO
+            console.log("TODO: Dispose of Musical JS????");
+        }
     }
 }
 

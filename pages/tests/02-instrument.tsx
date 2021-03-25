@@ -10,7 +10,7 @@ const Page = () => {
     }, []);
 
     function onClickStart() {
-        piano = new Instrument(InstrumentType.Basic);
+        piano = new Instrument(InstrumentType.SynthBasic);
     }
 
     function onClickPlaySomething() {
@@ -24,11 +24,9 @@ const Page = () => {
     }
 
     function stop() {
-        // BUG: STOP seems to only work on Synths.
         // piano.stop(40);
         // piano.stop(44);
         // piano.stop(47);
-        piano.stopAllNotes();
     }
 
     return (
