@@ -1,6 +1,6 @@
 # NEXT
 
--   [ ] I cannot repeatedly play a note without it going silent. Can I repro this somehow on my test page?
+-   [ ] http://localhost:3001/midi instrument dropdown doesn't update properly when choosing Grand Pianos.
 
 -   [ ] For guitar author, use a Karplus Strong Pluck Synth.
 
@@ -90,3 +90,4 @@
 -   [x] NOPE: Pretend to be lumi. Respond to ROLI Studio with my played back device config? :-)
 -   [x] Make progress on LUMI keys, and allow for customizing the device ID (at least support the one on github). Is there a way to query the device ID? How does ROLI Connect / Dashboard / Studio talk to
 -   [x] Fix UpperCase/lowercase issues with file names! DOH!
+-   [x] I cannot repeatedly play a note without it going silent. Tone.Sampler API changed after update.

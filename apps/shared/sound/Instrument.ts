@@ -32,9 +32,11 @@ class Instrument {
     constructor(type: InstrumentType) {
         this.type = type;
         if (this.type === InstrumentType.SynthMusicalJS) {
+            console.log("Creating a Musical JS Instrument");
             this.musicalJSInstrument = new Musical.Instrument("piano");
             this.isReady = true;
         } else {
+            console.log("Creating a Tone JS Instrument");
             if (!ToneInfo.isRunning) {
                 Tone.start().then(() => {
                     console.log("Tone is Ready!");
@@ -43,11 +45,57 @@ class Instrument {
             }
             switch (this.type) {
                 case InstrumentType.Sampled_1:
-                    this.setupPreloaderAndSamplesMap_1();
+                    // Stereo
+                    this.baseURL = "/s/m/grand/";
+                    this.samplesMap = {
+                        C1: "4.mp3",
+                        C2: "16.mp3",
+                        C3: "28.mp3",
+                        D3: "30.mp3",
+                        E3: "32.mp3",
+                        G3: "35.mp3",
+                        A3: "37.mp3",
+                        B3: "39.mp3",
+                        C4: "40.mp3",
+                        D4: "42.mp3",
+                        E4: "44.mp3",
+                        F4: "45.mp3",
+                        G4: "47.mp3",
+                        A4: "49.mp3",
+                        C5: "52.mp3",
+                        F5: "57.mp3",
+                        A5: "61.mp3",
+                        C6: "64.mp3",
+                        F6: "69.mp3",
+                        C7: "76.mp3",
+                        G7: "83.mp3",
+                        C8: "88.mp3",
+                    };
+                    this.setupSamplerInstrument({ attack: 0.01 });
                     // this.isReady will be true after all the mp3 files load.
                     break;
                 case InstrumentType.Sampled_2:
-                    this.setupPreloaderAndSamplesMap_2();
+                    // Mono
+                    this.baseURL = "/s/m/bright/";
+                    this.samplesMap = {
+                        C1: "4.mp3",
+                        G1: "11.mp3",
+                        C2: "16.mp3",
+                        G2: "23.mp3",
+                        C3: "28.mp3",
+                        G3: "35.mp3",
+                        C4: "40.mp3",
+                        G4: "47.mp3",
+                        C5: "52.mp3",
+                        G5: "59.mp3",
+                        C6: "64.mp3",
+                        G6: "71.mp3",
+                        C7: "76.mp3",
+                        G7: "83.mp3",
+                        C8: "88.mp3",
+                    };
+                    this.setupSamplerInstrument({ attack: 0.05 });
+
                     // this.isReady will be true after all the mp3 files load.
                     break;
                 case InstrumentType.SynthFM:
@@ -110,60 +158,9 @@ class Instrument {
         }
     }
 
-    // Sampled_1: Punchy Attack
-    setupPreloaderAndSamplesMap_1() {
-        this.baseURL = "/s/m/grand/";
-        this.samplesMap = {
-            C1: "4.mp3",
-            C2: "16.mp3",
-            C3: "28.mp3",
-            D3: "30.mp3",
-            E3: "32.mp3",
-            G3: "35.mp3",
-            A3: "37.mp3",
-            B3: "39.mp3",
-            C4: "40.mp3",
-            D4: "42.mp3",
-            E4: "44.mp3",
-            F4: "45.mp3",
-            G4: "47.mp3",
-            A4: "49.mp3",
-            C5: "52.mp3",
-            F5: "57.mp3",
-            A5: "61.mp3",
-            C6: "64.mp3",
-            F6: "69.mp3",
-            C7: "76.mp3",
-            G7: "83.mp3",
-            C8: "88.mp3",
-        };
-        this.setupSamplerInstrument();
-    }
+    setupSamplerInstrument(options: any) {
+        this.isReady = false;
 
-    // Sampled_2: Softer/Smoother
-    setupPreloaderAndSamplesMap_2() {
-        this.baseURL = "/s/m/bright/";
-        this.samplesMap = {
-            C1: "4.mp3",
-            G1: "11.mp3",
-            C2: "16.mp3",
-            G2: "23.mp3",
-            C3: "28.mp3",
-            G3: "35.mp3",
-            C4: "40.mp3",
-            G4: "47.mp3",
-            C5: "52.mp3",
-            G5: "59.mp3",
-            C6: "64.mp3",
-            G6: "71.mp3",
-            C7: "76.mp3",
-            G7: "83.mp3",
-            C8: "88.mp3",
-        };
-        this.setupSamplerInstrument();
-    }
-
-    setupSamplerInstrument() {
         // Get absolute URLs for mp3 sample files to preload.
         const filesToPreload = [];
         for (const keyName in this.samplesMap) {
@@ -171,28 +168,33 @@ class Instrument {
             console.log(this.baseURL + fileName);
             filesToPreload.push(this.baseURL + fileName);
         }
+
         // Preload the files now.
         this.preloader = new Preloader(filesToPreload);
 
         // Create a Tone.Sampler instrument
         const config: any = {
-            release: 1,
+            urls: this.samplesMap,
             baseUrl: this.baseURL,
-            onload: (buffers: any) => {
-                // Files successfully preloaded.
+            attack: options.attack, // determines how quickly the note comes in (the attack part of the ADSR envelope)
+            release: 0.8, // determines how quickly the note falls off (the release part of the ADSR envelope)
+            curve: "exponential", // exponential | linear
+            onload: () => {
                 this.isReady = true;
             },
         };
-        this.instrument = new Tone.Sampler(this.samplesMap, config).toDestination();
+        this.toneJSInstrument = new Tone.Sampler(config).toDestination();
     }
 
     dispose() {
         console.log("DISPOSE");
-        if (this.sdk === AudioSDKType.Tone) {
-            this.instrument.dispose();
-        } else {
-            // TODO
-            console.log("TODO: Dispose of Musical JS????");
+        if (this.toneJSInstrument) {
+            this.toneJSInstrument.dispose();
+            this.toneJSInstrument = null;
+            this.preloader = null;
+        }
+        if (this.musicalJSInstrument) {
+            this.musicalJSInstrument = null;
         }
     }
 }

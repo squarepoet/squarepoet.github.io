@@ -44,7 +44,7 @@ const Page = () => {
 
     // Which Tone.js/Musical.js instrument should we use?
     const useSelectInstrumentState = createPersistedState(Constants.StoreKeys.PIANO_TYPE);
-    const [instrument, setInstrument] = useSelectInstrumentState(Constants.Instrument.PIANO_GRAND);
+    const [instrument, setInstrument] = useSelectInstrumentState(Constants.Instrument.PIANO_GRAND_1);
     const onSelectInstrumentChange = (e) => {
         const instrument = e.target.value;
         setInstrument(instrument);
@@ -133,9 +133,9 @@ const Page = () => {
                     <InputLabel id="select-instrument-label" className={classes.label}>
                         Instrument Sound
                     </InputLabel>
-                    <Select labelId="select-instrument-label" id="select-instrument" value={instrument} onChange={onSelectInstrumentChange} label="Instrument" className={classes.select}>
-                        <MenuItem value={Constants.Instrument.PIANO_GRAND}>Grand Piano</MenuItem>
-                        <MenuItem value={Constants.Instrument.PIANO_ROCK}>Rock Piano</MenuItem>
+                    <Select labelId="select-instrument-label" id="select-instrument" value={instrument ?? Constants.Instrument.OTHER} onChange={onSelectInstrumentChange} label="Instrument" className={classes.select}>
+                        <MenuItem value={Constants.Instrument.PIANO_GRAND_1}>Grand Piano #1</MenuItem>
+                        <MenuItem value={Constants.Instrument.PIANO_GRAND_2}>Grand Piano #2</MenuItem>
                         <MenuItem value={Constants.Instrument.PIANO_ELECTRIC}>Electric Piano</MenuItem>
                         <MenuItem value={Constants.Instrument.ORGAN_1}>Organ 1</MenuItem>
                         <MenuItem value={Constants.Instrument.ORGAN_2}>Organ 2</MenuItem>

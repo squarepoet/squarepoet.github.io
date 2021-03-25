@@ -159,10 +159,11 @@ namespace MIDIControllerIO {
     export function setInstrument(instrumentTypeString: string) {
         let instrumentType = InstrumentType.SynthBasic;
         switch (instrumentTypeString) {
-            case Constants.Instrument.PIANO_GRAND:
+            case Constants.Instrument.PIANO_GRAND_1:
+                console.log("Sampled 1");
                 instrumentType = InstrumentType.Sampled_1;
                 break;
-            case Constants.Instrument.PIANO_ROCK:
+            case Constants.Instrument.PIANO_GRAND_2:
                 instrumentType = InstrumentType.Sampled_2;
                 break;
             case Constants.Instrument.PIANO_ELECTRIC:

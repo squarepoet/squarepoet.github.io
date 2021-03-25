@@ -26,8 +26,8 @@ namespace Constants {
     export const DEFAULT_DOWNLOAD_DATA = "8J+OtQ=="; // base 64 encoded!
 
     export namespace Instrument {
-        export const PIANO_GRAND = "piano_grand";
-        export const PIANO_ROCK = "piano_rock";
+        export const PIANO_GRAND_1 = "piano_grand_1";
+        export const PIANO_GRAND_2 = "piano_grand_2";
         export const PIANO_ELECTRIC = "piano_electric";
         export const ORGAN_1 = "organ_1";
         export const ORGAN_2 = "organ_2";
