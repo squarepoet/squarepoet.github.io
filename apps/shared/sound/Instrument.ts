@@ -188,10 +188,10 @@ class Instrument {
 
     dispose() {
         console.log("DISPOSE");
+        this.preloader = null;
         if (this.toneJSInstrument) {
             this.toneJSInstrument.dispose();
             this.toneJSInstrument = null;
-            this.preloader = null;
         }
         if (this.musicalJSInstrument) {
             this.musicalJSInstrument = null;

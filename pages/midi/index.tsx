@@ -1,15 +1,14 @@
 import SetOctaveAndBrightnessPanel from "apps/midi/SetOctaveAndBrightnessPanel";
+import UserColorsPanel from "apps/midi/UserColorsPanel";
 import Constants from "apps/shared/Constants";
 import LUMIKeys from "apps/shared/midi/LUMIKeys";
 import MIDIControllerIO from "apps/shared/midi/MIDIControllerIO";
-import ClearBoth from "components/ClearBoth";
 import PreloadDialog from "components/dialogs/Preload";
-import InputSaved, { InputSavedInterface } from "components/InputSaved";
 import { Spacer30px, Spacer60px } from "components/Spacer";
 import React, { useEffect, useRef, useState } from "react";
 import createPersistedState from "use-persisted-state";
 
-import { FormControl, FormHelperText, InputLabel, MenuItem, Select } from "@material-ui/core";
+import { FormControl, InputLabel, MenuItem, Select } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
 
 const useStyles = makeStyles((theme) => ({
@@ -28,9 +27,6 @@ const useStyles = makeStyles((theme) => ({
 
 const Page = () => {
     const classes = useStyles();
-
-    const lumiRootKeyColorInput = useRef<InputSavedInterface>();
-    const lumiGlobalKeyColorInput = useRef<InputSavedInterface>();
 
     const [showPreloadDialog, setShowPreloadDialog] = useState(true);
 
@@ -79,39 +75,6 @@ const Page = () => {
     const onDialogDismissedStartAudio = () => {
         MIDIControllerIO.start(instrument);
         setShowPreloadDialog(false);
-    };
-
-    // e.g., FE03BC => 0xFE, 0x03, 0xBC
-    const getRGBFromHexString = (hex: string) => {
-        let r = 0;
-        let g = 0;
-        let b = 0;
-        if (hex.length === 6) {
-            r = parseInt("0x" + hex.substring(0, 2));
-            g = parseInt("0x" + hex.substring(2, 4));
-            b = parseInt("0x" + hex.substring(4, 6));
-        } else if (hex.length === 3) {
-            r = parseInt("0x" + hex.charAt(0) + hex.charAt(0));
-            g = parseInt("0x" + hex.charAt(1) + hex.charAt(1));
-            b = parseInt("0x" + hex.charAt(2) + hex.charAt(2));
-        } else {
-            throw "Cannot parse the hex color string.";
-        }
-        return { r: r, g: g, b: b };
-    };
-
-    const onRootKeyColorChanged = (val: string) => {
-        try {
-            const rgb = getRGBFromHexString(val);
-            LUMIKeys.setColorRootKey("rgb", rgb.r, rgb.g, rgb.b);
-        } catch (e) {}
-    };
-
-    const onGlobalKeyColorChanged = (val: string) => {
-        try {
-            const rgb = getRGBFromHexString(val);
-            LUMIKeys.setColorGlobalKey("rgb", rgb.r, rgb.g, rgb.b);
-        } catch (e) {}
     };
 
     return (
@@ -409,57 +372,7 @@ const Page = () => {
                     </div>
                 </div>
                 <br />
-                <div style={{ border: "1px solid gray", padding: "5px 10px 10px 10px" }}>
-                    <div>User Colors</div>
-                    <div style={{ fontSize: "14px" }}>Only visible when you choose "user" in one of the modes above.</div>
-                    <div style={{ float: "left" }}>
-                        <div>Root Key</div>
-                        <div>
-                            <div className="colorSwatch" style={{ backgroundColor: "#0000FF" }} onClick={LUMIKeys.getClickHandler_SetColorRootKey("rgb", 0x00, 0x00, 0xff)}></div>
-                            <div className="colorSwatch" style={{ backgroundColor: "#00FF00" }} onClick={LUMIKeys.getClickHandler_SetColorRootKey("rgb", 0x00, 0xff, 0x00)}></div>
-                            <div className="colorSwatch" style={{ backgroundColor: "#FF0000" }} onClick={LUMIKeys.getClickHandler_SetColorRootKey("rgb", 0xff, 0x00, 0x00)}></div>
-                            <div className="colorSwatch" style={{ backgroundColor: "#FFFF00" }} onClick={LUMIKeys.getClickHandler_SetColorRootKey("rgb", 0xff, 0xff, 0x00)}></div>
-                            <div className="colorSwatch" style={{ backgroundColor: "#FF00FF" }} onClick={LUMIKeys.getClickHandler_SetColorRootKey("rgb", 0xff, 0x00, 0xff)}></div>
-                            <div className="colorSwatch" style={{ backgroundColor: "#00FFFF" }} onClick={LUMIKeys.getClickHandler_SetColorRootKey("rgb", 0x00, 0xff, 0xff)}></div>
-                            <div className="colorSwatch" style={{ backgroundColor: "#FFFFFF" }} onClick={LUMIKeys.getClickHandler_SetColorRootKey("rgb", 0xff, 0xff, 0xff)}></div>
-                            <div className="colorSwatch" style={{ backgroundColor: "#000000" }} onClick={LUMIKeys.getClickHandler_SetColorRootKey("rgb", 0x00, 0x00, 0x00)}></div>
-                            <div className="colorHexInput">
-                                <InputSaved
-                                    ref={lumiRootKeyColorInput}
-                                    label="rootKeyColor &nbsp; #"
-                                    persistedStateKey={"lumi_rootKeyColor"}
-                                    illegalCharactersRegExpStr="[^ABCDEFG0123456789]"
-                                    placeholder="e.g., 3FADEE"
-                                    onChange={onRootKeyColorChanged}
-                                />
-                            </div>
-                        </div>
-                    </div>
-                    <div style={{ float: "right" }}>
-                        <div>Other Keys</div>
-                        <div>
-                            <div className="colorSwatch" style={{ backgroundColor: "#0000FF" }} onClick={LUMIKeys.getClickHandler_SetColorGlobalKey("rgb", 0x00, 0x00, 0xff)}></div>
-                            <div className="colorSwatch" style={{ backgroundColor: "#00FF00" }} onClick={LUMIKeys.getClickHandler_SetColorGlobalKey("rgb", 0x00, 0xff, 0x00)}></div>
-                            <div className="colorSwatch" style={{ backgroundColor: "#FF0000" }} onClick={LUMIKeys.getClickHandler_SetColorGlobalKey("rgb", 0xff, 0x00, 0x00)}></div>
-                            <div className="colorSwatch" style={{ backgroundColor: "#FFFF00" }} onClick={LUMIKeys.getClickHandler_SetColorGlobalKey("rgb", 0xff, 0xff, 0x00)}></div>
-                            <div className="colorSwatch" style={{ backgroundColor: "#FF00FF" }} onClick={LUMIKeys.getClickHandler_SetColorGlobalKey("rgb", 0xff, 0x00, 0xff)}></div>
-                            <div className="colorSwatch" style={{ backgroundColor: "#00FFFF" }} onClick={LUMIKeys.getClickHandler_SetColorGlobalKey("rgb", 0x00, 0xff, 0xff)}></div>
-                            <div className="colorSwatch" style={{ backgroundColor: "#FFFFFF" }} onClick={LUMIKeys.getClickHandler_SetColorGlobalKey("rgb", 0xff, 0xff, 0xff)}></div>
-                            <div className="colorSwatch" style={{ backgroundColor: "#000000" }} onClick={LUMIKeys.getClickHandler_SetColorGlobalKey("rgb", 0x00, 0x00, 0x00)}></div>
-                            <div className="colorHexInput">
-                                <InputSaved
-                                    ref={lumiGlobalKeyColorInput}
-                                    label="globalKeyColor &nbsp; #"
-                                    persistedStateKey={"lumi_globalKeyColor"}
-                                    illegalCharactersRegExpStr="[^ABCDEFG0123456789]"
-                                    placeholder="e.g., 884544"
-                                    onChange={onGlobalKeyColorChanged}
-                                />
-                            </div>
-                        </div>
-                    </div>
-                    <ClearBoth />
-                </div>
+                <UserColorsPanel />
                 <br />
                 <SetOctaveAndBrightnessPanel />
                 <br />

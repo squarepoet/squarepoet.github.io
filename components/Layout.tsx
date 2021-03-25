@@ -64,6 +64,10 @@ const Layout = ({ title, children }: Props) => {
                     bottom: 10px;
                     right: 10px;
                 }
+
+                .debug {
+                    border: 1px solid red;
+                }
             `}</style>
         </>
     );
