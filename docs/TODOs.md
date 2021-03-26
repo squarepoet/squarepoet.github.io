@@ -1,10 +1,17 @@
 # CURRENTLY
 
+-   [ ] Call Tone.start() and set the first instrument whenever the user scrolls or clicks anywhere.
 -   [ ] Extract Components
 -   [ ] Computer Keyboard Input
 
 # TODOs
 
+-   [ ] use-persisted-state is very brittle. Whenever localStorage contains something unexpected, it can completely break the page from rendering. :-( I need to somehow validate the values retrieved from localStorage.
+    -   [ ] Stop using use-persisted-state / createPersistedState and use store2 API with some extra validation instead. Seems better.
+-   [ ]
+-   [ ]
+-   [ ]
+-   [ ]
 -   [ ] For guitar author, use a Karplus Strong Pluck Synth.
 -   [ ] See https://beatbucket.io/ to see how we can make our own synthesizers with the various options. Copy synths from AudioKit iPad Synth? (Run it on iOS Simulator).
 -   [ ] Make Piano/Guitar Author V1 & V2 work again. If played by computer keyboard, we play the note and stop it a second later. If played by MIDI controller, we wait until we get a NOTE_OFF.
@@ -62,14 +69,3 @@
 -   [ ] Learn about Debugging: https://code.visualstudio.com/docs/nodejs/nodejs-debugging#_breakpoints
 
 # DONE
-
--   [x] NOPE: LUMI Light up multiple keys (like I copied from ROLI Studio)
--   [x] NOPE: Pretend to be lumi. Respond to ROLI Studio with my played back device config? :-)
--   [x] Make progress on LUMI keys, and allow for customizing the device ID (at least support the one on github). Is there a way to query the device ID? How does ROLI Connect / Dashboard / Studio talk to
--   [x] Fix UpperCase/lowercase issues with file names! DOH!
--   [x] I cannot repeatedly play a note without it going silent. Tone.Sampler API changed after update.
--   [x] http://localhost:3001/midi instrument dropdown doesn't update properly when choosing Grand Pianos.
--   [x] Make Sampled Instruments work again! Why does the audio stop after a while??? Why can't we switch instruments back and forth?
--   [x] When we switch instruments, we should disconnect the old instrument. Is there a way to inspect our output to see how many instruments are currently connected?
--   [x] THE CODE IS REALLY UGLY :-) I'm still converting jQuery to React, so I should clean stuff up whenever possible.
--   [x] Fix bug where COPYRIGHT 2021 SquarePoet is NOT on the bottom right of the page when the page contents are too tall! It should be always at the bottom right once you scroll to the end of the contents.

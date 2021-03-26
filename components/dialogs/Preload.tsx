@@ -7,6 +7,8 @@ import {
 } from "@material-ui/core";
 
 // A modal dialog that forces the user to interact so we can start Web Audio and preload any samples.
+// Turns out this is really annoying! I'm going to have to figure out a better way to start Web Audio.
+// Detect onTouchStart events?
 const PreloadDialog = (props) => {
     let { initialOpenState, preloadNow } = props;
     const [open, setOpen] = useState(initialOpenState);

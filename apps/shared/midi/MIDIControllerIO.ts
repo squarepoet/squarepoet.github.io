@@ -1,12 +1,13 @@
-import Constants from "apps/shared/Constants";
 import LUMIKeys from "apps/shared/midi/LUMIKeys";
 import Instrument, { InstrumentType } from "apps/shared/sound/Instrument";
 import WebMidi, { Input, Output } from "webmidi";
 
 //
-//
 // Manufacturers:
 //   Snoize / MIDI Monitor (Untitled XX)
+// Manufacturer IDs (Hexadecimal)
+//   CME XKey Air 00 20 63
+//   ROLI         00 21 10
 namespace MIDIControllerIO {
     let inputs: Input[] = [];
     let outputs: Output[] = [];
@@ -15,8 +16,15 @@ namespace MIDIControllerIO {
     let logOutput: (msg: string) => void = null;
     let deviceListOutput: (deviceList: string) => void = null;
 
-    export function start(instrumentType: string) {
-        setInstrument(instrumentType);
+    let isStarted = false;
+
+    export function start() {
+        // Call start() only once!
+        if (isStarted) {
+            return;
+        }
+        isStarted = true;
+        console.log("MIDIControllerIO.start()");
 
         WebMidi.enable(function (err) {
             if (err) {
@@ -63,21 +71,19 @@ namespace MIDIControllerIO {
             LUMIKeys.connect();
 
             // output = WebMidi.outputs[0];
-            // output = WebMidi.getOutputById("1584982307");
             // output = WebMidi.getOutputByName("LUMI Keys Block KJ7T Bluetooth");
-            // LUMI Keys Block KJ7T Bluetooth id: 1054130867
-            // Xkey Air 37 BLE Bluetooth id: -1021446226
-            // output = WebMidi.getOutputById("1054130867");
-
-            // LUMI Keys Block KJ7T Bluetooth id: -899739147
-            // Xkey Air 37 BLE Bluetooth id: 1748751320
             // input = WebMidi.getInputByName("LUMI Keys Block KJ7T Bluetooth");
 
-            // if (!input) {
-            //     console.log("Input is: " + input);
-            //     console.log("Cannot Find LUMI Keys");
-            //     return;
-            // }
+            // A connected device will have unique IDs for input and output ports.
+            // These numbers aren't particularly useful, because they are unique to your machine and device,
+            // and might even change if you plug a device into a different USB port.
+            //   LUMI Keys Block KJ7T Bluetooth id: 1054130867
+            //   LUMI Keys Block KJ7T Bluetooth id: -899739147
+            //   Xkey Air 37 BLE Bluetooth id: -1021446226
+            //   Xkey Air 37 BLE Bluetooth id: 1748751320
+            //   MIDI Monitor by Snoize: -2075141395
+            // output = WebMidi.getOutputById("1054130867");
+            // output = WebMidi.getOutputById(-2075141395);
 
             // input.addListener("sysex", "all", function (e) {
             //     console.log("SYSEX");
@@ -91,28 +97,16 @@ namespace MIDIControllerIO {
             //     console.log(e);
             // });
 
-            // m.getOutputById(-2075141395) MIDI Monitor by Snoize
-            // o.playNote("C3")
-            // o.stopNote("C3")
+            // Send MIDI note on/off messages to the device.
+            // In LUMI Keys, a playNote message will highlight the key (white).
+            // output.playNote("C3");
+            // output.stopNote("C3");
 
             // WebMidi.MIDI_SYSTEM_MESSAGES.sysex; // #F0 == 240
-
-            // Manufacturer IDs (Hexadecimal)
-            // CME XKey Air 00 20 63
-            // ROLI         00 21 10
-
-            /*
-            f000 2110 7707 0103 0063 f7
-            ???
-
-            f000 2110 7707 1010 4f00 0000 0000 45f7
-            F0 00 21 10 77 07 10 10  4F 00 00 00 00 00 45 F7
-
-            f000 2110 7707 1010 6f00 0000 0000 25f7
-            */
         }, true /* SYSEX ENABLED */);
     }
 
+    // In Chrome console: wm, wm_i, wm_o.
     function setVariablesForDebugging() {
         window["wm"] = WebMidi;
         window["wm_i"] = WebMidi.inputs;
@@ -126,6 +120,21 @@ namespace MIDIControllerIO {
         WebMidi.outputs.forEach((output) => {
             console.log(output);
         });
+    }
+
+    export function attachLogOutput(logOutputHandler) {
+        logOutput = logOutputHandler;
+    }
+    export function attachDeviceListOutput(deviceListOutputHandler) {
+        deviceListOutput = deviceListOutputHandler;
+    }
+
+    export function setInstrument(instrumentType: InstrumentType) {
+        console.log("Set Instrument Type: " + instrumentType);
+        if (soundOutput) {
+            soundOutput.dispose();
+        }
+        soundOutput = new Instrument(instrumentType);
     }
 
     function playMIDINote(midiNoteNumber, velocity = 127.0) {
@@ -142,49 +151,11 @@ namespace MIDIControllerIO {
     function stopMIDINote(midiNoteNumber, velocity = 127.0) {
         console.log("STOP MIDI NOTE");
         if (soundOutput === null) {
-            console.log("playPianoNote: Piano has not been initialized.");
+            console.log("stopPianoNote: Piano has not been initialized.");
             return;
         }
         const pianoKeyNumber = midiNoteNumber - 20;
         soundOutput.stop(pianoKeyNumber);
-    }
-
-    export function attachLogOutput(logOutputHandler) {
-        logOutput = logOutputHandler;
-    }
-    export function attachDeviceListOutput(deviceListOutputHandler) {
-        deviceListOutput = deviceListOutputHandler;
-    }
-
-    export function setInstrument(instrumentTypeString: string) {
-        let instrumentType = InstrumentType.SynthBasic;
-        switch (instrumentTypeString) {
-            case Constants.Instrument.PIANO_GRAND_1:
-                console.log("Sampled 1");
-                instrumentType = InstrumentType.Sampled_1;
-                break;
-            case Constants.Instrument.PIANO_GRAND_2:
-                instrumentType = InstrumentType.Sampled_2;
-                break;
-            case Constants.Instrument.PIANO_ELECTRIC:
-                instrumentType = InstrumentType.SynthMusicalJS;
-                break;
-            case Constants.Instrument.ORGAN_1:
-                instrumentType = InstrumentType.SynthFM;
-                break;
-            case Constants.Instrument.ORGAN_2:
-                instrumentType = InstrumentType.SynthAM;
-                break;
-            case Constants.Instrument.OTHER:
-            default:
-                instrumentType = InstrumentType.SynthBasic;
-                break;
-        }
-        console.log("Set Instrument Type to " + instrumentTypeString + " / " + instrumentType);
-        if (soundOutput) {
-            soundOutput.dispose();
-        }
-        soundOutput = new Instrument(instrumentType);
     }
 }
 

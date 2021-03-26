@@ -3,10 +3,10 @@ import UserColorsPanel from "apps/midi/UserColorsPanel";
 import Constants from "apps/shared/Constants";
 import LUMIKeys from "apps/shared/midi/LUMIKeys";
 import MIDIControllerIO from "apps/shared/midi/MIDIControllerIO";
-import PreloadDialog from "components/dialogs/Preload";
+import { InstrumentType, validateInstrumentType } from "apps/shared/sound/Instrument";
 import { Spacer30px, Spacer60px } from "components/Spacer";
-import React, { useEffect, useRef, useState } from "react";
-import createPersistedState from "use-persisted-state";
+import React, { useEffect, useState } from "react";
+import store from "store2";
 
 import { FormControl, InputLabel, MenuItem, Select } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
@@ -28,8 +28,6 @@ const useStyles = makeStyles((theme) => ({
 const Page = () => {
     const classes = useStyles();
 
-    const [showPreloadDialog, setShowPreloadDialog] = useState(true);
-
     const [deviceList, setDeviceList] = useState("Looking for MIDI Devices...");
 
     const [midiEventsLog, setMIDIEventsLog] = useState("");
@@ -39,15 +37,37 @@ const Page = () => {
     const lumiEventsLogArray = [];
 
     // Which Tone.js/Musical.js instrument should we use?
-    const useSelectInstrumentState = createPersistedState(Constants.StoreKeys.PIANO_TYPE);
-    const [instrument, setInstrument] = useSelectInstrumentState(Constants.Instrument.PIANO_GRAND_1);
+    const [selectedInstrument, setSelectedInstrument] = useState(InstrumentType.SynthBasic);
+
     const onSelectInstrumentChange = (e) => {
-        const instrument = e.target.value;
-        setInstrument(instrument);
-        MIDIControllerIO.setInstrument(instrument);
+        const instrumentType = validateInstrumentType(e.target.value);
+        console.log("Saving " + instrumentType);
+        store.set(Constants.StoreKeys.PIANO_TYPE, instrumentType);
+        setSelectedInstrument(instrumentType);
+        MIDIControllerIO.setInstrument(instrumentType);
     };
 
     useEffect(() => {
+        document.ontouchstart = () => {
+            console.log("Touch Start");
+        };
+
+        document.onmousedown = () => {
+            console.log("Mouse Down");
+        };
+
+        window.addEventListener(
+            "scroll",
+            () => {
+                console.log("Scroll " + Math.random());
+                MIDIControllerIO.start();
+            },
+            true /* useCapture */
+        );
+
+        const savedInstrument = store.get(Constants.StoreKeys.PIANO_TYPE);
+        setSelectedInstrument(savedInstrument);
+
         // Print a color message to the console.
         console.log("%cHello MIDI 🎹", "color:yellow;font-size:22px;font-weight:bold;background:black;");
 
@@ -72,15 +92,9 @@ const Page = () => {
         });
     }, []);
 
-    const onDialogDismissedStartAudio = () => {
-        MIDIControllerIO.start(instrument);
-        setShowPreloadDialog(false);
-    };
-
     return (
         <>
             <div>
-                {showPreloadDialog ? <PreloadDialog initialOpenState={showPreloadDialog} preloadNow={onDialogDismissedStartAudio} /> : null}
                 <h1>MIDI Test Page</h1>
                 <h2>Devices</h2>
                 <div className="devicesSectionLayout">
@@ -96,13 +110,13 @@ const Page = () => {
                     <InputLabel id="select-instrument-label" className={classes.label}>
                         Instrument Sound
                     </InputLabel>
-                    <Select labelId="select-instrument-label" id="select-instrument" value={instrument ?? Constants.Instrument.OTHER} onChange={onSelectInstrumentChange} label="Instrument" className={classes.select}>
-                        <MenuItem value={Constants.Instrument.PIANO_GRAND_1}>Grand Piano #1</MenuItem>
-                        <MenuItem value={Constants.Instrument.PIANO_GRAND_2}>Grand Piano #2</MenuItem>
-                        <MenuItem value={Constants.Instrument.PIANO_ELECTRIC}>Electric Piano</MenuItem>
-                        <MenuItem value={Constants.Instrument.ORGAN_1}>Organ 1</MenuItem>
-                        <MenuItem value={Constants.Instrument.ORGAN_2}>Organ 2</MenuItem>
-                        <MenuItem value={Constants.Instrument.OTHER}>Other</MenuItem>
+                    <Select labelId="select-instrument-label" value={selectedInstrument} id="select-instrument" onChange={onSelectInstrumentChange} label="Instrument" className={classes.select}>
+                        <MenuItem value={InstrumentType.Sampled_1}>Piano #1</MenuItem>
+                        <MenuItem value={InstrumentType.Sampled_2}>Piano #2</MenuItem>
+                        <MenuItem value={InstrumentType.SynthMusicalJS}>Piano #3</MenuItem>
+                        <MenuItem value={InstrumentType.SynthFM}>Piano #4</MenuItem>
+                        <MenuItem value={InstrumentType.SynthAM}>Piano #5</MenuItem>
+                        <MenuItem value={InstrumentType.SynthBasic}>Piano #6</MenuItem>
                     </Select>
                 </FormControl>
                 <br />

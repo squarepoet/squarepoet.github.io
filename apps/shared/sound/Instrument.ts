@@ -6,14 +6,25 @@ import * as Tone from "tone";
 // #TODO: Can we reimplement the Musical.js sound with Tone.js?
 // See https://tonejs.github.io/docs/14.7.77/Oscillator.html
 
+// A Typescript enum is just a two way mapping between index and the string representation.
 enum InstrumentType {
-    SynthBasic,
+    SynthBasic = 0,
     SynthFM,
     SynthAM,
     SynthMusicalJS, // Musical.js by PencilCode
     Sampled_1,
     Sampled_2,
+    COUNT, // Old school! :-\
 }
+
+const validateInstrumentType = (inputValue: any): InstrumentType => {
+    const instrumentTypeNumber = parseInt(inputValue);
+    if (!isNaN(instrumentTypeNumber) && instrumentTypeNumber >= 0 && instrumentTypeNumber < InstrumentType.COUNT) {
+        return instrumentTypeNumber as InstrumentType; // inputValue was VALID!
+    } else {
+        return InstrumentType.SynthBasic; // inputValue was NOT VALID, so we return the default InstrumentType.
+    }
+};
 
 class Instrument {
     type: InstrumentType = InstrumentType.SynthBasic;
@@ -201,6 +212,6 @@ class Instrument {
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
-export { InstrumentType };
+export { InstrumentType, validateInstrumentType };
 
 export default Instrument;
