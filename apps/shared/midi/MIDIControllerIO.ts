@@ -9,8 +9,8 @@ import WebMidi, { Input, Output } from "webmidi";
 //   CME XKey Air 00 20 63
 //   ROLI         00 21 10
 namespace MIDIControllerIO {
-    let inputs: Input[] = [];
-    let outputs: Output[] = [];
+    let midiInputs: Input[] = [];
+    let midiOutputs: Output[] = [];
 
     let soundOutput: Instrument = null;
     let logOutput: (msg: string) => void = null;
@@ -38,7 +38,7 @@ namespace MIDIControllerIO {
 
             const inputDeviceInfo = [];
             for (const i of WebMidi.inputs) {
-                inputs.push(i);
+                midiInputs.push(i);
                 let inputName = "  " + i.name;
                 if (i.manufacturer !== "") {
                     inputName += "    " + i.manufacturer;
@@ -46,18 +46,16 @@ namespace MIDIControllerIO {
                 inputDeviceInfo.push(inputName);
 
                 i.addListener("noteon", "all", function (e) {
-                    playMIDINote(e.note.number, e.rawVelocity);
-                    logOutput("Note On: " + e.note.number + "  Velocity: " + e.rawVelocity);
+                    noteOn(e.note.number, e.rawVelocity);
                 });
                 i.addListener("noteoff", "all", function (e) {
-                    stopMIDINote(e.note.number, e.rawVelocity);
-                    logOutput("Note Off: " + e.note.number + "  Velocity: " + e.rawVelocity);
+                    noteOff(e.note.number, e.rawVelocity);
                 });
             }
 
             const outputDeviceInfo = [];
             for (const o of WebMidi.outputs) {
-                outputs.push(o);
+                midiOutputs.push(o);
                 let outputName = "  " + o.name;
                 if (o.manufacturer !== "") {
                     outputName += "    " + o.manufacturer;
@@ -125,37 +123,42 @@ namespace MIDIControllerIO {
     export function attachLogOutput(logOutputHandler) {
         logOutput = logOutputHandler;
     }
+
     export function attachDeviceListOutput(deviceListOutputHandler) {
         deviceListOutput = deviceListOutputHandler;
     }
 
     export function setInstrument(instrumentType: InstrumentType) {
-        console.log("Set Instrument Type: " + instrumentType);
         if (soundOutput) {
+            if (soundOutput.type === instrumentType) {
+                console.log("You chose the same instrumentType. Nothing more to do here.");
+                return;
+            }
             soundOutput.dispose();
         }
+        console.log("Set Instrument Type: " + instrumentType);
         soundOutput = new Instrument(instrumentType);
     }
 
-    function playMIDINote(midiNoteNumber, velocity = 127.0) {
-        console.log("PLAY MIDI NOTE");
-        if (soundOutput === null) {
-            console.log("playPianoNote: Piano has not been initialized.");
-            return;
+    // midiNoteNumber 60 is Middle C
+    // velocity ranges from 0 to 127
+    function noteOn(midiNoteNumber: number, velocity: number) {
+        logOutput("Note On: " + midiNoteNumber + "  Velocity: " + velocity);
+        if (soundOutput) {
+            const duration = 0; // Setting duration to 0 means the note will NOT turn off automatically.
+            const pianoKeyNumber = midiNoteNumber - 20;
+            soundOutput.play(pianoKeyNumber, duration, velocity / 127.0);
         }
-        const duration = 0; // Setting duration to 0 means the note will NOT turn off automatically.
-        const pianoKeyNumber = midiNoteNumber - 20;
-        soundOutput.play(pianoKeyNumber, duration, velocity / 127.0);
     }
 
-    function stopMIDINote(midiNoteNumber, velocity = 127.0) {
-        console.log("STOP MIDI NOTE");
-        if (soundOutput === null) {
-            console.log("stopPianoNote: Piano has not been initialized.");
-            return;
+    // midiNoteNumber 60 is Middle C
+    // velocity ranges from 0 to 127
+    function noteOff(midiNoteNumber: number, velocity: number) {
+        logOutput("Note Off: " + midiNoteNumber + "  Velocity: " + velocity);
+        if (soundOutput) {
+            const pianoKeyNumber = midiNoteNumber - 20;
+            soundOutput.stop(pianoKeyNumber);
         }
-        const pianoKeyNumber = midiNoteNumber - 20;
-        soundOutput.stop(pianoKeyNumber);
     }
 }
 

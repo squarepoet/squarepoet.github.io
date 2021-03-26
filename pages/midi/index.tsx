@@ -4,6 +4,7 @@ import Constants from "apps/shared/Constants";
 import LUMIKeys from "apps/shared/midi/LUMIKeys";
 import MIDIControllerIO from "apps/shared/midi/MIDIControllerIO";
 import { InstrumentType, validateInstrumentType } from "apps/shared/sound/Instrument";
+import ClearBoth from "components/ClearBoth";
 import { Spacer30px, Spacer60px } from "components/Spacer";
 import React, { useEffect, useState } from "react";
 import store from "store2";
@@ -48,31 +49,42 @@ const Page = () => {
     };
 
     useEffect(() => {
-        document.ontouchstart = () => {
-            console.log("Touch Start");
-        };
-
-        document.onmousedown = () => {
-            console.log("Mouse Down");
-        };
-
-        window.addEventListener(
-            "scroll",
-            () => {
-                console.log("Scroll " + Math.random());
-                MIDIControllerIO.start();
-            },
-            true /* useCapture */
-        );
-
-        const savedInstrument = store.get(Constants.StoreKeys.PIANO_TYPE);
+        const savedInstrument = validateInstrumentType(store.get(Constants.StoreKeys.PIANO_TYPE));
         setSelectedInstrument(savedInstrument);
+
+        const listenerForStartingWebAudio = (e) => {
+            console.log(typeof e);
+            removeListenersForStartingWebAudio();
+            startMIDIControllerIOWithSavedInstrument();
+            setMIDIEventsLog("Press some keys on your MIDI device to play sounds.");
+        };
+
+        const addListenersForStartingWebAudio = () => {
+            window.addEventListener("keydown", listenerForStartingWebAudio);
+            document.addEventListener("touchstart", listenerForStartingWebAudio);
+            document.addEventListener("mousedown", listenerForStartingWebAudio);
+        };
+
+        const removeListenersForStartingWebAudio = () => {
+            window.removeEventListener("keydown", listenerForStartingWebAudio);
+            document.removeEventListener("touchstart", listenerForStartingWebAudio);
+            document.removeEventListener("mousedown", listenerForStartingWebAudio);
+        };
+
+        // Make sure we call it!
+        addListenersForStartingWebAudio();
+
+        const startMIDIControllerIOWithSavedInstrument = () => {
+            console.log("YAYAGHEY");
+            MIDIControllerIO.start();
+            MIDIControllerIO.setInstrument(savedInstrument);
+        };
 
         // Print a color message to the console.
         console.log("%cHello MIDI 🎹", "color:yellow;font-size:22px;font-weight:bold;background:black;");
 
         // Add some info to the informational text area.
-        setMIDIEventsLog("Press some keys on your MIDI controller to play sounds.");
+        setMIDIEventsLog("Tap/Click here to connect to your MIDI device.");
         setLUMIEventsLog("Connect your LUMI Keys via Bluetooth or USB.");
 
         MIDIControllerIO.attachLogOutput((msg) => {
@@ -96,16 +108,6 @@ const Page = () => {
         <>
             <div>
                 <h1>MIDI Test Page</h1>
-                <h2>Devices</h2>
-                <div className="devicesSectionLayout">
-                    <div className="eventsLog midi">
-                        <pre>{midiEventsLog}</pre>
-                    </div>
-                    <div className="deviceList">
-                        <pre>{deviceList}</pre>
-                    </div>
-                </div>
-                <br />
                 <FormControl className={classes.form}>
                     <InputLabel id="select-instrument-label" className={classes.label}>
                         Instrument Sound
@@ -119,6 +121,16 @@ const Page = () => {
                         <MenuItem value={InstrumentType.SynthBasic}>Piano #6</MenuItem>
                     </Select>
                 </FormControl>
+                <ClearBoth />
+                <h2>Devices</h2>
+                <div className="devicesSectionLayout">
+                    <div className="eventsLog midi">
+                        <pre>{midiEventsLog}</pre>
+                    </div>
+                    <div className="deviceList">
+                        <pre>{deviceList}</pre>
+                    </div>
+                </div>
                 <br />
                 <hr />
                 <h2>LUMI Keys</h2>
