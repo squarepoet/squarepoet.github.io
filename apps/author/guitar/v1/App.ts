@@ -349,19 +349,16 @@ export default class GuitarAuthorV1 {
         See: https://tonejs.github.io/examples/oscillator
 
         Test Oscillator
-        WTF is partials??? It it what we are looking for?
+        What is partials??? It it what we are looking for?
 
-        Integrate it into 
-import Piano from "apps/shared/tone/Piano";
-        */
-        /*
+        const osc = new Tone.Oscillator("F3").toDestination().start();
+        setInterval(() => {
+            // generate 8 random partials
+            osc.partials = new Array(8).map(() => 0);
+        }, 1000);
 
-const osc = new Tone.Oscillator("F3").toDestination().start();
-setInterval(() => {
-	// generate 8 random partials
-	osc.partials = new Array(8).map(() => 0);
-}, 1000);
 
+        OR: Try out the PluckSynth!
         */
     }
 

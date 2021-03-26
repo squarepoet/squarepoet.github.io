@@ -1,11 +1,13 @@
+import BlackKeys from "apps/midi/BlackKeys";
+import ModeCustomizationPanel from "apps/midi/ModeCustomizationPanel";
 import SetOctaveAndBrightnessPanel from "apps/midi/SetOctaveAndBrightnessPanel";
 import UserColorsPanel from "apps/midi/UserColorsPanel";
+import WhiteKeys from "apps/midi/WhiteKeys";
 import Constants from "apps/shared/Constants";
 import LUMIKeys from "apps/shared/midi/LUMIKeys";
 import MIDIControllerIO from "apps/shared/midi/MIDIControllerIO";
 import { InstrumentType, validateInstrumentType } from "apps/shared/sound/Instrument";
 import ClearBoth from "components/ClearBoth";
-import { Spacer30px, Spacer60px } from "components/Spacer";
 import React, { useEffect, useState } from "react";
 import store from "store2";
 
@@ -151,80 +153,8 @@ const Page = () => {
                 <br />
                 <div>
                     <div>Light Up Note</div>
-                    <div className="blackKeys">
-                        <Spacer30px />
-                        <button onClick={LUMIKeys.getClickHandler_Highlight("C#3")}>
-                            C#3
-                            <br />
-                            Db3
-                        </button>
-                        <button onClick={LUMIKeys.getClickHandler_Highlight("D#3")}>
-                            D#3
-                            <br />
-                            Eb3
-                        </button>
-                        <Spacer60px />
-                        <button onClick={LUMIKeys.getClickHandler_Highlight("F#3")}>
-                            F#3
-                            <br />
-                            Gb3
-                        </button>
-                        <button onClick={LUMIKeys.getClickHandler_Highlight("G#3")}>
-                            G#3
-                            <br />
-                            Ab3
-                        </button>
-                        <button onClick={LUMIKeys.getClickHandler_Highlight("A#3")}>
-                            A#3
-                            <br />
-                            Bb3
-                        </button>
-                        <Spacer60px />
-                        <Spacer30px />
-                        <button onClick={LUMIKeys.getClickHandler_Highlight("C#4")}>
-                            C#4
-                            <br />
-                            Db4
-                        </button>
-                        <button onClick={LUMIKeys.getClickHandler_Highlight("D#4")}>
-                            D#4
-                            <br />
-                            Eb4
-                        </button>
-                        <Spacer60px />
-                        <button onClick={LUMIKeys.getClickHandler_Highlight("F#4")}>
-                            F#4
-                            <br />
-                            Gb4
-                        </button>
-                        <button onClick={LUMIKeys.getClickHandler_Highlight("G#4")}>
-                            G#4
-                            <br />
-                            Ab4
-                        </button>
-                        <button onClick={LUMIKeys.getClickHandler_Highlight("A#4")}>
-                            A#4
-                            <br />
-                            Bb4
-                        </button>
-                    </div>
-                    <div className="whiteKeys">
-                        <button onClick={LUMIKeys.getClickHandler_Highlight("C3")}>C3</button>
-                        <button onClick={LUMIKeys.getClickHandler_Highlight("D3")}>D3</button>
-                        <button onClick={LUMIKeys.getClickHandler_Highlight("E3")}>E3</button>
-                        <button onClick={LUMIKeys.getClickHandler_Highlight("F3")}>F3</button>
-                        <button onClick={LUMIKeys.getClickHandler_Highlight("G3")}>G3</button>
-                        <button onClick={LUMIKeys.getClickHandler_Highlight("A3")}>A3</button>
-                        <button onClick={LUMIKeys.getClickHandler_Highlight("B3")}>B3</button>
-                        <Spacer30px />
-                        <button onClick={LUMIKeys.getClickHandler_Highlight("C4")}>C4</button>
-                        <button onClick={LUMIKeys.getClickHandler_Highlight("D4")}>D4</button>
-                        <button onClick={LUMIKeys.getClickHandler_Highlight("E4")}>E4</button>
-                        <button onClick={LUMIKeys.getClickHandler_Highlight("F4")}>F4</button>
-                        <button onClick={LUMIKeys.getClickHandler_Highlight("G4")}>G4</button>
-                        <button onClick={LUMIKeys.getClickHandler_Highlight("A4")}>A4</button>
-                        <button onClick={LUMIKeys.getClickHandler_Highlight("B4")}>B4</button>
-                    </div>
+                    <BlackKeys />
+                    <WhiteKeys />
                 </div>
                 <br />
                 <div>
@@ -271,132 +201,7 @@ const Page = () => {
                     </div>
                 </div>
                 <br />
-                <div className="dt" style={{ border: "10px solid #000" }}>
-                    <div className="dtHead">
-                        <div className="dtCell">
-                            <a onClick={LUMIKeys.getClickHandler_SwitchToMode(1)}>Mode 1</a>
-                        </div>
-                        <div className="dtCell">
-                            <a onClick={LUMIKeys.getClickHandler_SwitchToMode(2)}>Mode 2</a>
-                        </div>
-                        <div className="dtCell">
-                            <a onClick={LUMIKeys.getClickHandler_SwitchToMode(3)}>Mode 3</a>
-                        </div>
-                        <div className="dtCell">
-                            <a onClick={LUMIKeys.getClickHandler_SwitchToMode(4)}>Mode 4</a>
-                        </div>
-                    </div>
-                    <div className="dtBody">
-                        <div className="dtRow">
-                            <div className="dtCell">
-                                <button onClick={LUMIKeys.getClickHandler_SetColorMode(1, "pro")}>pro</button>
-                                <div className="dtCellNote">highlight root note with single rainbow color</div>
-                            </div>
-                            <div className="dtCell">
-                                <button onClick={LUMIKeys.getClickHandler_SetColorMode(2, "pro")}>pro</button>
-                                <div className="dtCellNote">highlight root note with single rainbow color</div>
-                            </div>
-                            <div className="dtCell">
-                                <button onClick={LUMIKeys.getClickHandler_SetColorMode(3, "pro")}>pro</button>
-                                <div className="dtCellNote">highlight root note with single rainbow color</div>
-                            </div>
-                            <div className="dtCell">
-                                <button onClick={LUMIKeys.getClickHandler_SetColorMode(4, "pro")}>pro</button>
-                                <div className="dtCellNote">highlight root note with single rainbow color</div>
-                            </div>
-                        </div>
-                        <div className="dtRow">
-                            <div className="dtCell">
-                                <button onClick={LUMIKeys.getClickHandler_SetColorMode(1, "user")}>user</button>
-                                <div className="dtCellNote">highlight root note with user selected color</div>
-                            </div>
-                            <div className="dtCell">
-                                <button onClick={LUMIKeys.getClickHandler_SetColorMode(2, "user")}>user</button>
-                                <div className="dtCellNote">highlight root note with user selected color</div>
-                            </div>
-                            <div className="dtCell">
-                                <button onClick={LUMIKeys.getClickHandler_SetColorMode(3, "user")}>user</button>
-                                <div className="dtCellNote">highlight root note with user selected color</div>
-                            </div>
-                            <div className="dtCell">
-                                <button onClick={LUMIKeys.getClickHandler_SetColorMode(4, "user")}>user</button>
-                                <div className="dtCellNote">highlight root note with user selected color</div>
-                            </div>
-                        </div>
-                        <div className="dtRow">
-                            <div className="dtCell">
-                                <button onClick={LUMIKeys.getClickHandler_SetColorMode(1, "piano")}>piano</button>
-                                <div className="dtCellNote">white and black keys</div>
-                            </div>
-                            <div className="dtCell">
-                                <button onClick={LUMIKeys.getClickHandler_SetColorMode(2, "piano")}>piano</button>
-                                <div className="dtCellNote">white and black keys</div>
-                            </div>
-                            <div className="dtCell">
-                                <button onClick={LUMIKeys.getClickHandler_SetColorMode(3, "piano")}>piano</button>
-                                <div className="dtCellNote">white and black keys</div>
-                            </div>
-                            <div className="dtCell">
-                                <button onClick={LUMIKeys.getClickHandler_SetColorMode(4, "piano")}>piano</button>
-                                <div className="dtCellNote">white and black keys</div>
-                            </div>
-                        </div>
-                        <div className="dtRow">
-                            <div className="dtCell">
-                                <button onClick={LUMIKeys.getClickHandler_SetColorMode(1, "stage")}>stage</button>
-                                <div className="dtCellNote">dim rainbow colors, appropriate for a dark room</div>
-                            </div>
-                            <div className="dtCell">
-                                <button onClick={LUMIKeys.getClickHandler_SetColorMode(2, "stage")}>stage</button>
-                                <div className="dtCellNote">dim rainbow colors, appropriate for a dark room</div>
-                            </div>
-                            <div className="dtCell">
-                                <button onClick={LUMIKeys.getClickHandler_SetColorMode(3, "stage")}>stage</button>
-                                <div className="dtCellNote">dim rainbow colors, appropriate for a dark room</div>
-                            </div>
-                            <div className="dtCell">
-                                <button onClick={LUMIKeys.getClickHandler_SetColorMode(4, "stage")}>stage</button>
-                                <div className="dtCellNote">dim rainbow colors, appropriate for a dark room</div>
-                            </div>
-                        </div>
-                        <div className="dtRow">
-                            <div className="dtCell">
-                                <button onClick={LUMIKeys.getClickHandler_SetColorMode(1, "rainbow")}>rainbow</button>
-                                <div className="dtCellNote">bright rainbow colors, black sharps/flats</div>
-                            </div>
-                            <div className="dtCell">
-                                <button onClick={LUMIKeys.getClickHandler_SetColorMode(2, "rainbow")}>rainbow</button>
-                                <div className="dtCellNote">bright rainbow colors, black sharps/flats</div>
-                            </div>
-                            <div className="dtCell">
-                                <button onClick={LUMIKeys.getClickHandler_SetColorMode(3, "rainbow")}>rainbow</button>
-                                <div className="dtCellNote">bright rainbow colors, black sharps/flats</div>
-                            </div>
-                            <div className="dtCell">
-                                <button onClick={LUMIKeys.getClickHandler_SetColorMode(4, "rainbow")}>rainbow</button>
-                                <div className="dtCellNote">bright rainbow colors, black sharps/flats</div>
-                            </div>
-                        </div>
-                        <div className="dtRow">
-                            <div className="dtCell">
-                                <div className="dtCellNote">pitch bend</div>
-                                <button onClick={LUMIKeys.getClickHandler_PitchBend(1, true)}>on</button> <button onClick={LUMIKeys.getClickHandler_PitchBend(1, false)}>off</button>
-                            </div>
-                            <div className="dtCell">
-                                <div className="dtCellNote">pitch bend</div>
-                                <button onClick={LUMIKeys.getClickHandler_PitchBend(2, true)}>on</button> <button onClick={LUMIKeys.getClickHandler_PitchBend(2, false)}>off</button>
-                            </div>
-                            <div className="dtCell">
-                                <div className="dtCellNote">pitch bend</div>
-                                <button onClick={LUMIKeys.getClickHandler_PitchBend(3, true)}>on</button> <button onClick={LUMIKeys.getClickHandler_PitchBend(3, false)}>off</button>
-                            </div>
-                            <div className="dtCell">
-                                <div className="dtCellNote">pitch bend</div>
-                                <button onClick={LUMIKeys.getClickHandler_PitchBend(4, true)}>on</button> <button onClick={LUMIKeys.getClickHandler_PitchBend(4, false)}>off</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <ModeCustomizationPanel />
                 <br />
                 <UserColorsPanel />
                 <br />
@@ -421,9 +226,6 @@ const Page = () => {
                 <br />
                 <br />
                 <br />
-                {/* <div>
-                    <button onClick={LUMIKeys.startFakeDevice}>PRETEND TO BE LUMI (doesn't work!)</button>
-                </div> */}
             </div>
             <style jsx global>{`
                 .eventsLog {
@@ -462,6 +264,7 @@ const Page = () => {
                 .dt {
                     display: table;
                     width: 100%;
+                    margin-right: 100px;
                 }
                 .dtHead {
                     display: table-header-group;

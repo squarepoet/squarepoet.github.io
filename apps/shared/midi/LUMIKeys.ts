@@ -443,6 +443,7 @@ namespace LUMIKeys {
     // Sends a NoteOn and then a NoteOff after 1.2 seconds.
     export function getClickHandler_Highlight(noteName: string) {
         return () => {
+            console.log("Highlight " + noteName);
             for (const output of outputs) {
                 output.playNote(noteName, "all", { duration: 1200 /* ms */ });
             }

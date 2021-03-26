@@ -65,8 +65,8 @@ const Layout = ({ title, children }: Props) => {
                     right: 10px;
                 }
 
-                .debug {
-                    border: 1px solid red;
+                .DEBUG_LAYOUT {
+                    border: 1px solid pink;
                 }
             `}</style>
         </>

@@ -3,7 +3,7 @@ import classNames from "classnames";
 
 const SetOctaveAndBrightnessPanel = () => {
     const octaveOffsets = [-4, -3, -2, -1, 0, 1, 2, 3, 4, 5];
-    const setOctaveButtons = octaveOffsets.map((val, index) => {
+    const setOctaveButtons = octaveOffsets.map((val) => {
         const classes = classNames({ isOctave0: val === 0 });
         return (
             <button key={"setOctave_" + val} className={classes} onClick={LUMIKeys.getClickHandler_SetOctave(val)}>
@@ -13,7 +13,7 @@ const SetOctaveAndBrightnessPanel = () => {
     });
 
     const brightnessLevels = [100, 75, 50, 25, 20, 10, 1, 0];
-    const setBrightnessButtons = brightnessLevels.map((val, index) => {
+    const setBrightnessButtons = brightnessLevels.map((val) => {
         return (
             <button key={"setBrightness_" + val} onClick={LUMIKeys.getClickHandler_SetBrightness(val)}>
                 {val}%
