@@ -5,7 +5,7 @@
     "private": true,
     "scripts": {
         "dev": "NODE_OPTIONS='--inspect' next dev -p 3001",
-        "build": "next build && next export -o 'www'",
+        "build": "next build --debug && next export -o 'www'",
         "start": "next start"
     },
     "repository": {
@@ -24,8 +24,8 @@
         "midievents": "^2.0.0",
         "midifile": "^2.0.0",
         "next": "latest",
-        "react": "latest",
-        "react-dom": "latest",
+        "react": "^17.0.2",
+        "react-dom": "^17.0.2",
         "react-file-drop": "^3.1.2",
         "react-redux": "^7.2.2",
         "react-useinterval": "^1.0.2",

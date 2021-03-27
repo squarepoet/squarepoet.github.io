@@ -1,6 +1,8 @@
 import LUMIKeys from "apps/shared/midi/LUMIKeys";
 
-const Panel = () => {
+const ModeCustomization = () => {
+    const buttonStyle = { height: "40px", margin: "8px 0px" };
+
     const modeNumbers = [1, 2, 3, 4];
     const headerRow = modeNumbers.map((val, index) => {
         return (
@@ -13,7 +15,9 @@ const Panel = () => {
     const row0 = modeNumbers.map((val) => {
         return (
             <div key={"setColorModePro_" + val} className="dtCell">
-                <button onClick={LUMIKeys.getClickHandler_SetColorMode(val, "pro")}>pro</button>
+                <button style={buttonStyle} onClick={LUMIKeys.getClickHandler_SetColorMode(val, "pro")}>
+                    pro
+                </button>
                 <div className="dtCellNote">highlight root note with single rainbow color</div>
             </div>
         );
@@ -22,7 +26,9 @@ const Panel = () => {
     const row1 = modeNumbers.map((val) => {
         return (
             <div key={"setColorModeUser_" + val} className="dtCell">
-                <button onClick={LUMIKeys.getClickHandler_SetColorMode(val, "user")}>user</button>
+                <button style={buttonStyle} onClick={LUMIKeys.getClickHandler_SetColorMode(val, "user")}>
+                    user
+                </button>
                 <div className="dtCellNote">highlight root note with user selected color</div>
             </div>
         );
@@ -31,7 +37,9 @@ const Panel = () => {
     const row2 = modeNumbers.map((val) => {
         return (
             <div key={"setColorModePiano_" + val} className="dtCell">
-                <button onClick={LUMIKeys.getClickHandler_SetColorMode(val, "piano")}>piano 🎹</button>
+                <button style={buttonStyle} onClick={LUMIKeys.getClickHandler_SetColorMode(val, "piano")}>
+                    piano 🎹
+                </button>
                 <div className="dtCellNote">white and black keys</div>
             </div>
         );
@@ -40,7 +48,9 @@ const Panel = () => {
     const row3 = modeNumbers.map((val) => {
         return (
             <div key={"setColorModeStage_" + val} className="dtCell">
-                <button onClick={LUMIKeys.getClickHandler_SetColorMode(val, "stage")}>stage 🎧</button>
+                <button style={buttonStyle} onClick={LUMIKeys.getClickHandler_SetColorMode(val, "stage")}>
+                    stage 🎧
+                </button>
                 <div className="dtCellNote">dim rainbow colors, appropriate for a dark room</div>
             </div>
         );
@@ -49,19 +59,26 @@ const Panel = () => {
     const row4 = modeNumbers.map((val) => {
         return (
             <div key={"setColorModeRainbow_" + val} className="dtCell">
-                <button onClick={LUMIKeys.getClickHandler_SetColorMode(val, "rainbow")}>rainbow 🌈</button>
+                <button style={buttonStyle} onClick={LUMIKeys.getClickHandler_SetColorMode(val, "rainbow")}>
+                    rainbow 🌈
+                </button>
                 <div className="dtCellNote">bright rainbow colors, black sharps/flats</div>
             </div>
         );
     });
 
+    const pitchBendButtonStyle = { width: "50%", height: "50px", margin: "8px 0px" };
+
     const row5 = modeNumbers.map((val) => {
         return (
             <div key={"setPitchBend_" + val} className="dtCell">
                 <div className="dtCellNote">pitch bend</div>
-                <button onClick={LUMIKeys.getClickHandler_PitchBend(val, true)}>on</button>
-                <br />
-                <button onClick={LUMIKeys.getClickHandler_PitchBend(val, false)}>off</button>
+                <button style={pitchBendButtonStyle} onClick={LUMIKeys.getClickHandler_PitchBend(val, true)}>
+                    <b>ON</b>
+                </button>
+                <button style={pitchBendButtonStyle} onClick={LUMIKeys.getClickHandler_PitchBend(val, false)}>
+                    OFF
+                </button>
             </div>
         );
     });
@@ -83,4 +100,4 @@ const Panel = () => {
     );
 };
 
-export default Panel;
+export default ModeCustomization;

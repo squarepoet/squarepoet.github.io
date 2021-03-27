@@ -101,11 +101,20 @@ namespace LUMIKeys {
         }
     }
 
+    // Convert to hex for console.log()
+    // console.log(num.toString(16));
     function sendCommandToAllDevices(command) {
-        const commandWithHeader = [0x77, deviceID].concat(command);
+        const header = [0x77, deviceID];
+        const commandWithHeader = header.concat(command);
         const checksum = createChecksum(command);
         const commandWithHeaderAndCheckSum = commandWithHeader.concat(checksum);
+        console.log(`sendCommandToAllDevices: [ ${header} | ${command} | ${checksum} ]`);
+        console.log(`        HEXADECIMAL => 0x[ ${header.map(convertNumberToHexString)} | ${command.map(convertNumberToHexString)} | ${convertNumberToHexString(checksum)} ]`);
         sendSysExToAllDevices(commandWithHeaderAndCheckSum);
+    }
+
+    function convertNumberToHexString(num) {
+        return num.toString(16).toUpperCase().padStart(2, "0");
     }
 
     function createChecksum(values) {
@@ -113,62 +122,48 @@ namespace LUMIKeys {
         for (let i = 0; i < values.length; i++) {
             sum = (sum * 3 + values[i]) & 0xff;
         }
-        const returnVal = sum & 0x7f;
-        console.log("Checksum: 0x" + returnVal.toString(16));
-        return returnVal;
+        return sum & 0x7f;
     }
 
     export function getClickHandler_SetScaleRoot(rootNote) {
         return () => {
-            let command = [0x10, 0x30];
+            const command = [0x10, 0x30];
             switch (rootNote) {
                 case "C":
                 default:
-                    // [0x10, 0x30, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00]
                     command.push(...[0x03, 0x00]);
                     break;
-                case "C#":
-                    // [0x10, 0x30, 0x23, 0x00, 0x00, 0x00, 0x00, 0x00];
+                case "C#/Db":
                     command.push(...[0x23, 0x00]);
                     break;
                 case "D":
-                    // [0x10, 0x30, 0x43, 0x00, 0x00, 0x00, 0x00, 0x00];
                     command.push(...[0x43, 0x00]);
                     break;
-                case "D#":
-                    // [0x10, 0x30, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00];
+                case "D#/Eb":
                     command.push(...[0x63, 0x00]);
                     break;
                 case "E":
-                    // [0x10, 0x30, 0x03, 0x01, 0x00, 0x00, 0x00, 0x00];
                     command.push(...[0x03, 0x01]);
                     break;
                 case "F":
-                    // [0x10, 0x30, 0x23, 0x01, 0x00, 0x00, 0x00, 0x00];
                     command.push(...[0x23, 0x01]);
                     break;
-                case "F#":
-                    // [0x10, 0x30, 0x43, 0x01, 0x00, 0x00, 0x00, 0x00];
+                case "F#/Gb":
                     command.push(...[0x43, 0x01]);
                     break;
                 case "G":
-                    // [0x10, 0x30, 0x63, 0x01, 0x00, 0x00, 0x00, 0x00];
                     command.push(...[0x63, 0x01]);
                     break;
-                case "G#":
-                    // [0x10, 0x30, 0x03, 0x02, 0x00, 0x00, 0x00, 0x00];
+                case "G#/Ab":
                     command.push(...[0x03, 0x02]);
                     break;
                 case "A":
-                    // [0x10, 0x30, 0x23, 0x02, 0x00, 0x00, 0x00, 0x00];
                     command.push(...[0x23, 0x02]);
                     break;
-                case "A#":
-                    // [0x10, 0x30, 0x43, 0x02, 0x00, 0x00, 0x00, 0x00];
+                case "A#/Bb":
                     command.push(...[0x43, 0x02]);
                     break;
                 case "B":
-                    // [0x10, 0x30, 0x63, 0x02, 0x00, 0x00, 0x00, 0x00];
                     command.push(...[0x63, 0x02]);
                     break;
             }
@@ -237,23 +232,24 @@ namespace LUMIKeys {
 
     export function getClickHandler_SwitchToMode(modeNumber) {
         return () => {
-            let command = null;
             logOutput("Switch to Mode " + modeNumber);
+            const command = [0x10, 0x40];
             switch (modeNumber) {
                 case 1:
                 default:
-                    command = [0x10, 0x40, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00]; // Activate Mode 1
+                    command.push(0x02); // Activate Mode 1
                     break;
                 case 2:
-                    command = [0x10, 0x40, 0x22, 0x00, 0x00, 0x00, 0x00, 0x00]; // Activate Mode 2
+                    command.push(0x22); // Activate Mode 2
                     break;
                 case 3:
-                    command = [0x10, 0x40, 0x42, 0x00, 0x00, 0x00, 0x00, 0x00]; // Activate Mode 3
+                    command.push(0x42); // Activate Mode 3
                     break;
                 case 4:
-                    command = [0x10, 0x40, 0x62, 0x00, 0x00, 0x00, 0x00, 0x00]; // Activate Mode 4
+                    command.push(0x62); // Activate Mode 4
                     break;
             }
+            command.push(...[0x00, 0x00, 0x00, 0x00, 0x00]);
             sendCommandToAllDevices(command);
         };
     }
@@ -271,22 +267,22 @@ namespace LUMIKeys {
     export function getClickHandler_SetColorMode(modeNumber, modeType) {
         return () => {
             logOutput("Set color of mode: " + modeNumber + " to " + modeType);
-            let command = null;
+            const command = [0x10];
             switch (modeType) {
                 case "pro":
                     switch (modeNumber) {
                         case 1:
                         default:
-                            command = [0x10, 0x40, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00]; // Mode 1 => pro
+                            command.push(...[0x40, 0x0c, 0x00]); // Mode 1 => pro
                             break;
                         case 2:
-                            command = [0x10, 0x30, 0x0d, 0x00, 0x00, 0x00, 0x00, 0x00]; // Mode 2 => pro
+                            command.push(...[0x30, 0x0d, 0x00]); // Mode 2 => pro
                             break;
                         case 3:
-                            command = [0x10, 0x20, 0x0e, 0x00, 0x00, 0x00, 0x00, 0x00]; // Mode 3 => pro
+                            command.push(...[0x20, 0x0e, 0x00]); // Mode 3 => pro
                             break;
                         case 4:
-                            command = [0x10, 0x10, 0x0f, 0x00, 0x00, 0x00, 0x00, 0x00]; // Mode 4 => pro
+                            command.push(...[0x10, 0x0f, 0x00]); // Mode 4 => pro
                             break;
                     }
                     break;
@@ -294,16 +290,16 @@ namespace LUMIKeys {
                     switch (modeNumber) {
                         case 1:
                         default:
-                            command = [0x10, 0x40, 0x2c, 0x00, 0x00, 0x00, 0x00, 0x00]; // Mode 1
+                            command.push(...[0x40, 0x2c, 0x00]); // Mode 1
                             break;
                         case 2:
-                            command = [0x10, 0x30, 0x2d, 0x00, 0x00, 0x00, 0x00, 0x00]; // Mode 2
+                            command.push(...[0x30, 0x2d, 0x00]); // Mode 2
                             break;
                         case 3:
-                            command = [0x10, 0x20, 0x2e, 0x00, 0x00, 0x00, 0x00, 0x00]; // Mode 3
+                            command.push(...[0x20, 0x2e, 0x00]); // Mode 3
                             break;
                         case 4:
-                            command = [0x10, 0x10, 0x2f, 0x00, 0x00, 0x00, 0x00, 0x00]; // Mode 4
+                            command.push(...[0x10, 0x2f, 0x00]); // Mode 4
                             break;
                     }
                     break;
@@ -311,16 +307,16 @@ namespace LUMIKeys {
                     switch (modeNumber) {
                         case 1:
                         default:
-                            command = [0x10, 0x40, 0x4c, 0x00, 0x00, 0x00, 0x00, 0x00]; // Mode 1
+                            command.push(...[0x40, 0x4c, 0x00]); // Mode 1
                             break;
                         case 2:
-                            command = [0x10, 0x30, 0x4d, 0x00, 0x00, 0x00, 0x00, 0x00]; // Mode 2
+                            command.push(...[0x30, 0x4d, 0x00]); // Mode 2
                             break;
                         case 3:
-                            command = [0x10, 0x20, 0x4e, 0x00, 0x00, 0x00, 0x00, 0x00]; // Mode 3
+                            command.push(...[0x20, 0x4e, 0x00]); // Mode 3
                             break;
                         case 4:
-                            command = [0x10, 0x10, 0x4f, 0x00, 0x00, 0x00, 0x00, 0x00]; // Mode 4
+                            command.push(...[0x10, 0x4f, 0x00]); // Mode 4
                             break;
                     }
                     break;
@@ -328,16 +324,16 @@ namespace LUMIKeys {
                     switch (modeNumber) {
                         case 1:
                         default:
-                            command = [0x10, 0x40, 0x6c, 0x00, 0x00, 0x00, 0x00, 0x00]; // Mode 1
+                            command.push(...[0x40, 0x6c, 0x00]); // Mode 1
                             break;
                         case 2:
-                            command = [0x10, 0x30, 0x6d, 0x00, 0x00, 0x00, 0x00, 0x00]; // Mode 2
+                            command.push(...[0x30, 0x6d, 0x00]); // Mode 2
                             break;
                         case 3:
-                            command = [0x10, 0x20, 0x6e, 0x00, 0x00, 0x00, 0x00, 0x00]; // Mode 3
+                            command.push(...[0x20, 0x6e, 0x00]); // Mode 3
                             break;
                         case 4:
-                            command = [0x10, 0x10, 0x6f, 0x00, 0x00, 0x00, 0x00, 0x00]; // Mode 4
+                            command.push(...[0x10, 0x6f, 0x00]); // Mode 4
                             break;
                     }
                     break;
@@ -346,87 +342,89 @@ namespace LUMIKeys {
                     switch (modeNumber) {
                         case 1:
                         default:
-                            command = [0x10, 0x40, 0x0c, 0x01, 0x00, 0x00, 0x00, 0x00]; // Mode 1
+                            command.push(...[0x40, 0x0c, 0x01]); // Mode 1
                             break;
                         case 2:
-                            command = [0x10, 0x30, 0x0d, 0x01, 0x00, 0x00, 0x00, 0x00]; // Mode 2
+                            command.push(...[0x30, 0x0d, 0x01]); // Mode 2
                             break;
                         case 3:
-                            command = [0x10, 0x20, 0x0e, 0x01, 0x00, 0x00, 0x00, 0x00]; // Mode 3
+                            command.push(...[0x20, 0x0e, 0x01]); // Mode 3
                             break;
                         case 4:
-                            command = [0x10, 0x10, 0x0f, 0x01, 0x00, 0x00, 0x00, 0x00]; // Mode 4
+                            command.push(...[0x10, 0x0f, 0x01]); // Mode 4
                             break;
                     }
                     break;
             }
+            command.push(...[0x00, 0x00, 0x00, 0x00]);
             sendCommandToAllDevices(command);
         };
     }
 
     export function getClickHandler_SetScaleType(rootNote) {
         return () => {
-            let command = null;
+            const command = [0x10, 0x60];
             switch (rootNote) {
                 case "chromatic":
-                    command = [0x10, 0x60, 0x42, 0x04, 0x00, 0x00, 0x00, 0x00]; // chromatic
+                    command.push(...[0x42, 0x04]); // chromatic
                     break;
                 case "major":
                 default:
-                    command = [0x10, 0x60, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00]; // major
+                    command.push(...[0x02, 0x00]); // major
                     break;
                 case "minor":
-                    command = [0x10, 0x60, 0x22, 0x00, 0x00, 0x00, 0x00, 0x00]; // minor
+                    command.push(...[0x22, 0x00]); // minor
                     break;
-                case "pentatonic-neutral":
-                    command = [0x10, 0x60, 0x62, 0x00, 0x00, 0x00, 0x00, 0x00]; // pentatonic neutral
+                case "neutral-pentatonic":
+                    command.push(...[0x62, 0x00]); // neutral pentatonic
                     break;
-                case "pentatonic-major":
-                    command = [0x10, 0x60, 0x02, 0x01, 0x00, 0x00, 0x00, 0x00]; // pentatonic major
+                case "major-pentatonic":
+                    command.push(...[0x02, 0x01]); // major pentatonic
                     break;
-                case "pentatonic-minor":
-                    command = [0x10, 0x60, 0x22, 0x01, 0x00, 0x00, 0x00, 0x00]; // pentatonic minor
+                case "minor-pentatonic":
+                    command.push(...[0x22, 0x01]); // minor pentatonic
                     break;
                 case "blues":
-                    command = [0x10, 0x60, 0x42, 0x01, 0x00, 0x00, 0x00, 0x00]; // blues
+                    command.push(...[0x42, 0x01]); // blues
                     break;
                 case "harmonic-minor":
-                    command = [0x10, 0x60, 0x42, 0x00, 0x00, 0x00, 0x00, 0x00]; // harmonic minor
+                    command.push(...[0x42, 0x00]); // harmonic minor
                     break;
                 case "dorian":
-                    command = [0x10, 0x60, 0x62, 0x01, 0x00, 0x00, 0x00, 0x00]; // dorian
+                    command.push(...[0x62, 0x01]); // dorian
                     break;
                 case "phrygian":
-                    command = [0x10, 0x60, 0x02, 0x02, 0x00, 0x00, 0x00, 0x00]; // phrygian
+                    command.push(...[0x02, 0x02]); // phrygian
                     break;
                 case "lydian":
-                    command = [0x10, 0x60, 0x22, 0x02, 0x00, 0x00, 0x00, 0x00]; // lydian
+                    command.push(...[0x22, 0x02]); // lydian
                     break;
                 case "mixolydian":
-                    command = [0x10, 0x60, 0x42, 0x02, 0x00, 0x00, 0x00, 0x00]; // mixolydian
+                    command.push(...[0x42, 0x02]); // mixolydian
                     break;
                 case "locrian":
-                    command = [0x10, 0x60, 0x62, 0x02, 0x00, 0x00, 0x00, 0x00]; // locrian
+                    command.push(...[0x62, 0x02]); // locrian
                     break;
                 case "whole-tone":
-                    command = [0x10, 0x60, 0x02, 0x03, 0x00, 0x00, 0x00, 0x00]; // whole tone
+                    command.push(...[0x02, 0x03]); // whole tone
                     break;
                 case "arabic-a":
-                    command = [0x10, 0x60, 0x22, 0x02, 0x00, 0x00, 0x00, 0x00]; // arabic (a)
+                    command.push(...[0x22, 0x02]); // arabic (a)
                     break;
                 case "arabic-b":
-                    command = [0x10, 0x60, 0x42, 0x03, 0x00, 0x00, 0x00, 0x00]; // arabic (b)
+                    command.push(...[0x42, 0x03]); // arabic (b)
                     break;
                 case "japanese":
-                    command = [0x10, 0x60, 0x62, 0x03, 0x00, 0x00, 0x00, 0x00]; // japanese
+                    command.push(...[0x62, 0x03]); // japanese
                     break;
                 case "ryukyu":
-                    command = [0x10, 0x60, 0x02, 0x04, 0x00, 0x00, 0x00, 0x00]; // ryukyu
+                    command.push(...[0x02, 0x04]); // ryukyu
                     break;
                 case "8-tone-spanish":
-                    command = [0x10, 0x60, 0x22, 0x04, 0x00, 0x00, 0x00, 0x00]; // 8-tone spanish
+                    command.push(...[0x22, 0x04]); // 8-tone spanish
                     break;
             }
+            command.push(...[0x00, 0x00, 0x00, 0x00]);
             sendCommandToAllDevices(command);
         };
     }
@@ -485,7 +483,7 @@ namespace LUMIKeys {
     }
 
     export function setColorGlobalKey(color: string, red?: number, green?: number, blue?: number) {
-        let command = [0x10, 0x20];
+        const command = [0x10, 0x20];
         switch (color) {
             case "rgb":
                 let v1 = ((blue & 0x3) << 5) | 0x4;
@@ -514,7 +512,6 @@ namespace LUMIKeys {
                 command.push(...[0x64, 0x7f, 0x7f, 0x00, 0x7e]); // cyan
                 break;
             case "black":
-                console.log("BLACK");
                 command.push(...[0x04, 0x00, 0x00, 0x00, 0x7e]); // black
                 break;
             case "white":
@@ -523,7 +520,6 @@ namespace LUMIKeys {
                 break;
         }
         command.push(0x03);
-        console.log(command);
         sendCommandToAllDevices(command);
     }
 
@@ -571,7 +567,6 @@ namespace LUMIKeys {
                 break;
         }
         command.push(0x03);
-        console.log(command);
         sendCommandToAllDevices(command);
     }
 
@@ -636,38 +631,39 @@ namespace LUMIKeys {
     export function getClickHandler_PitchBend(modeNumber, enableFlag) {
         return () => {
             console.log("Set Pitch Bend for Mode " + modeNumber + " to " + enableFlag);
-            let command = null;
+            const command = [0x10];
             switch (modeNumber) {
                 case 1:
                 default:
                     if (enableFlag) {
-                        command = [0x10, 0x60, 0x2c, 0x00, 0x00, 0x00, 0x00, 0x00]; // Mode 1 Pitch Bend ON
+                        command.push(...[0x60, 0x2c]); // Mode 1 Pitch Bend ON
                     } else {
-                        command = [0x10, 0x60, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00]; // Mode 1 Pitch Bend OFF
+                        command.push(...[0x60, 0x0c]); // Mode 1 Pitch Bend OFF
                     }
                     break;
                 case 2:
                     if (enableFlag) {
-                        command = [0x10, 0x50, 0x2d, 0x00, 0x00, 0x00, 0x00, 0x00]; // Mode 1 Pitch Bend ON
+                        command.push(...[0x50, 0x2d]); // Mode 1 Pitch Bend ON
                     } else {
-                        command = [0x10, 0x50, 0x0d, 0x00, 0x00, 0x00, 0x00, 0x00]; // Mode 1 Pitch Bend OFF
+                        command.push(...[0x50, 0x0d]); // Mode 1 Pitch Bend OFF
                     }
                     break;
                 case 3:
                     if (enableFlag) {
-                        command = [0x10, 0x40, 0x2e, 0x00, 0x00, 0x00, 0x00, 0x00]; // Mode 1 Pitch Bend ON
+                        command.push(...[0x40, 0x2e]); // Mode 1 Pitch Bend ON
                     } else {
-                        command = [0x10, 0x40, 0x0e, 0x00, 0x00, 0x00, 0x00, 0x00]; // Mode 1 Pitch Bend OFF
+                        command.push(...[0x40, 0x0e]); // Mode 1 Pitch Bend OFF
                     }
                     break;
                 case 4:
                     if (enableFlag) {
-                        command = [0x10, 0x30, 0x2f, 0x00, 0x00, 0x00, 0x00, 0x00]; // Mode 1 Pitch Bend ON
+                        command.push(...[0x30, 0x2f]); // Mode 1 Pitch Bend ON
                     } else {
-                        command = [0x10, 0x30, 0x0f, 0x00, 0x00, 0x00, 0x00, 0x00]; // Mode 1 Pitch Bend OFF
+                        command.push(...[0x30, 0x0f]); // Mode 1 Pitch Bend OFF
                     }
                     break;
             }
+            command.push(...[0x00, 0x00, 0x00, 0x00, 0x00]);
             sendCommandToAllDevices(command);
         };
     }

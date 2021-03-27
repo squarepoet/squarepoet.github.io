@@ -1,7 +1,9 @@
 import BlackKeys from "apps/midi/BlackKeys";
-import ModeCustomizationPanel from "apps/midi/ModeCustomizationPanel";
-import SetOctaveAndBrightnessPanel from "apps/midi/SetOctaveAndBrightnessPanel";
-import UserColorsPanel from "apps/midi/UserColorsPanel";
+import ModeCustomization from "apps/midi/ModeCustomization";
+import SetOctaveAndBrightness from "apps/midi/SetOctaveAndBrightness";
+import SetScaleRoot from "apps/midi/SetScaleRoot";
+import SetScaleType from "apps/midi/SetScaleType";
+import UserColors from "apps/midi/UserColors";
 import WhiteKeys from "apps/midi/WhiteKeys";
 import Constants from "apps/shared/Constants";
 import LUMIKeys from "apps/shared/midi/LUMIKeys";
@@ -77,7 +79,6 @@ const Page = () => {
         addListenersForStartingWebAudio();
 
         const startMIDIControllerIOWithSavedInstrument = () => {
-            console.log("YAYAGHEY");
             MIDIControllerIO.start();
             MIDIControllerIO.setInstrument(savedInstrument);
         };
@@ -90,7 +91,6 @@ const Page = () => {
         setLUMIEventsLog("Connect your LUMI Keys via Bluetooth or USB.");
 
         MIDIControllerIO.attachLogOutput((msg) => {
-            console.log(msg);
             midiEventsLogArray.unshift(msg);
             setMIDIEventsLog(midiEventsLogArray.join("\n"));
         });
@@ -157,55 +157,15 @@ const Page = () => {
                     <WhiteKeys />
                 </div>
                 <br />
-                <div>
-                    <div>Scale Root</div>
-                    <div>
-                        <button onClick={LUMIKeys.getClickHandler_SetScaleRoot("C")}>C</button>
-                        <button onClick={LUMIKeys.getClickHandler_SetScaleRoot("C#")}>C#/Db</button>
-                        <button onClick={LUMIKeys.getClickHandler_SetScaleRoot("D")}>D</button>
-                        <button onClick={LUMIKeys.getClickHandler_SetScaleRoot("D#")}>D#/Eb</button>
-                        <button onClick={LUMIKeys.getClickHandler_SetScaleRoot("E")}>E</button>
-                        <button onClick={LUMIKeys.getClickHandler_SetScaleRoot("F")}>F</button>
-                        <button onClick={LUMIKeys.getClickHandler_SetScaleRoot("F#")}>F#/Gb</button>
-                        <button onClick={LUMIKeys.getClickHandler_SetScaleRoot("G")}>G</button>
-                        <button onClick={LUMIKeys.getClickHandler_SetScaleRoot("G#")}>G#/Ab</button>
-                        <button onClick={LUMIKeys.getClickHandler_SetScaleRoot("A")}>A</button>
-                        <button onClick={LUMIKeys.getClickHandler_SetScaleRoot("A#")}>A#/Bb</button>
-                        <button onClick={LUMIKeys.getClickHandler_SetScaleRoot("B")}>B</button>
-                    </div>
-                </div>
+                <SetScaleRoot />
                 <br />
-                <div>
-                    <div>Scale Type</div>
-                    <div>
-                        <button onClick={LUMIKeys.getClickHandler_SetScaleType("major")}>major</button>
-                        <button onClick={LUMIKeys.getClickHandler_SetScaleType("minor")}>minor</button>
-                        <button onClick={LUMIKeys.getClickHandler_SetScaleType("harmonic-minor")}>harmonic minor</button>
-                        <button onClick={LUMIKeys.getClickHandler_SetScaleType("pentatonic-major")}>major pentatonic</button>
-                        <button onClick={LUMIKeys.getClickHandler_SetScaleType("pentatonic-minor")}>minor pentatonic</button>
-                        <button onClick={LUMIKeys.getClickHandler_SetScaleType("blues")}>blues</button>
-                        <button onClick={LUMIKeys.getClickHandler_SetScaleType("dorian")}>dorian</button>
-                        <button onClick={LUMIKeys.getClickHandler_SetScaleType("phrygian")}>phrygian</button>
-                        <button onClick={LUMIKeys.getClickHandler_SetScaleType("lydian")}>lydian</button>
-                        <button onClick={LUMIKeys.getClickHandler_SetScaleType("mixolydian")}>mixolydian</button>
-                        <button onClick={LUMIKeys.getClickHandler_SetScaleType("locrian")}>locrian</button>
-                    </div>
-                    <div>
-                        <button onClick={LUMIKeys.getClickHandler_SetScaleType("chromatic")}>chromatic</button>
-                        <button onClick={LUMIKeys.getClickHandler_SetScaleType("whole-tone")}>whole-tone</button>
-                        <button onClick={LUMIKeys.getClickHandler_SetScaleType("arabic-a")}>arabic-a</button>
-                        <button onClick={LUMIKeys.getClickHandler_SetScaleType("arabic-b")}>arabic-b</button>
-                        <button onClick={LUMIKeys.getClickHandler_SetScaleType("japanese")}>japanese</button>
-                        <button onClick={LUMIKeys.getClickHandler_SetScaleType("ryukyu")}>ryukyu</button>
-                        <button onClick={LUMIKeys.getClickHandler_SetScaleType("8-tone-spanish")}>8-tone-spanish</button>
-                    </div>
-                </div>
+                <SetScaleType />
                 <br />
-                <ModeCustomizationPanel />
+                <ModeCustomization />
                 <br />
-                <UserColorsPanel />
+                <UserColors />
                 <br />
-                <SetOctaveAndBrightnessPanel />
+                <SetOctaveAndBrightness />
                 <br />
                 <div>
                     <label>

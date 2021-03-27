@@ -4,7 +4,7 @@ import ClearBoth from "components/ClearBoth";
 import InputSaved, { InputSavedInterface } from "components/InputSaved";
 import React, { useRef } from "react";
 
-const UserColorsPanel = () => {
+const UserColors = () => {
     const lumiRootKeyColorInput = useRef<InputSavedInterface>();
     const lumiGlobalKeyColorInput = useRef<InputSavedInterface>();
 
@@ -12,14 +12,18 @@ const UserColorsPanel = () => {
         try {
             const rgb = getRGBFromHexString(val);
             LUMIKeys.setColorRootKey("rgb", rgb.r, rgb.g, rgb.b);
-        } catch (e) {}
+        } catch (e) {
+            // DO NOTHING IF WE CANNOT PARSE THE COLOR STRING
+        }
     };
 
     const onGlobalKeyColorChanged = (val: string) => {
         try {
             const rgb = getRGBFromHexString(val);
             LUMIKeys.setColorGlobalKey("rgb", rgb.r, rgb.g, rgb.b);
-        } catch (e) {}
+        } catch (e) {
+            // DO NOTHING IF WE CANNOT PARSE THE COLOR STRING
+        }
     };
 
     return (
@@ -78,4 +82,4 @@ const UserColorsPanel = () => {
         </>
     );
 };
-export default UserColorsPanel;
+export default UserColors;

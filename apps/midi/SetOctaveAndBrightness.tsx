@@ -1,13 +1,19 @@
 import LUMIKeys from "apps/shared/midi/LUMIKeys";
 import classNames from "classnames";
 
-const SetOctaveAndBrightnessPanel = () => {
+const SetOctaveAndBrightness = () => {
+    const buttonStyle = { width: "80px", height: "40px" };
+
     const octaveOffsets = [-4, -3, -2, -1, 0, 1, 2, 3, 4, 5];
-    const setOctaveButtons = octaveOffsets.map((val) => {
-        const classes = classNames({ isOctave0: val === 0 });
+    const setOctaveButtons = octaveOffsets.map((octaveNum) => {
+        let localButtonStyle = buttonStyle;
+        if (octaveNum === 0) {
+            localButtonStyle = { width: "160px", height: "40px" };
+        }
+
         return (
-            <button key={"setOctave_" + val} className={classes} onClick={LUMIKeys.getClickHandler_SetOctave(val)}>
-                {val}
+            <button key={"setOctave_" + octaveNum} style={localButtonStyle} onClick={LUMIKeys.getClickHandler_SetOctave(octaveNum)}>
+                {octaveNum}
             </button>
         );
     });
@@ -15,7 +21,7 @@ const SetOctaveAndBrightnessPanel = () => {
     const brightnessLevels = [100, 75, 50, 25, 20, 10, 1, 0];
     const setBrightnessButtons = brightnessLevels.map((val) => {
         return (
-            <button key={"setBrightness_" + val} onClick={LUMIKeys.getClickHandler_SetBrightness(val)}>
+            <button key={"setBrightness_" + val} style={buttonStyle} onClick={LUMIKeys.getClickHandler_SetBrightness(val)}>
                 {val}%
             </button>
         );
@@ -32,12 +38,7 @@ const SetOctaveAndBrightnessPanel = () => {
                 <div>Brightness ☀️</div>
                 <div>{setBrightnessButtons}</div>
             </div>
-            <style jsx global>{`
-                button.isOctave0 {
-                    width: 100px;
-                }
-            `}</style>
         </>
     );
 };
-export default SetOctaveAndBrightnessPanel;
+export default SetOctaveAndBrightness;

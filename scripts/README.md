@@ -18,8 +18,9 @@ git push --set-upstream bucket next-js-src:next-js-src
 git push bucket next-js-src:next-js-src
 ```
 
-# Deploy to GitHub
+# Deploy to GitHub pages for static hosting
 
+```
 cd to squarepoet.github.io.src
 
 ./scripts/build.sh
@@ -45,5 +46,14 @@ git pull
 git checkout master
 
 git pull
+```
 
-Now, add and commit and push!
+Finally, add, commit, push! It should show up on https://squarepoet.github.io/
+
+# Deploy to Surge for static hosting
+
+TODO
+
+# Deploy to GitLab pages for static hosting
+
+TODO

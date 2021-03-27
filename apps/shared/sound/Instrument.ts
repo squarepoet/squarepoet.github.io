@@ -134,7 +134,7 @@ class Instrument {
     play(pianoKeyNumber: number, durationInSeconds: number = 0, velocity: number = 1.0) {
         const durationInfo = durationInSeconds > 0 ? ` for ${durationInSeconds} seconds` : "";
         const velocityInfo = " at velocity = " + velocity;
-        console.log("PLAY " + pianoKeyNumber + durationInfo + velocityInfo);
+        console.log("Instrument: PLAY " + pianoKeyNumber + durationInfo + velocityInfo);
 
         const midiNoteNumber = pianoKeyNumber + 20;
 
@@ -158,14 +158,13 @@ class Instrument {
     }
 
     stop(pianoKeyNumber: number) {
-        console.log("STOP " + pianoKeyNumber);
+        console.log("Instrument: STOP " + pianoKeyNumber);
         if (this.toneJSInstrument) {
             const midiNoteNumber = pianoKeyNumber + 20;
             const noteName = Tone.Frequency(midiNoteNumber, "midi").toNote();
             this.toneJSInstrument.triggerRelease(noteName);
         } else {
-            // Musical.js
-            console.log("STOP is NOT IMPLEMENTED FOR MUSICAL.JS");
+            // Musical.js does not need STOP, since each tone has the same length.
         }
     }
 
