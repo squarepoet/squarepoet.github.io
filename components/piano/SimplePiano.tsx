@@ -13,7 +13,7 @@ const SimplePiano = () => {
     }, []);
 
     function startTone() {
-        piano = new Instrument(InstrumentType.Basic);
+        piano = new Instrument(InstrumentType.SynthBasic);
     }
 
     function playPianoNote(keyNumber: number) {
