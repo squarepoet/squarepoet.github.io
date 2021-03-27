@@ -121,6 +121,7 @@ const Page = () => {
                         <MenuItem value={InstrumentType.SynthFM}>Piano #4</MenuItem>
                         <MenuItem value={InstrumentType.SynthAM}>Piano #5</MenuItem>
                         <MenuItem value={InstrumentType.SynthBasic}>Piano #6</MenuItem>
+                        <MenuItem value={InstrumentType.SynthPluck}>Pluck / DO NOT TRY! 🙉</MenuItem>
                     </Select>
                 </FormControl>
                 <ClearBoth />

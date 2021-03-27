@@ -14,6 +14,7 @@ enum InstrumentType {
     SynthMusicalJS, // Musical.js by PencilCode
     Sampled_1,
     Sampled_2,
+    SynthPluck,
     COUNT, // Old school! :-\
 }
 
@@ -29,8 +30,10 @@ const validateInstrumentType = (inputValue: any): InstrumentType => {
 class Instrument {
     type: InstrumentType = InstrumentType.SynthBasic;
 
-    toneJSInstrument: Tone.PolySynth | Tone.Sampler = null;
-    musicalJSInstrument: Musical.Instrument = null;
+    // Several options for instrument timbre.
+    toneJS_SynthOrSampler: Tone.PolySynth | Tone.Sampler = null;
+    toneJS_Pluck: Tone.PluckSynth = null;
+    musicalJS_Synth: Musical.Instrument = null;
 
     private isReady: boolean = false;
 
@@ -44,7 +47,7 @@ class Instrument {
         this.type = type;
         if (this.type === InstrumentType.SynthMusicalJS) {
             console.log("Creating a Musical JS Instrument");
-            this.musicalJSInstrument = new Musical.Instrument("piano");
+            this.musicalJS_Synth = new Musical.Instrument("piano");
             this.isReady = true;
         } else {
             console.log("Creating a Tone JS Instrument");
@@ -110,17 +113,28 @@ class Instrument {
                     // this.isReady will be true after all the mp3 files load.
                     break;
                 case InstrumentType.SynthFM:
-                    this.toneJSInstrument = new Tone.PolySynth(Tone.FMSynth).toDestination();
+                    this.toneJS_SynthOrSampler = new Tone.PolySynth(Tone.FMSynth).toDestination();
                     this.isReady = true;
                     break;
                 case InstrumentType.SynthAM:
-                    this.toneJSInstrument = new Tone.PolySynth(Tone.AMSynth).toDestination();
+                    this.toneJS_SynthOrSampler = new Tone.PolySynth(Tone.AMSynth).toDestination();
+                    this.isReady = true;
+                    break;
+                case InstrumentType.SynthPluck:
+                    console.log("%cThe pluck synth is currently really shitty. Please do not proceed. 🙉", "color:red;font-size:16px;font-weight:bold;");
+
+                    this.toneJS_Pluck = new Tone.PluckSynth({
+                        attackNoise: 0.2,
+                        dampening: 2000,
+                        resonance: 0.982,
+                        release: 1,
+                    }).toDestination();
                     this.isReady = true;
                     break;
                 case InstrumentType.SynthBasic:
                 default:
                     // Basic
-                    this.toneJSInstrument = new Tone.PolySynth(Tone.Synth).toDestination();
+                    this.toneJS_SynthOrSampler = new Tone.PolySynth(Tone.Synth).toDestination();
                     this.isReady = true;
                     break;
             }
@@ -138,14 +152,15 @@ class Instrument {
 
         const midiNoteNumber = pianoKeyNumber + 20;
 
-        if (this.toneJSInstrument) {
-            const noteName = Tone.Frequency(midiNoteNumber, "midi").toNote();
-
+        const noteName = Tone.Frequency(midiNoteNumber, "midi").toNote();
+        if (this.toneJS_SynthOrSampler) {
             if (durationInSeconds > 0) {
-                this.toneJSInstrument.triggerAttackRelease(noteName, durationInSeconds, Tone.now(), velocity);
+                this.toneJS_SynthOrSampler.triggerAttackRelease(noteName, durationInSeconds, Tone.now(), velocity);
             } else {
-                this.toneJSInstrument.triggerAttack(noteName, Tone.now(), velocity);
+                this.toneJS_SynthOrSampler.triggerAttack(noteName, Tone.now(), velocity);
             }
+        } else if (this.toneJS_Pluck) {
+            this.toneJS_Pluck.triggerAttack(noteName);
         } else {
             // Musical.js
             // tone(...) parameter is specified
@@ -153,18 +168,19 @@ class Instrument {
             //   OR
             // as a negative integer in MIDI note numbers
             //   MIDI number 60 == Middle C == pianoKeyNumber 40
-            this.musicalJSInstrument.tone(-midiNoteNumber);
+            this.musicalJS_Synth.tone(-midiNoteNumber);
         }
     }
 
     stop(pianoKeyNumber: number) {
         console.log("Instrument: STOP " + pianoKeyNumber);
-        if (this.toneJSInstrument) {
+        if (this.toneJS_SynthOrSampler) {
             const midiNoteNumber = pianoKeyNumber + 20;
             const noteName = Tone.Frequency(midiNoteNumber, "midi").toNote();
-            this.toneJSInstrument.triggerRelease(noteName);
+            this.toneJS_SynthOrSampler.triggerRelease(noteName);
         } else {
-            // Musical.js does not need STOP, since each tone has the same length.
+            // Tone.js/PluckSynth does not need STOP, since each sound has the same length.
+            // Musical.js does not need STOP, since each sound has the same length.
         }
     }
 
@@ -175,7 +191,6 @@ class Instrument {
         const filesToPreload = [];
         for (const keyName in this.samplesMap) {
             const fileName = this.samplesMap[keyName];
-            console.log(this.baseURL + fileName);
             filesToPreload.push(this.baseURL + fileName);
         }
 
@@ -193,18 +208,21 @@ class Instrument {
                 this.isReady = true;
             },
         };
-        this.toneJSInstrument = new Tone.Sampler(config).toDestination();
+        this.toneJS_SynthOrSampler = new Tone.Sampler(config).toDestination();
     }
 
     dispose() {
-        console.log("DISPOSE");
         this.preloader = null;
-        if (this.toneJSInstrument) {
-            this.toneJSInstrument.dispose();
-            this.toneJSInstrument = null;
+        if (this.toneJS_SynthOrSampler) {
+            this.toneJS_SynthOrSampler.dispose();
+            this.toneJS_SynthOrSampler = null;
         }
-        if (this.musicalJSInstrument) {
-            this.musicalJSInstrument = null;
+        if (this.toneJS_Pluck) {
+            this.toneJS_Pluck.dispose();
+            this.toneJS_Pluck = null;
+        }
+        if (this.musicalJS_Synth) {
+            this.musicalJS_Synth = null;
         }
     }
 }

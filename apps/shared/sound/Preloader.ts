@@ -1,13 +1,12 @@
-import * as Tone from "tone";
+import { ToneAudioBuffer } from "tone";
 
 export default class Preloader {
-    filesToLoad: Tone.Buffer[] = [];
+    filesToLoad: ToneAudioBuffer[] = [];
 
     constructor(files: string[]) {
         for (let file of files) {
-            console.log("Preload " + file);
-            const buffer = new Tone.Buffer(file, function () {
-                // READY
+            const buffer = new ToneAudioBuffer(file, function () {
+                console.log("Preloaded " + file);
             });
             this.filesToLoad.push(buffer);
         }
