@@ -39,10 +39,24 @@ namespace ComputerKeyboardMusicInput {
         ["Quote", 9], // F
     ]);
 
-    function onKeyDown(e) {
+    function onKeyDown(e: KeyboardEvent) {
+        if (e.ctrlKey && e.altKey) {
+            if (e.code == "ArrowLeft") {
+                octaveNumber--;
+                if (octaveNumber < 0) {
+                    octaveNumber = 0;
+                }
+            } else if (e.code == "ArrowRight") {
+                octaveNumber++;
+                if (octaveNumber > 7) {
+                    octaveNumber = 7;
+                }
+            }
+            console.log("Octave is now: " + octaveNumber);
+        }
+
         if (document.activeElement && document.activeElement.tagName.toLowerCase() === "input") {
-            console.log("IGNORE ME");
-            return;
+            return; // We are typing in an input box, so don't play any sound.
         }
         if (!soundOutput || !soundOutput.isInitialized) {
             return;
