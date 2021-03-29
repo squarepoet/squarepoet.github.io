@@ -24,7 +24,6 @@ namespace MIDIControllerIO {
             return;
         }
         isStarted = true;
-        console.log("MIDIControllerIO.start()");
 
         WebMidi.enable(function (err) {
             if (err) {
@@ -128,16 +127,8 @@ namespace MIDIControllerIO {
         deviceListOutput = deviceListOutputHandler;
     }
 
-    export function setInstrument(instrumentType: InstrumentType) {
-        if (soundOutput) {
-            if (soundOutput.type === instrumentType) {
-                console.log("You chose the same instrumentType. Nothing more to do here.");
-                return;
-            }
-            soundOutput.dispose();
-        }
-        console.log("Set Instrument Type: " + instrumentType);
-        soundOutput = new Instrument(instrumentType);
+    export function setSoundOutput(instrument: Instrument) {
+        soundOutput = instrument;
     }
 
     // midiNoteNumber 60 is Middle C

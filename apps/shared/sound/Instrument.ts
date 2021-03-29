@@ -145,7 +145,18 @@ class Instrument {
         return this.isReady;
     }
 
+    // velocity parameter ranges from [0 to 1.0]
     play(pianoKeyNumber: number, durationInSeconds: number = 0, velocity: number = 1.0) {
+        if (velocity > 1) {
+            velocity = 1;
+        } else if (velocity < 0) {
+            velocity = 0;
+        }
+
+        if (durationInSeconds < 0) {
+            durationInSeconds = 0;
+        }
+
         const durationInfo = durationInSeconds > 0 ? ` for ${durationInSeconds} seconds` : "";
         const velocityInfo = " at velocity = " + velocity;
         console.log("Instrument: PLAY " + pianoKeyNumber + durationInfo + velocityInfo);
