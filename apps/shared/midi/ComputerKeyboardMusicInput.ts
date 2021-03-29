@@ -40,23 +40,29 @@ namespace ComputerKeyboardMusicInput {
     ]);
 
     function onKeyDown(e) {
+        if (document.activeElement && document.activeElement.tagName.toLowerCase() === "input") {
+            console.log("IGNORE ME");
+            return;
+        }
+        if (!soundOutput || !soundOutput.isInitialized) {
+            return;
+        }
         const code = e.code;
-        if (soundOutput && soundOutput.isInitialized) {
-            if (computerKeyToPianoKey.has(code) && !pressedKey.has(code)) {
-                const pianoKeyNumber = computerKeyToPianoKey.get(code) + octaveNumber * 12;
-                pressedKey.set(code, pianoKeyNumber);
-                soundOutput.play(pianoKeyNumber, 0, 0.8 /* volume */);
-            }
+        if (computerKeyToPianoKey.has(code) && !pressedKey.has(code)) {
+            const pianoKeyNumber = computerKeyToPianoKey.get(code) + octaveNumber * 12;
+            pressedKey.set(code, pianoKeyNumber);
+            soundOutput.play(pianoKeyNumber, 0, 0.8 /* volume */);
         }
     }
 
     function onKeyUp(e) {
+        if (!soundOutput || !soundOutput.isInitialized) {
+            return;
+        }
         const code = e.code;
-        if (soundOutput && soundOutput.isInitialized) {
-            if (computerKeyToPianoKey.has(code)) {
-                soundOutput.stop(pressedKey.get(code));
-                pressedKey.delete(code);
-            }
+        if (computerKeyToPianoKey.has(code)) {
+            soundOutput.stop(pressedKey.get(code));
+            pressedKey.delete(code);
         }
     }
 
