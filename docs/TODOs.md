@@ -1,18 +1,11 @@
 # CURRENTLY
 
--   [ ] Call Tone.start() and set the first instrument whenever the user scrolls or clicks anywhere.
--   [ ] Extract Components
--   [ ] Computer Keyboard Input
+-   [x] Computer Keyboard Input. Fix the bug with CMD+L.
 
 # TODOs
 
--   [ ] use-persisted-state is very brittle. Whenever localStorage contains something unexpected, it can completely break the page from rendering. :-( I need to somehow validate the values retrieved from localStorage.
-    -   [ ] Stop using use-persisted-state / createPersistedState and use store2 API with some extra validation instead. Seems better.
--   [ ]
--   [ ]
--   [ ]
--   [ ]
--   [ ] For guitar author, use a Karplus Strong Pluck Synth.
+-   [ ] For guitar author, use a Karplus Strong Pluck Synth. Right now the pluck synth is painful to listen to. How can we make it okay?
+-   [ ] use-persisted-state is extremely brittle. Whenever localStorage contains something unexpected, it can completely break the page from rendering. :-( I need to somehow validate the values retrieved from localStorage. Perhaps I should STOP using `use-persisted-state` / `createPersistedState` and just use the store2 API with some extra validation instead?
 -   [ ] See https://beatbucket.io/ to see how we can make our own synthesizers with the various options. Copy synths from AudioKit iPad Synth? (Run it on iOS Simulator).
 -   [ ] Make Piano/Guitar Author V1 & V2 work again. If played by computer keyboard, we play the note and stop it a second later. If played by MIDI controller, we wait until we get a NOTE_OFF.
 -   [ ] onChange for InputSaved. Then get the value and if it's hex, break it up, then update colors real time.
@@ -69,3 +62,6 @@
 -   [ ] Learn about Debugging: https://code.visualstudio.com/docs/nodejs/nodejs-debugging#_breakpoints
 
 # DONE
+
+-   [x] Call Tone.start() and set the first instrument whenever the user clicks anywhere.
+-   [x] Extract Components

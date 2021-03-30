@@ -44,7 +44,7 @@ namespace App {
         const startMIDIControllerIOWithSavedInstrument = () => {
             MIDIControllerIO.start();
             setInstrument(savedInstrument);
-            ComputerKeyboardMusicInput.registerKeyHandlersForElement(window);
+            ComputerKeyboardMusicInput.registerKeyHandlersForElement(document.getElementById("computerKeyboardInputElement"));
         };
 
         // Print a color message to the console.

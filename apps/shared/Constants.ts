@@ -30,6 +30,11 @@ namespace Constants {
         export const UKULELE_HIGH_G = "ukulele_high_g";
         export const UKULELE_LOW_G = "ukulele_low_g";
     }
+
+    export const Messages = {
+        COMPUTER_KEYBOARD_INPUT_1: "Click here to use your computer's keyboard to play notes.",
+        COMPUTER_KEYBOARD_INPUT_2: "Type ASDFGHJKL;' to play music.  To change octaves, press ctrl+alt+shift ArrowLeft or ArrowRight.",
+    };
 }
 
 export default Constants;

@@ -39,25 +39,32 @@ namespace ComputerKeyboardMusicInput {
         ["Quote", 9], // F
     ]);
 
+    export function moveOctaveDown() {
+        octaveNumber--;
+        if (octaveNumber < 0) {
+            octaveNumber = 0;
+        }
+    }
+    export function moveOctaveUp() {
+        octaveNumber++;
+        if (octaveNumber > 7) {
+            octaveNumber = 7;
+        }
+    }
+
     function onKeyDown(e: KeyboardEvent) {
-        if (e.ctrlKey && e.altKey) {
+        if (e.ctrlKey && e.altKey && e.shiftKey) {
             if (e.code == "ArrowLeft") {
-                octaveNumber--;
-                if (octaveNumber < 0) {
-                    octaveNumber = 0;
-                }
+                moveOctaveDown();
             } else if (e.code == "ArrowRight") {
-                octaveNumber++;
-                if (octaveNumber > 7) {
-                    octaveNumber = 7;
-                }
+                moveOctaveUp();
             }
             console.log("Octave is now: " + octaveNumber);
+        } else if (e.ctrlKey || e.altKey || e.metaKey) {
+            console.log("Ignoring input, because you might be interacting with your browser.");
+            return;
         }
 
-        if (document.activeElement && document.activeElement.tagName.toLowerCase() === "input") {
-            return; // We are typing in an input box, so don't play any sound.
-        }
         if (!soundOutput || !soundOutput.isInitialized) {
             return;
         }
@@ -80,7 +87,7 @@ namespace ComputerKeyboardMusicInput {
         }
     }
 
-    export function registerKeyHandlersForElement(e: HTMLElement | Window) {
+    export function registerKeyHandlersForElement(e: HTMLElement) {
         source = e;
         source.addEventListener("keydown", onKeyDown);
         source.addEventListener("keyup", onKeyUp);
@@ -90,7 +97,7 @@ namespace ComputerKeyboardMusicInput {
         soundOutput = i;
     }
 
-    function reset() {
+    export function reset() {
         if (source) {
             source.removeEventListener("keydown", onKeyDown);
             source.removeEventListener("keyup", onKeyUp);

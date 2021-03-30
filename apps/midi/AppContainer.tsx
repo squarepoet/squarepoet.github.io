@@ -6,6 +6,8 @@ import SetScaleRoot from "apps/midi/SetScaleRoot";
 import SetScaleType from "apps/midi/SetScaleType";
 import UserColors from "apps/midi/UserColors";
 import WhiteKeys from "apps/midi/WhiteKeys";
+import Constants from "apps/shared/Constants";
+import ComputerKeyboardMusicInput from "apps/shared/midi/ComputerKeyboardMusicInput";
 import LUMIKeys from "apps/shared/midi/LUMIKeys";
 import { InstrumentType, validateInstrumentType } from "apps/shared/sound/Instrument";
 import ClearBoth from "components/ClearBoth";
@@ -35,6 +37,7 @@ const App = () => {
     const [midiEventsLog, setMIDIEventsLog] = useState("");
     const [lumiEventsLog, setLUMIEventsLog] = useState("");
     const [selectedInstrument, setSelectedInstrument] = useState(InstrumentType.SynthBasic); // Which Tone.js/Musical.js instrument should we use?
+    const [computerKeyboardInputText, setComputerKeyboardInputText] = useState(Constants.Messages.COMPUTER_KEYBOARD_INPUT_1);
 
     useEffect(() => {
         MIDITest.setHandlers({
@@ -65,7 +68,7 @@ const App = () => {
                     </Select>
                 </FormControl>
                 <ClearBoth />
-                <h2>Devices</h2>
+                <h2>Input Devices</h2>
                 <div className="devicesSectionLayout">
                     <div className="eventsLog midi">
                         <pre>{midiEventsLog}</pre>
@@ -74,6 +77,14 @@ const App = () => {
                         <pre>{deviceList}</pre>
                     </div>
                 </div>
+                <input
+                    id="computerKeyboardInputElement"
+                    className="computerKeyboardInput"
+                    onFocus={() => setComputerKeyboardInputText(Constants.Messages.COMPUTER_KEYBOARD_INPUT_2)}
+                    onBlur={() => setComputerKeyboardInputText(Constants.Messages.COMPUTER_KEYBOARD_INPUT_1)}
+                    value={computerKeyboardInputText}
+                    readOnly
+                />
                 <br />
                 <hr />
                 <h2>LUMI Keys</h2>
@@ -214,6 +225,17 @@ const App = () => {
 
                 .colorHexInput label {
                     font-size: 12pt;
+                }
+
+                .computerKeyboardInput {
+                    width: 80%;
+                    height: 40px;
+                    margin: 20px auto;
+                    padding: 10px 20px;
+                    background-color: #333;
+                    border: none;
+                    color: #dd7;
+                    font-family: Hack, Menlo, Consolas, Courier, monospace;
                 }
             `}</style>
         </>
