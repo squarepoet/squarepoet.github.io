@@ -134,22 +134,25 @@ namespace MIDIControllerIO {
     // midiNoteNumber 60 is Middle C
     // velocity ranges from 0 to 127
     function noteOn(midiNoteNumber: number, velocity: number) {
-        logOutput("Note On: " + midiNoteNumber + "  Velocity: " + velocity);
-        if (soundOutput) {
-            const duration = 0; // Setting duration to 0 means the note will NOT turn off automatically.
-            const pianoKeyNumber = midiNoteNumber - 20;
-            soundOutput.play(pianoKeyNumber, duration, velocity / 127.0);
+        if (!soundOutput || !soundOutput.isInitialized) {
+            return;
         }
+
+        logOutput("Note On: " + midiNoteNumber + "  Velocity: " + velocity);
+        const duration = 0; // Setting duration to 0 means the note will NOT turn off automatically.
+        const pianoKeyNumber = midiNoteNumber - 20;
+        soundOutput.play(pianoKeyNumber, duration, velocity / 127.0);
     }
 
     // midiNoteNumber 60 is Middle C
     // velocity ranges from 0 to 127
     function noteOff(midiNoteNumber: number, velocity: number) {
-        logOutput("Note Off: " + midiNoteNumber + "  Velocity: " + velocity);
-        if (soundOutput) {
-            const pianoKeyNumber = midiNoteNumber - 20;
-            soundOutput.stop(pianoKeyNumber);
+        if (!soundOutput || !soundOutput.isInitialized) {
+            return;
         }
+        logOutput("Note Off: " + midiNoteNumber + "  Velocity: " + velocity);
+        const pianoKeyNumber = midiNoteNumber - 20;
+        soundOutput.stop(pianoKeyNumber);
     }
 }
 

@@ -8,13 +8,15 @@ import * as Tone from "tone";
 
 // A Typescript enum is just a two way mapping between index and the string representation.
 enum InstrumentType {
-    SynthBasic = 0,
+    SynthBasic = 0, // Default PolySynth
     SynthFM,
     SynthAM,
     SynthMusicalJS, // Musical.js by PencilCode
     Sampled_1,
     Sampled_2,
     SynthPluck,
+    SynthTest1, // For testing.
+    SynthTest2, // For testing.
     COUNT, // Old school! :-\
 }
 
@@ -27,13 +29,29 @@ const validateInstrumentType = (inputValue: any): InstrumentType => {
     }
 };
 
+let numInstrumentsCreated = 0;
+
+// We do this because Tone.Instrument is a private abstract class. It would be easier if it was a public interface that we could use.
+// Tone.PolySynth | Tone.Sampler | Tone.Synth | Tone.PluckSynth
+// For now, avoid Tone.PluckSynth because it sounds terrible.
+// Only use Tone.Synth for testing, because it only supports one sound at a time.
+interface ToneInstrument {
+    triggerAttackRelease(note: Tone.Unit.Frequency, duration: Tone.Unit.Time, time?: Tone.Unit.Time, velocity?: Tone.Unit.NormalRange): this;
+    triggerAttack(note: Tone.Unit.Frequency, time?: Tone.Unit.Time, velocity?: Tone.Unit.NormalRange): this;
+    triggerRelease(...args: any[]): this;
+    releaseAll?(time?: Tone.Unit.Time): this; // Tone.PolySynth and Tone.Sampler
+    dispose(): this;
+}
+
 class Instrument {
+    private id: number = 0;
+
     type: InstrumentType = InstrumentType.SynthBasic;
 
     // Several options for instrument timbre.
-    toneJS_SynthOrSampler: Tone.PolySynth | Tone.Sampler = null;
-    toneJS_Pluck: Tone.PluckSynth = null;
-    musicalJS_Synth: Musical.Instrument = null;
+    toneJS_Instrument: ToneInstrument;
+
+    musicalJS_Instrument: Musical.Instrument = null;
 
     private isReady: boolean = false;
 
@@ -44,11 +62,19 @@ class Instrument {
 
     // Only call this from a user gesture, so we can start WebAudio!
     constructor(type: InstrumentType) {
+        this.id = numInstrumentsCreated;
+        numInstrumentsCreated++;
+        console.log("Created Instrument ID: " + this.id);
+        console.log("So far, we have created " + numInstrumentsCreated + " instruments.");
+
         this.type = type;
         if (this.type === InstrumentType.SynthMusicalJS) {
             console.log("Creating a Musical JS Instrument");
-            this.musicalJS_Synth = new Musical.Instrument("piano");
+            this.musicalJS_Instrument = new Musical.Instrument("piano");
             this.isReady = true;
+            this.play_Helper = this.play_HelperMusicalJS;
+            this.stop = this.stop_doNothing; // Musical.js does not need a stop, since every tone has the same length.
+            this.silence = this.silence_musicalJS;
         } else {
             console.log("Creating a Tone JS Instrument");
             if (!ToneInfo.isRunning) {
@@ -57,85 +83,56 @@ class Instrument {
                     ToneInfo.isRunning = true;
                 });
             }
+
             switch (this.type) {
-                case InstrumentType.Sampled_1:
-                    // Stereo
-                    this.baseURL = "/s/m/grand/";
-                    this.samplesMap = {
-                        C1: "4.mp3",
-                        C2: "16.mp3",
-                        C3: "28.mp3",
-                        D3: "30.mp3",
-                        E3: "32.mp3",
-                        G3: "35.mp3",
-                        A3: "37.mp3",
-                        B3: "39.mp3",
-                        C4: "40.mp3",
-                        D4: "42.mp3",
-                        E4: "44.mp3",
-                        F4: "45.mp3",
-                        G4: "47.mp3",
-                        A4: "49.mp3",
-                        C5: "52.mp3",
-                        F5: "57.mp3",
-                        A5: "61.mp3",
-                        C6: "64.mp3",
-                        F6: "69.mp3",
-                        C7: "76.mp3",
-                        G7: "83.mp3",
-                        C8: "88.mp3",
-                    };
-                    this.setupSamplerInstrument({ attack: 0.01 });
-                    // this.isReady will be true after all the mp3 files load.
-                    break;
-                case InstrumentType.Sampled_2:
-                    // Mono
-                    this.baseURL = "/s/m/bright/";
-                    this.samplesMap = {
-                        C1: "4.mp3",
-                        G1: "11.mp3",
-                        C2: "16.mp3",
-                        G2: "23.mp3",
-                        C3: "28.mp3",
-                        G3: "35.mp3",
-                        C4: "40.mp3",
-                        G4: "47.mp3",
-                        C5: "52.mp3",
-                        G5: "59.mp3",
-                        C6: "64.mp3",
-                        G6: "71.mp3",
-                        C7: "76.mp3",
-                        G7: "83.mp3",
-                        C8: "88.mp3",
-                    };
-                    this.setupSamplerInstrument({ attack: 0.05 });
-
-                    // this.isReady will be true after all the mp3 files load.
-                    break;
-                case InstrumentType.SynthFM:
-                    this.toneJS_SynthOrSampler = new Tone.PolySynth(Tone.FMSynth).toDestination();
-                    this.isReady = true;
-                    break;
-                case InstrumentType.SynthAM:
-                    this.toneJS_SynthOrSampler = new Tone.PolySynth(Tone.AMSynth).toDestination();
-                    this.isReady = true;
-                    break;
-                case InstrumentType.SynthPluck:
-                    console.log("%cThe pluck synth is currently really shitty. Please do not proceed. 🙉", "color:red;font-size:16px;font-weight:bold;");
-
-                    this.toneJS_Pluck = new Tone.PluckSynth({
-                        attackNoise: 0.2,
-                        dampening: 2000,
-                        resonance: 0.982,
-                        release: 1,
-                    }).toDestination();
-                    this.isReady = true;
-                    break;
                 case InstrumentType.SynthBasic:
                 default:
-                    // Basic
-                    this.toneJS_SynthOrSampler = new Tone.PolySynth(Tone.Synth).toDestination();
-                    this.isReady = true;
+                    this.setupBasicInstrument();
+                    this.play_Helper = this.play_HelperToneJS;
+                    this.stop = this.stop_triggerReleaseNote;
+                    this.silence = this.silence_releaseAll;
+                    break;
+                case InstrumentType.Sampled_1:
+                    this.setupSampledInstrument1();
+                    this.play_Helper = this.play_HelperToneJS;
+                    this.stop = this.stop_triggerReleaseNote;
+                    this.silence = this.silence_releaseAll;
+                    break;
+                case InstrumentType.Sampled_2:
+                    this.setupSampledInstrument2();
+                    this.play_Helper = this.play_HelperToneJS;
+                    this.stop = this.stop_triggerReleaseNote;
+                    this.silence = this.silence_releaseAll;
+                    break;
+                case InstrumentType.SynthFM:
+                    this.setupFMInstrument();
+                    this.play_Helper = this.play_HelperToneJS;
+                    this.stop = this.stop_triggerReleaseNote;
+                    this.silence = this.silence_releaseAll;
+                    break;
+                case InstrumentType.SynthAM:
+                    this.setupAMInstrument();
+                    this.play_Helper = this.play_HelperToneJS;
+                    this.stop = this.stop_triggerReleaseNote;
+                    this.silence = this.silence_releaseAll;
+                    break;
+                case InstrumentType.SynthPluck:
+                    this.setupPluckInstrument();
+                    this.play_Helper = this.play_HelperToneJS_PluckSynth;
+                    this.stop = this.stop_triggerReleaseNoParams;
+                    this.silence = this.silence_triggerRelease;
+                    break;
+                case InstrumentType.SynthTest1:
+                    this.setupTestInstrument1();
+                    this.play_Helper = this.play_HelperToneJS;
+                    this.stop = this.stop_triggerReleaseNoParams;
+                    this.silence = this.silence_triggerRelease;
+                    break;
+                case InstrumentType.SynthTest2:
+                    this.setupTestInstrument2();
+                    this.play_Helper = this.play_HelperToneJS;
+                    this.stop = this.stop_triggerReleaseNoParams;
+                    this.silence = this.silence_triggerRelease;
                     break;
             }
         }
@@ -163,39 +160,112 @@ class Instrument {
 
         const midiNoteNumber = pianoKeyNumber + 20;
 
-        const noteName = Tone.Frequency(midiNoteNumber, "midi").toNote();
-        if (this.toneJS_SynthOrSampler) {
+        this.play_Helper(midiNoteNumber, durationInSeconds, velocity);
+    }
+
+    private play_Helper: (midiNoteNumber: number, durationInSeconds: number, velocity: number) => void;
+
+    private play_HelperMusicalJS(midiNoteNumber: number, durationInSeconds: number, velocity: number) {
+        // Musical.js
+        // tone(...) parameter is specified
+        // as a positive integer in Hz
+        //   OR
+        // as a negative integer in MIDI note numbers
+        //   MIDI number 60 == Middle C == pianoKeyNumber 40
+        this.musicalJS_Instrument.tone(-midiNoteNumber);
+    }
+
+    private play_HelperToneJS(midiNoteNumber: Tone.Unit.MidiNote, durationInSeconds: number, velocity: number) {
+        try {
+            const hertz = Tone.mtof(midiNoteNumber);
             if (durationInSeconds > 0) {
-                this.toneJS_SynthOrSampler.triggerAttackRelease(noteName, durationInSeconds, Tone.now(), velocity);
+                this.toneJS_Instrument.triggerAttackRelease(hertz, durationInSeconds, Tone.now(), velocity);
             } else {
-                this.toneJS_SynthOrSampler.triggerAttack(noteName, Tone.now(), velocity);
+                this.toneJS_Instrument.triggerAttack(hertz, Tone.now(), velocity);
             }
-        } else if (this.toneJS_Pluck) {
-            this.toneJS_Pluck.triggerAttack(noteName);
-        } else {
-            // Musical.js
-            // tone(...) parameter is specified
-            // as a positive integer in Hz
-            //   OR
-            // as a negative integer in MIDI note numbers
-            //   MIDI number 60 == Middle C == pianoKeyNumber 40
-            this.musicalJS_Synth.tone(-midiNoteNumber);
+        } catch (e: any) {
+            console.log(e);
         }
     }
 
-    stop(pianoKeyNumber: number) {
-        console.log("Instrument: STOP " + pianoKeyNumber);
-        if (this.toneJS_SynthOrSampler) {
-            const midiNoteNumber = pianoKeyNumber + 20;
-            const noteName = Tone.Frequency(midiNoteNumber, "midi").toNote();
-            this.toneJS_SynthOrSampler.triggerRelease(noteName);
-        } else {
-            // Tone.js/PluckSynth does not need STOP, since each sound has the same length.
-            // Musical.js does not need STOP, since each sound has the same length.
-        }
+    // Tone.PluckSynth currently has a different API from the rest of the Tone Instruments. :-(
+    private play_HelperToneJS_PluckSynth(midiNoteNumber: Tone.Unit.MidiNote, durationInSeconds: number, velocity: number) {
+        const hertz = Tone.mtof(midiNoteNumber);
+        this.toneJS_Instrument.triggerAttack(hertz);
     }
 
-    setupSamplerInstrument(options: any) {
+    stop: (pianoKeyNumber: number) => void;
+
+    private stop_doNothing(pianoKeyNumber: number /* ignored */) {
+        // This function does nothing.
+    }
+
+    private stop_triggerReleaseNoParams(pianoKeyNumber: number /* ignored */) {
+        this.toneJS_Instrument.triggerRelease();
+    }
+
+    private stop_triggerReleaseNote(pianoKeyNumber: number) {
+        const midiNoteNumber = (pianoKeyNumber + 20) as Tone.Unit.MidiNote;
+        const hertz = Tone.mtof(midiNoteNumber);
+        this.toneJS_Instrument.triggerRelease(hertz);
+    }
+
+    // Stereo
+    setupSampledInstrument1() {
+        this.baseURL = "/s/m/grand/";
+        this.samplesMap = {
+            C1: "4.mp3",
+            C2: "16.mp3",
+            C3: "28.mp3",
+            D3: "30.mp3",
+            E3: "32.mp3",
+            G3: "35.mp3",
+            A3: "37.mp3",
+            B3: "39.mp3",
+            C4: "40.mp3",
+            D4: "42.mp3",
+            E4: "44.mp3",
+            F4: "45.mp3",
+            G4: "47.mp3",
+            A4: "49.mp3",
+            C5: "52.mp3",
+            F5: "57.mp3",
+            A5: "61.mp3",
+            C6: "64.mp3",
+            F6: "69.mp3",
+            C7: "76.mp3",
+            G7: "83.mp3",
+            C8: "88.mp3",
+        };
+        this.setupSampledInstrument({ attack: 0.01 });
+        // this.isReady will be true after all the mp3 files load.
+    }
+
+    // Mono
+    setupSampledInstrument2() {
+        this.baseURL = "/s/m/bright/";
+        this.samplesMap = {
+            C1: "4.mp3",
+            G1: "11.mp3",
+            C2: "16.mp3",
+            G2: "23.mp3",
+            C3: "28.mp3",
+            G3: "35.mp3",
+            C4: "40.mp3",
+            G4: "47.mp3",
+            C5: "52.mp3",
+            G5: "59.mp3",
+            C6: "64.mp3",
+            G6: "71.mp3",
+            C7: "76.mp3",
+            G7: "83.mp3",
+            C8: "88.mp3",
+        };
+        this.setupSampledInstrument({ attack: 0.05 });
+        // this.isReady will be true after all the mp3 files load.
+    }
+
+    setupSampledInstrument(options: any) {
         this.isReady = false;
 
         // Get absolute URLs for mp3 sample files to preload.
@@ -219,21 +289,106 @@ class Instrument {
                 this.isReady = true;
             },
         };
-        this.toneJS_SynthOrSampler = new Tone.Sampler(config).toDestination();
+        this.toneJS_Instrument = new Tone.Sampler(config).toDestination();
+    }
+
+    setupBasicInstrument() {
+        console.log("Basic");
+        const synth = new Tone.PolySynth(Tone.Synth);
+        synth.toDestination(); // Connect it to our computer speakers so we can hear the sound!
+        this.toneJS_Instrument = synth;
+        this.isReady = true;
+    }
+
+    setupTestInstrument1() {
+        console.log("Test 1: Synth (Single Voice)");
+        const synth = new Tone.Synth();
+        synth.toDestination(); // Connect it to our computer speakers so we can hear the sound!
+        this.toneJS_Instrument = synth;
+        this.isReady = true;
+    }
+
+    setupTestInstrument2() {
+        console.log("Test 2: MonoSynth");
+        const synth = new Tone.MonoSynth(); // Is this basically the same as the Synth (Single Voice)?
+        synth.toDestination(); // Connect it to our computer speakers so we can hear the sound!
+        this.toneJS_Instrument = synth;
+        this.isReady = true;
+    }
+
+    setupFMInstrument() {
+        console.log("SynthFM");
+        const synth = new Tone.PolySynth(Tone.FMSynth);
+        synth.toDestination();
+        this.toneJS_Instrument = synth;
+        this.isReady = true;
+    }
+
+    setupFatSawtoothInstrument() {
+        const synth = new Tone.PolySynth(Tone.Synth, {
+            oscillator: {
+                type: "fatsawtooth",
+                // type: "fatsine",
+                // type: "fattriangle",
+                // type: "fatsquare",
+                count: 3, // how many simultaneous sine / sawtooth / etc waves to play?
+                spread: 22 /* every 100 cents is a semitone. 400 cents is a major 3rd (in equal temperament). */,
+            },
+        });
+        synth.toDestination();
+        this.toneJS_Instrument = synth;
+        this.isReady = true;
+    }
+
+    setupAMInstrument() {
+        console.log("SynthAM with some reverb.");
+        const synth = new Tone.PolySynth(Tone.AMSynth);
+        const reverb = new Tone.Reverb({
+            preDelay: 0.1 /* seconds */,
+            decay: 1 /* seconds */,
+            wet: 0.55 /* the synth is 55% affected by reverb effect. */,
+        });
+        synth.connect(reverb);
+        reverb.toDestination();
+        this.toneJS_Instrument = synth;
+        this.isReady = true;
+    }
+
+    setupPluckInstrument() {
+        console.log("%cThe pluck synth is currently really shitty. Please do not proceed. 🙉", "color:red;font-size:16px;font-weight:bold;");
+        this.toneJS_Instrument = new Tone.PluckSynth({
+            attackNoise: 0.2,
+            dampening: 2000,
+            resonance: 0.982,
+            release: 1,
+        }).toDestination();
+        this.isReady = true;
+    }
+
+    silence: () => void;
+
+    private silence_releaseAll() {
+        this.toneJS_Instrument.releaseAll();
+    }
+
+    private silence_triggerRelease() {
+        this.toneJS_Instrument.triggerRelease();
+    }
+
+    private silence_musicalJS() {
+        this.musicalJS_Instrument.silence();
     }
 
     dispose() {
+        console.log("Disposing of Instrument ID: " + this.id);
+
         this.preloader = null;
-        if (this.toneJS_SynthOrSampler) {
-            this.toneJS_SynthOrSampler.dispose();
-            this.toneJS_SynthOrSampler = null;
+        if (this.toneJS_Instrument) {
+            this.toneJS_Instrument.dispose();
+            this.toneJS_Instrument = null;
         }
-        if (this.toneJS_Pluck) {
-            this.toneJS_Pluck.dispose();
-            this.toneJS_Pluck = null;
-        }
-        if (this.musicalJS_Synth) {
-            this.musicalJS_Synth = null;
+        if (this.musicalJS_Instrument) {
+            this.musicalJS_Instrument = null;
         }
     }
 }

@@ -21,23 +21,29 @@ git push bucket next-js-src:next-js-src
 # Deploy to GitHub pages for static hosting
 
 ```
-cd to squarepoet.github.io.src
+cd squarepoet.github.io.src/
 
 ./scripts/build.sh
 
-There will be lots of bugs. Fix them!
+```
+
+There will be lots of bugs. Fix them and run the build script again!
+
+```
 
 ./scripts/build.sh
+
+```
 
 Yay, zero bugs!
 
-github_deploy.sh
+The deploy script assumes you have a folder named `squarepoet.github.io.www/` that is at the same level as `squarepoet.github.io.src/`
 
-cd ../\*www
+```
 
-git pull
+./scripts/deploy_to_github.sh
 
-git branch
+cd ../squarepoet.github.io.www
 
 git checkout next-js-src
 
@@ -46,14 +52,15 @@ git pull
 git checkout master
 
 git pull
+
 ```
 
-Finally, add, commit, push! It should show up on https://squarepoet.github.io/
-
-# Deploy to Surge for static hosting
-
-TODO
+Finally, add, commit, push! It will show up on https://squarepoet.github.io/
 
 # Deploy to GitLab pages for static hosting
+
+The process is similar to deploying to GitHub pages.
+
+# Deploy to Surge for static hosting
 
 TODO

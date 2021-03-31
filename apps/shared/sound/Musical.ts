@@ -90,7 +90,7 @@ namespace Musical {
             // https://github.com/GoogleChrome/web-audio-samples
             // /blob/gh-pages/samples/audio/wave-tables/Piano
             // That is a terrific sound for the lowest piano tones.
-            // For higher tones, interpolate to a customzed wave
+            // For higher tones, interpolate to a customized wave
             // shape created by hand, and apply a lowpass filter.
             piano: {
                 real: [
@@ -2031,7 +2031,6 @@ namespace Musical {
         }
 
         dispose() {
-            // TODO
             console.log("Musical.js Instrument.dispose() is not implemented.");
         }
     }

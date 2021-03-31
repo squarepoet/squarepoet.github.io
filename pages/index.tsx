@@ -3,7 +3,6 @@ import Link from "next/link";
 const Page = () => {
     return (
         <div>
-            <div>Authoring Tools</div>
             <div>
                 <a href="//github.com/squarepoet/squarepoet.github.io">Repository</a>
             </div>
@@ -25,6 +24,11 @@ const Page = () => {
             <div>
                 <Link href="/guitar/v2">
                     <a>Guitar 2</a>
+                </Link>
+            </div>
+            <div>
+                <Link href="/midi">
+                    <a>MIDI</a>
                 </Link>
             </div>
             <div>

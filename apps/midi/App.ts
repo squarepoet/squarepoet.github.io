@@ -1,5 +1,5 @@
+import ComputerKeyboardInput from "apps/midi/ComputerKeyboardInput";
 import Constants from "apps/shared/Constants";
-import ComputerKeyboardMusicInput from "apps/shared/midi/ComputerKeyboardMusicInput";
 import LUMIKeys from "apps/shared/midi/LUMIKeys";
 import MIDIControllerIO from "apps/shared/midi/MIDIControllerIO";
 import Instrument, { InstrumentType, validateInstrumentType } from "apps/shared/sound/Instrument";
@@ -44,7 +44,6 @@ namespace App {
         const startMIDIControllerIOWithSavedInstrument = () => {
             MIDIControllerIO.start();
             setInstrument(savedInstrument);
-            ComputerKeyboardMusicInput.registerKeyHandlersForElement(document.getElementById("computerKeyboardInputElement"));
         };
 
         // Print a color message to the console.
@@ -88,8 +87,16 @@ namespace App {
         }
         console.log("Set Instrument Type: " + instrumentType);
         soundOutput = new Instrument(instrumentType);
-        ComputerKeyboardMusicInput.setSoundOutput(soundOutput);
+        ComputerKeyboardInput.setSoundOutput(soundOutput);
         MIDIControllerIO.setSoundOutput(soundOutput);
+    }
+
+    export function addOnBlurHandlerToWindow(w: Window) {
+        w.addEventListener("blur", () => {
+            if (soundOutput) {
+                soundOutput.silence();
+            }
+        });
     }
 
     export function setHandlers(handlers: any) {

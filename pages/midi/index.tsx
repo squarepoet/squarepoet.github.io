@@ -5,6 +5,8 @@ const Page = () => {
     return <AppContainer />;
 };
 
+export default Page;
+
 export async function getStaticProps(context) {
     return {
         props: {
@@ -12,5 +14,3 @@ export async function getStaticProps(context) {
         },
     };
 }
-
-export default Page;

@@ -1,15 +1,14 @@
-import MIDITest from "apps/midi/App";
+import App from "apps/midi/App";
 import BlackKeys from "apps/midi/BlackKeys";
+import ComputerKeyboardInputElement from "apps/midi/ComputerKeyboardInputElement";
 import ModeCustomization from "apps/midi/ModeCustomization";
 import SetOctaveAndBrightness from "apps/midi/SetOctaveAndBrightness";
 import SetScaleRoot from "apps/midi/SetScaleRoot";
 import SetScaleType from "apps/midi/SetScaleType";
 import UserColors from "apps/midi/UserColors";
 import WhiteKeys from "apps/midi/WhiteKeys";
-import Constants from "apps/shared/Constants";
-import ComputerKeyboardMusicInput from "apps/shared/midi/ComputerKeyboardMusicInput";
 import LUMIKeys from "apps/shared/midi/LUMIKeys";
-import { InstrumentType, validateInstrumentType } from "apps/shared/sound/Instrument";
+import { InstrumentType } from "apps/shared/sound/Instrument";
 import ClearBoth from "components/ClearBoth";
 import React, { useEffect, useState } from "react";
 
@@ -30,23 +29,23 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
-const App = () => {
+const AppContainer = () => {
     const classes = useStyles();
 
     const [deviceList, setDeviceList] = useState("Looking for MIDI Devices...");
     const [midiEventsLog, setMIDIEventsLog] = useState("");
     const [lumiEventsLog, setLUMIEventsLog] = useState("");
     const [selectedInstrument, setSelectedInstrument] = useState(InstrumentType.SynthBasic); // Which Tone.js/Musical.js instrument should we use?
-    const [computerKeyboardInputText, setComputerKeyboardInputText] = useState(Constants.Messages.COMPUTER_KEYBOARD_INPUT_1);
 
     useEffect(() => {
-        MIDITest.setHandlers({
+        App.setHandlers({
             setDeviceList,
             setMIDIEventsLog,
             setLUMIEventsLog,
             setSelectedInstrument,
         });
-        MIDITest.start();
+        App.addOnBlurHandlerToWindow(window);
+        App.start();
     }, []);
 
     return (
@@ -57,13 +56,15 @@ const App = () => {
                     <InputLabel id="select-instrument-label" className={classes.label}>
                         Instrument Sound
                     </InputLabel>
-                    <Select labelId="select-instrument-label" value={selectedInstrument} id="select-instrument" onChange={MIDITest.onSelectInstrumentChange} label="Instrument" className={classes.select}>
-                        <MenuItem value={InstrumentType.Sampled_1}>Piano #1</MenuItem>
-                        <MenuItem value={InstrumentType.Sampled_2}>Piano #2</MenuItem>
-                        <MenuItem value={InstrumentType.SynthMusicalJS}>Piano #3</MenuItem>
-                        <MenuItem value={InstrumentType.SynthFM}>Piano #4</MenuItem>
-                        <MenuItem value={InstrumentType.SynthAM}>Piano #5</MenuItem>
-                        <MenuItem value={InstrumentType.SynthBasic}>Piano #6</MenuItem>
+                    <Select labelId="select-instrument-label" value={selectedInstrument} id="select-instrument" onChange={App.onSelectInstrumentChange} label="Instrument" className={classes.select}>
+                        <MenuItem value={InstrumentType.Sampled_1}>Sound 1</MenuItem>
+                        <MenuItem value={InstrumentType.Sampled_2}>Sound 2</MenuItem>
+                        <MenuItem value={InstrumentType.SynthMusicalJS}>Sound 3</MenuItem>
+                        <MenuItem value={InstrumentType.SynthFM}>Sound 4</MenuItem>
+                        <MenuItem value={InstrumentType.SynthAM}>Sound 5</MenuItem>
+                        <MenuItem value={InstrumentType.SynthBasic}>Sound 6</MenuItem>
+                        <MenuItem value={InstrumentType.SynthTest1}>Test 1</MenuItem>
+                        <MenuItem value={InstrumentType.SynthTest2}>Test 2</MenuItem>
                         {/*<MenuItem value={InstrumentType.SynthPluck}>Pluck / DO NOT TRY! 🙉</MenuItem>*/}
                     </Select>
                 </FormControl>
@@ -77,14 +78,7 @@ const App = () => {
                         <pre>{deviceList}</pre>
                     </div>
                 </div>
-                <input
-                    id="computerKeyboardInputElement"
-                    className="computerKeyboardInput"
-                    onFocus={() => setComputerKeyboardInputText(Constants.Messages.COMPUTER_KEYBOARD_INPUT_2)}
-                    onBlur={() => setComputerKeyboardInputText(Constants.Messages.COMPUTER_KEYBOARD_INPUT_1)}
-                    value={computerKeyboardInputText}
-                    readOnly
-                />
+                <ComputerKeyboardInputElement />
                 <br />
                 <hr />
                 <h2>LUMI Keys</h2>
@@ -241,4 +235,4 @@ const App = () => {
         </>
     );
 };
-export default App;
+export default AppContainer;

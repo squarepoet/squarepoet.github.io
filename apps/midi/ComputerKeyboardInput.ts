@@ -7,16 +7,16 @@
 
 import Instrument from "apps/shared/sound/Instrument";
 
-namespace ComputerKeyboardMusicInput {
+namespace ComputerKeyboardInput {
     let octaveNumber = 4; // C4 is middle C.
 
-    let source: HTMLElement | Window = null; // KeyEvents come from this source.
     let soundOutput: Instrument = null; // MIDI events are sent to this destination, which will output sound.
 
     // key/value pair:
     // key: a computer key that is currently held down by the user.
     // value: the piano key that it corresponds to.
-    let pressedKey = new Map<string, number>();
+    // LOL @ the variable name! :-}
+    const currentlyPressedKeyCodeToPianoKeyNumber = new Map<string, number>();
 
     let computerKeyToPianoKey = new Map([
         ["KeyA", -8], // C => pianoKey 40 is middle C
@@ -52,7 +52,7 @@ namespace ComputerKeyboardMusicInput {
         }
     }
 
-    function onKeyDown(e: KeyboardEvent) {
+    export function onKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
         if (e.ctrlKey && e.altKey && e.shiftKey) {
             if (e.code == "ArrowLeft") {
                 moveOctaveDown();
@@ -69,28 +69,22 @@ namespace ComputerKeyboardMusicInput {
             return;
         }
         const code = e.code;
-        if (computerKeyToPianoKey.has(code) && !pressedKey.has(code)) {
+        if (computerKeyToPianoKey.has(code) && !currentlyPressedKeyCodeToPianoKeyNumber.has(code)) {
             const pianoKeyNumber = computerKeyToPianoKey.get(code) + octaveNumber * 12;
-            pressedKey.set(code, pianoKeyNumber);
+            currentlyPressedKeyCodeToPianoKeyNumber.set(code, pianoKeyNumber);
             soundOutput.play(pianoKeyNumber, 0, 0.8 /* volume */);
         }
     }
 
-    function onKeyUp(e) {
+    export function onKeyUp(e: React.KeyboardEvent<HTMLInputElement>) {
         if (!soundOutput || !soundOutput.isInitialized) {
             return;
         }
         const code = e.code;
         if (computerKeyToPianoKey.has(code)) {
-            soundOutput.stop(pressedKey.get(code));
-            pressedKey.delete(code);
+            soundOutput.stop(currentlyPressedKeyCodeToPianoKeyNumber.get(code));
+            currentlyPressedKeyCodeToPianoKeyNumber.delete(code);
         }
-    }
-
-    export function registerKeyHandlersForElement(e: HTMLElement) {
-        source = e;
-        source.addEventListener("keydown", onKeyDown);
-        source.addEventListener("keyup", onKeyUp);
     }
 
     export function setSoundOutput(i: Instrument) {
@@ -98,15 +92,10 @@ namespace ComputerKeyboardMusicInput {
     }
 
     export function reset() {
-        if (source) {
-            source.removeEventListener("keydown", onKeyDown);
-            source.removeEventListener("keyup", onKeyUp);
-            source = null;
-        }
         if (soundOutput) {
             soundOutput = null;
         }
     }
 }
 
-export default ComputerKeyboardMusicInput;
+export default ComputerKeyboardInput;

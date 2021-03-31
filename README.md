@@ -19,7 +19,7 @@ When the `master` branch is pushed to GitHub, it will automatically publish to G
 
 ## File Naming
 
-I am old Java nerd, so I prefer PascalCase for file names of React components and JS modules. However, for files under the `pages/` directory are all lowercase, with optional hyphens for readability. This means our public URLs are all lower case.
+I am old Java nerd, so I prefer PascalCase for file names of React components and JS modules. However, files under the `pages/` directory are all lowercase, with hyphens for readability. This means our public URLs are all lowercase.
 
 # GitHub Pages
 
@@ -27,7 +27,7 @@ View deployments here: https://github.com/squarepoet/squarepoet.github.io/deploy
 
 # Libaries
 
-## Next JS & React
+## Next & React
 
 -   We render pages in React JS, and export static HTML files via Next.js
 
