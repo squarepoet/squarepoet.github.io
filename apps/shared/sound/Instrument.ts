@@ -14,9 +14,9 @@ enum InstrumentType {
     SynthMusicalJS, // Musical.js by PencilCode
     Sampled_1,
     Sampled_2,
-    SynthPluck,
     SynthTest1, // For testing.
     SynthTest2, // For testing.
+    SynthTest3, // For testing PluckSynth
     COUNT, // Old school! :-\
 }
 
@@ -32,7 +32,7 @@ const validateInstrumentType = (inputValue: any): InstrumentType => {
 let numInstrumentsCreated = 0;
 
 // We do this because Tone.Instrument is a private abstract class. It would be easier if it was a public interface that we could use.
-// Tone.PolySynth | Tone.Sampler | Tone.Synth | Tone.PluckSynth
+// Mostly we stick with Tone.PolySynth and Tone.Sampler.
 // For now, avoid Tone.PluckSynth because it sounds terrible.
 // Only use Tone.Synth for testing, because it only supports one sound at a time.
 interface ToneInstrument {
@@ -116,12 +116,6 @@ class Instrument {
                     this.stop = this.stop_triggerReleaseNote;
                     this.silence = this.silence_releaseAll;
                     break;
-                case InstrumentType.SynthPluck:
-                    this.setupPluckInstrument();
-                    this.play_Helper = this.play_HelperToneJS_PluckSynth;
-                    this.stop = this.stop_triggerReleaseNoParams;
-                    this.silence = this.silence_triggerRelease;
-                    break;
                 case InstrumentType.SynthTest1:
                     this.setupTestInstrument1();
                     this.play_Helper = this.play_HelperToneJS;
@@ -131,6 +125,12 @@ class Instrument {
                 case InstrumentType.SynthTest2:
                     this.setupTestInstrument2();
                     this.play_Helper = this.play_HelperToneJS;
+                    this.stop = this.stop_triggerReleaseNote;
+                    this.silence = this.silence_releaseAll;
+                    break;
+                case InstrumentType.SynthTest3:
+                    this.setupTestInstrument3();
+                    this.play_Helper = this.play_HelperToneJS_PluckSynth;
                     this.stop = this.stop_triggerReleaseNoParams;
                     this.silence = this.silence_triggerRelease;
                     break;
@@ -184,14 +184,20 @@ class Instrument {
                 this.toneJS_Instrument.triggerAttack(hertz, Tone.now(), velocity);
             }
         } catch (e: any) {
-            console.log(e);
+            console.log(e); // Tone.js has asserts, which we sometimes trigger! :-(
         }
     }
 
     // Tone.PluckSynth currently has a different API from the rest of the Tone Instruments. :-(
     private play_HelperToneJS_PluckSynth(midiNoteNumber: Tone.Unit.MidiNote, durationInSeconds: number, velocity: number) {
-        const hertz = Tone.mtof(midiNoteNumber);
-        this.toneJS_Instrument.triggerAttack(hertz);
+        try {
+            const hertz = Tone.mtof(midiNoteNumber);
+            this.toneJS_Instrument.triggerAttack(hertz);
+        } catch (e: any) {
+            console.log(e); // Tone.js has asserts, which we sometimes trigger! :-(
+            // Errors we have seen:
+            //     Start time must be strictly greater than previous start time
+        }
     }
 
     stop: (pianoKeyNumber: number) => void;
@@ -300,22 +306,6 @@ class Instrument {
         this.isReady = true;
     }
 
-    setupTestInstrument1() {
-        console.log("Test 1: Synth (Single Voice)");
-        const synth = new Tone.Synth();
-        synth.toDestination(); // Connect it to our computer speakers so we can hear the sound!
-        this.toneJS_Instrument = synth;
-        this.isReady = true;
-    }
-
-    setupTestInstrument2() {
-        console.log("Test 2: MonoSynth");
-        const synth = new Tone.MonoSynth(); // Is this basically the same as the Synth (Single Voice)?
-        synth.toDestination(); // Connect it to our computer speakers so we can hear the sound!
-        this.toneJS_Instrument = synth;
-        this.isReady = true;
-    }
-
     setupFMInstrument() {
         console.log("SynthFM");
         const synth = new Tone.PolySynth(Tone.FMSynth);
@@ -354,14 +344,39 @@ class Instrument {
         this.isReady = true;
     }
 
-    setupPluckInstrument() {
+    setupTestInstrument1() {
+        console.log("%cThis synth sounds the same as InstrumentType.SynthBasic, except it only handles one sound at a time!", "color:gray;font-size:16px;font-weight:bold;");
+        console.log("Test 1: Synth (Single Voice)");
+        const synth = new Tone.Synth();
+        synth.toDestination(); // Connect it to our computer speakers so we can hear the sound!
+        this.toneJS_Instrument = synth;
+        this.isReady = true;
+    }
+
+    setupTestInstrument2() {
+        console.log("Test 2: MonoSynth");
+        const synth = new Tone.PolySynth(Tone.MonoSynth);
+        synth.toDestination(); // Connect it to our computer speakers so we can hear the sound!
+        this.toneJS_Instrument = synth;
+        this.isReady = true;
+    }
+
+    setupTestInstrument3() {
         console.log("%cThe pluck synth is currently really shitty. Please do not proceed. 🙉", "color:red;font-size:16px;font-weight:bold;");
-        this.toneJS_Instrument = new Tone.PluckSynth({
+        const synth = new Tone.PluckSynth({
             attackNoise: 0.2,
             dampening: 2000,
             resonance: 0.982,
             release: 1,
-        }).toDestination();
+        });
+        const reverb = new Tone.Reverb({
+            preDelay: 0.1 /* seconds */,
+            decay: 2 /* seconds */,
+            wet: 0.75 /* the synth is 75% affected by reverb effect. */,
+        });
+        synth.connect(reverb);
+        reverb.toDestination();
+        this.toneJS_Instrument = synth;
         this.isReady = true;
     }
 

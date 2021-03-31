@@ -65,7 +65,7 @@ const AppContainer = () => {
                         <MenuItem value={InstrumentType.SynthBasic}>Sound 6</MenuItem>
                         <MenuItem value={InstrumentType.SynthTest1}>Test 1</MenuItem>
                         <MenuItem value={InstrumentType.SynthTest2}>Test 2</MenuItem>
-                        {/*<MenuItem value={InstrumentType.SynthPluck}>Pluck / DO NOT TRY! 🙉</MenuItem>*/}
+                        <MenuItem value={InstrumentType.SynthTest3}>Test 3! 🙉</MenuItem>
                     </Select>
                 </FormControl>
                 <ClearBoth />
