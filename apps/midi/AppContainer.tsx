@@ -60,12 +60,13 @@ const AppContainer = () => {
                         <MenuItem value={InstrumentType.Sampled_1}>Sound 1</MenuItem>
                         <MenuItem value={InstrumentType.Sampled_2}>Sound 2</MenuItem>
                         <MenuItem value={InstrumentType.SynthMusicalJS}>Sound 3</MenuItem>
-                        <MenuItem value={InstrumentType.SynthFM}>Sound 4</MenuItem>
-                        <MenuItem value={InstrumentType.SynthAM}>Sound 5</MenuItem>
-                        <MenuItem value={InstrumentType.SynthBasic}>Sound 6</MenuItem>
+                        <MenuItem value={InstrumentType.SynthFatSawtooth}>Sound 4</MenuItem>
+                        <MenuItem value={InstrumentType.SynthFM}>Sound 5</MenuItem>
+                        <MenuItem value={InstrumentType.SynthAM}>Sound 6</MenuItem>
+                        <MenuItem value={InstrumentType.SynthBasic}>Sound 7</MenuItem>
                         <MenuItem value={InstrumentType.SynthTest1}>Test 1</MenuItem>
                         <MenuItem value={InstrumentType.SynthTest2}>Test 2</MenuItem>
-                        <MenuItem value={InstrumentType.SynthTest3}>Test 3! 🙉</MenuItem>
+                        <MenuItem value={InstrumentType.SynthTest3}>Test 3</MenuItem>
                     </Select>
                 </FormControl>
                 <ClearBoth />

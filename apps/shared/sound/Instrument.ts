@@ -11,6 +11,7 @@ enum InstrumentType {
     SynthBasic = 0, // Default PolySynth
     SynthFM,
     SynthAM,
+    SynthFatSawtooth,
     SynthMusicalJS, // Musical.js by PencilCode
     Sampled_1,
     Sampled_2,
@@ -112,6 +113,12 @@ class Instrument {
                     break;
                 case InstrumentType.SynthAM:
                     this.setupAMInstrument();
+                    this.play_Helper = this.play_HelperToneJS;
+                    this.stop = this.stop_triggerReleaseNote;
+                    this.silence = this.silence_releaseAll;
+                    break;
+                case InstrumentType.SynthFatSawtooth:
+                    this.setupFatSawtoothInstrument();
                     this.play_Helper = this.play_HelperToneJS;
                     this.stop = this.stop_triggerReleaseNote;
                     this.silence = this.silence_releaseAll;
@@ -315,6 +322,7 @@ class Instrument {
     }
 
     setupFatSawtoothInstrument() {
+        console.log("SynthFatSawtooth");
         const synth = new Tone.PolySynth(Tone.Synth, {
             oscillator: {
                 type: "fatsawtooth",
@@ -325,30 +333,39 @@ class Instrument {
                 spread: 22 /* every 100 cents is a semitone. 400 cents is a major 3rd (in equal temperament). */,
             },
         });
-        synth.toDestination();
+        const reverb = new Tone.Reverb({
+            preDelay: 0.1 /* seconds */,
+            decay: 1 /* seconds */,
+            wet: 0.55 /* the synth is 55% affected by reverb effect. */,
+        });
+        synth.chain(reverb, Tone.Destination);
         this.toneJS_Instrument = synth;
         this.isReady = true;
     }
 
     setupAMInstrument() {
-        console.log("SynthAM with some reverb.");
+        console.log("SynthAM");
         const synth = new Tone.PolySynth(Tone.AMSynth);
         const reverb = new Tone.Reverb({
             preDelay: 0.1 /* seconds */,
             decay: 1 /* seconds */,
             wet: 0.55 /* the synth is 55% affected by reverb effect. */,
         });
-        synth.connect(reverb);
-        reverb.toDestination();
+        const volume = new Tone.Volume(8);
+        synth.chain(reverb, volume, Tone.Destination);
         this.toneJS_Instrument = synth;
         this.isReady = true;
     }
 
     setupTestInstrument1() {
-        console.log("%cThis synth sounds the same as InstrumentType.SynthBasic, except it only handles one sound at a time!", "color:gray;font-size:16px;font-weight:bold;");
-        console.log("Test 1: Synth (Single Voice)");
-        const synth = new Tone.Synth();
-        synth.toDestination(); // Connect it to our computer speakers so we can hear the sound!
+        console.log("Test 1: MetalSynth");
+        const synth = new Tone.PolySynth(Tone.MetalSynth);
+        const reverb = new Tone.Reverb({
+            preDelay: 0.1 /* seconds */,
+            decay: 2 /* seconds */,
+            wet: 0.75 /* the synth is 75% affected by reverb effect. */,
+        });
+        synth.chain(reverb, Tone.Destination); // Connect it to our computer speakers so we can hear the sound!
         this.toneJS_Instrument = synth;
         this.isReady = true;
     }
@@ -361,8 +378,9 @@ class Instrument {
         this.isReady = true;
     }
 
+    // I'm not sure how to make it sound more like a guitar.
     setupTestInstrument3() {
-        console.log("%cThe pluck synth is currently really shitty. Please do not proceed. 🙉", "color:red;font-size:16px;font-weight:bold;");
+        console.log("Test 2: PluckSynth");
         const synth = new Tone.PluckSynth({
             attackNoise: 0.2,
             dampening: 2000,
@@ -374,8 +392,7 @@ class Instrument {
             decay: 2 /* seconds */,
             wet: 0.75 /* the synth is 75% affected by reverb effect. */,
         });
-        synth.connect(reverb);
-        reverb.toDestination();
+        synth.chain(reverb, Tone.Destination);
         this.toneJS_Instrument = synth;
         this.isReady = true;
     }
