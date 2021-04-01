@@ -2,9 +2,10 @@ const Page = () => {
     return (
         <>
             <h1>About</h1>
-            <div>Some Fun Experiments!</div>
+            <div>Everything on this website is MIT licensed, so have fun exploring ⛏️!</div>
             <div>
-                Everything on this website is MIT licensed, so <a href="//github.com/squarepoet/squarepoet.github.io">have fun exploring</a>.
+                <a href="//github.com/squarepoet/squarepoet.github.io/tree/next-js-src">GitHub repository of Next.js project</a>
+                <a href="//github.com/squarepoet/squarepoet.github.io">Statically hosted on GitHub Pages</a>
             </div>
         </>
     );

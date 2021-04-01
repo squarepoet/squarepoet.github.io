@@ -4,9 +4,6 @@ const Page = () => {
     return (
         <div>
             <div>
-                <a href="//github.com/squarepoet/squarepoet.github.io">Repository</a>
-            </div>
-            <div>
                 <Link href="/piano/v1">
                     <a>Piano 1</a>
                 </Link>

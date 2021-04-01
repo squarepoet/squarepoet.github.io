@@ -362,10 +362,11 @@ class Instrument {
         const synth = new Tone.PolySynth(Tone.MetalSynth);
         const reverb = new Tone.Reverb({
             preDelay: 0.1 /* seconds */,
-            decay: 2 /* seconds */,
-            wet: 0.75 /* the synth is 75% affected by reverb effect. */,
+            decay: 0.8 /* seconds */,
+            wet: 0.66 /* the synth is 66% affected by reverb effect. */,
         });
-        synth.chain(reverb, Tone.Destination); // Connect it to our computer speakers so we can hear the sound!
+        const volume = new Tone.Volume(-10);
+        synth.chain(reverb, volume, Tone.Destination); // Connect it to our computer speakers so we can hear the sound!
         this.toneJS_Instrument = synth;
         this.isReady = true;
     }
