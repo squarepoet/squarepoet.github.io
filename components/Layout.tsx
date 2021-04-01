@@ -23,7 +23,7 @@ const Layout = ({ title, children }: Props) => {
             <header>
                 <nav>
                     <Link href="/">
-                        <a>sqpt.gthb.io</a>
+                        <a>sqpt</a>
                     </Link>
                 </nav>
             </header>
