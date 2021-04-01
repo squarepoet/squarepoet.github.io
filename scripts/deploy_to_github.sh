@@ -1,16 +1,17 @@
 #!/usr/bin/env bash
-# First we need to synchronize the two www folders
-FROM_WWW="www/"
+# We assume you have a folder that will be committed to GitHub pages.
+WWW="www/"
 GITHUB="../squarepoet.github.io.www/"
 NOJEKYLL=".nojekyll"
 GITHUB_NOJEKYLL=$GITHUB$NOJEKYLL
 
 # Copy the source files in www/ to the GitHub deployment folder.
-rsync -avv --exclude '.git' --exclude '.gitignore' --exclude '.gitkeep' --exclude  $FROM_WWW  $GITHUB
+rsync -avI --exclude '.git' --exclude '.gitignore' --exclude '.gitkeep'  $WWW  $GITHUB
 touch $GITHUB_NOJEKYLL
 
 # Next we need to commit and push
 # Do this manually!
-echo "Please cd to ../squarepoet.github.io.www/"
+echo "Please cd to" $GITHUB
 echo "Commit and push to deploy to GitHub pages!"
+echo ""
 echo "https://squarepoet.github.io/"
