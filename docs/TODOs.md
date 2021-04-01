@@ -1,7 +1,3 @@
-# CURRENTLY
-
--   [x] Computer Keyboard Input. Fix the bug with CMD+L.
-
 # TODOs
 
 -   [ ] For guitar author, use a Karplus Strong Pluck Synth. Right now the pluck synth is painful to listen to. How can we make it okay?
@@ -65,3 +61,4 @@
 
 -   [x] Call Tone.start() and set the first instrument whenever the user clicks anywhere.
 -   [x] Extract Components
+-   [x] Computer Keyboard Input. Fix the bug with CMD+L.
