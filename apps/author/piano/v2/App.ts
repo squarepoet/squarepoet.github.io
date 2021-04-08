@@ -6,6 +6,7 @@ import MIDIFileIO from "apps/shared/midi/MIDIFileIO";
 import MIDIUtils from "apps/shared/midi/MIDIUtils";
 import Actions from "apps/shared/redux/Actions";
 import Instrument, { InstrumentType } from "apps/shared/sound/Instrument";
+import StorageUtils from "apps/shared/StorageUtils";
 import throttle from "lodash.throttle";
 
 const MIDIEvents = require("midievents");
@@ -237,36 +238,41 @@ function resetEverything() {
 }
 
 function saveAndShowData() {
-    LocalStorage.saveCheckBoxes();
-    LocalStorage.saveTracks();
+    Storage.saveCheckBoxes();
+    Storage.saveTracks();
     UI.showNoteGroupsForTracks();
     UI.drawPiano();
 }
 
 ////////////////////////////////////////////////////////////
 
-namespace LocalStorage {
+namespace Storage {
+    const [getStoredSongVersion, setStoredSongVersion] = StorageUtils.storageHandlersForKey(Keys.SONG_VERSION, 1);
+    const [getStoredCheckboxes, setStoredCheckboxes] = StorageUtils.storageHandlersForKey(Keys.CHECKBOXES, "");
+    const [getStoredTrackData, setStoredTrackData] = StorageUtils.storageHandlersForKey(Keys.TRACKS, "");
+
     export function load() {
         loadTracks();
         loadVersionToggle();
     }
 
     function loadVersionToggle() {
-        if (!localStorage.getItem("song_version")) {
-            localStorage.setItem("song_version", "1");
-        }
-        let songVersion = parseInt(localStorage.getItem("song_version"));
+        let songVersion = getStoredSongVersion();
         if (songVersion < Constants.MIN_SONG_VERSION || songVersion > Constants.MAX_SONG_VERSION) {
             songVersion = 1;
+            setStoredSongVersion(songVersion);
         }
         const payload = {};
         payload[Keys.SONG_VERSION] = songVersion;
         dispatch({ type: Actions.Toggle.onSongVersionFormatChanged, payload: payload });
+        // #FUTURE: Unfortunately, the dispatch above triggers a redundant call to store.set. :-(
+        // It would be nice if we could distinguish between dispatches that come from
+        // 1) manual user actions or 2) automatic events like the browser page loading for the first time.
     }
 
     function loadTracks() {
         try {
-            const savedTracks = JSON.parse(localStorage.getItem("tracks")); // can throw a SyntaxError
+            const savedTracks = JSON.parse(getStoredTrackData()); // can throw a SyntaxError
             const numTracks = savedTracks.length;
 
             UI.Tracks.setup(numTracks);
@@ -284,7 +290,7 @@ namespace LocalStorage {
 
     function loadCheckboxes() {
         try {
-            const savedCheckboxState = JSON.parse(localStorage.getItem("checkboxes")); // can throw a SyntaxError
+            const savedCheckboxState = JSON.parse(getStoredCheckboxes()); // can throw a SyntaxError
             if (Array.isArray(savedCheckboxState) && savedCheckboxState.length === Song.getNumTracks()) {
                 UI.Tracks.setCheckedStateForAllTracks(savedCheckboxState);
             } else {
@@ -292,21 +298,20 @@ namespace LocalStorage {
             }
         } catch (e) {
             UI.Tracks.checkAllNonEmptyTracks();
-            LocalStorage.saveCheckBoxes();
+            Storage.saveCheckBoxes();
         }
     }
 
     export function saveCheckBoxes() {
-        localStorage.setItem("checkboxes", JSON.stringify(UI.Tracks.getCheckedStateForAllTracks()));
+        setStoredCheckboxes(JSON.stringify(UI.Tracks.getCheckedStateForAllTracks()));
     }
 
     export function saveTracks() {
-        let tracksJSON = Song.getTracksAsJSON();
-        localStorage.setItem("tracks", tracksJSON);
+        setStoredTrackData(Song.getTracksAsJSONString());
     }
 
-    export function saveVersionToggle(songVersion: number) {
-        localStorage.setItem("song_version", songVersion + "");
+    export function saveSongVersion(songVersion: number) {
+        setStoredSongVersion(songVersion);
     }
 }
 
@@ -921,7 +926,7 @@ namespace UI {
             } else {
                 // #TODO: If the value has not changed, do nothing.
                 setCheckedCB(checked);
-                LocalStorage.saveCheckBoxes();
+                Storage.saveCheckBoxes();
                 Song.resetCache();
             }
         }
@@ -971,7 +976,7 @@ namespace UI {
 namespace Song {
     // Support multi track MIDI songs.
     // When we compose by hand, stick everything in track 0.
-    const tracks: Array<Track> = [];
+    const tracks: Track[] = [];
 
     let cachedNoteGroups: NoteGroup[] = null;
 
@@ -1025,8 +1030,12 @@ namespace Song {
         return getNumNoteGroupsInTrack(trackNumber) === 0;
     }
 
-    export function getTracksAsJSON(): string {
+    export function getTracksAsJSONString(): string {
         return JSON.stringify(tracks);
+    }
+
+    export function getTracks(): Track[] {
+        return tracks;
     }
 
     export function mergeLastTwoGroups() {
@@ -1170,7 +1179,7 @@ namespace App {
     export function start() {
         console.log("App.start()");
         MIDIPianoInput.setup();
-        LocalStorage.load();
+        Storage.load();
         UI.showNoteGroupsForTracks();
         UI.setupCopyHandler();
         UI.drawPiano();
@@ -1180,10 +1189,9 @@ namespace App {
         piano = new Instrument(InstrumentType.SynthBasic);
     }
 
-    export function saveSongVersionToLocalStorage(ver: number) {
+    export function saveSongVersionToStorage(ver: number) {
         App.setSongVersion(ver);
-        console.log("saveSongVersionToLocalStorage " + ver);
-        LocalStorage.saveVersionToggle(ver);
+        Storage.saveSongVersion(ver);
     }
 
     export function fillTracksWithNoteGroupsExtractedFromMIDIEvents(midiFile, midiEvents) {

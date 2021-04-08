@@ -1,5 +1,7 @@
 import StringedInstrument from "apps/author/guitar/shared/StringedInstrument";
 import Constants from "apps/shared/Constants";
+import StorageUtils from "apps/shared/StorageUtils";
+import store from "store2";
 
 type AppHooks = {
     setInstrumentType: Function;
@@ -61,20 +63,22 @@ namespace App {
 
     export const state = new State();
 
+    const [getStoredInstrumentType, setStoredInstrumentType] = StorageUtils.storageHandlersForKey(Constants.StoreKeys.GUITAR_TYPE, Constants.Instrument.GUITAR);
+
     export function setHooks(obj: AppHooks) {
         hooks = obj;
     }
 
     export function loadFromLocalStorage() {
-        const instrumentType = localStorage.getItem(Constants.StoreKeys.GUITAR_TYPE);
+        const instrumentType = getStoredInstrumentType();
         updateInstrument(instrumentType);
         updateDOM();
     }
 
-    export function setInstrumentType(type: string) {
-        const instrumentType = type;
-        updateInstrument(instrumentType);
+    export function setInstrumentType(instrumentType: string) {
+        updateInstrument(instrumentType); // the parameter is validated and stored into stringedInstrument.type
         updateDOM();
+        setStoredInstrumentType(stringedInstrument.type);
     }
 
     function updateInstrument(instrumentType: string) {

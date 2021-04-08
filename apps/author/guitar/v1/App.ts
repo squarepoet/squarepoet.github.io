@@ -47,7 +47,7 @@ export default class GuitarAuthorV1 {
         this.setupCopyHandler();
     }
 
-    // Originally From Piano Author V2. We should probably merge it somehow!
+    // #TODO: Originally From Piano Author V2. We should probably merge it somehow!
     setupCopyHandler() {
         document.querySelector("html").addEventListener("copy", (e: ClipboardEvent) => {
             e.preventDefault();

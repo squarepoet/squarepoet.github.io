@@ -3,7 +3,6 @@
 -   [ ]
 -   [ ]
 
--   [ ] use-persisted-state is brittle. Stop using it. Whenever localStorage contains something unexpected, it can completely break the page from rendering. :-( I need to somehow validate the values retrieved from localStorage. Perhaps I should STOP using `use-persisted-state` / `createPersistedState` and just use the store2 API with some extra validation instead?
 -   [ ] See https://beatbucket.io/ to see how we can make our own synthesizers with the various options. Copy synths from AudioKit iPad Synth? (Run it on iOS Simulator).
 -   [ ] Make Piano/Guitar Author V1 & V2 work again. If played by computer keyboard, we play the note and stop it a second later. If played by MIDI controller, we wait until we get a NOTE_OFF.
 -   [ ] onChange for InputSaved. Then get the value and if it's hex, break it up, then update colors real time.
@@ -51,8 +50,6 @@
         https://github.com/GoogleChromeLabs/worker-plugin
         https://github.com/koheitakumi/nextjs-typescript-comlink
         https://github.com/vercel/next.js/tree/canary/examples/with-web-worker
--   [ ] usePersistedState might cause a React error if something is wrong while loading the state as JSON. I had to call localStorage.clear()
--   [ ] npm i lodash for piano v1/v2
 -   [ ] BUG: When I first load the page, the text area isn't populated correctly. ★★★★★
 -   [ ] When I refresh or go to a URL directly, it gets a 404! Something about routing?
     -   [x] This does NOT happen on surge or GitHub pages! We need to configure something with the test server!
@@ -72,6 +69,6 @@
 
 # DONE
 
--   [x] Call Tone.start() and set the first instrument whenever the user clicks anywhere.
--   [x] Extract Components
--   [x] Computer Keyboard Input. Fix the bug with CMD+L.
+-   [x] npm i lodash for piano v1/v2
+-   [x] usePersistedState might cause a React error if something is wrong while loading the state as JSON. I had to call localStorage.clear()
+-   [x] use-persisted-state is brittle. Stop using it. Whenever localStorage contains something unexpected, it can completely break the page from rendering. :-( I need to somehow validate the values retrieved from localStorage. Perhaps I should STOP using `use-persisted-state` / `createPersistedState` and just use the store2 API with some extra validation instead?

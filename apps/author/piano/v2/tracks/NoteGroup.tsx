@@ -18,7 +18,7 @@ const Keys = Constants.StoreKeys;
 const NoteGroup = ({ id, trackNumber, noteGroupNumber, isHighlighted }: Props) => {
     const noteGroup = Song.getNoteGroupFromTrack(noteGroupNumber, trackNumber);
 
-    // PROBABLY BAD PERFORMANCE!!!!
+    // #TODO: PROBABLY BAD PERFORMANCE!!!!
     const playedNoteGroupID = useSelector((state) => state[Keys.PLAYED_NOTEGROUP_ID]);
     const isPlayed = playedNoteGroupID == Song.getNoteGroupID(trackNumber, noteGroupNumber);
 

@@ -16,6 +16,8 @@ defaultInitialState[Keys.UPDATED_TRACKS_TIMESTAMP] = 0;
 defaultInitialState[Keys.TRACK_NUMBER_TO_CHECKBOX_VALUE] = {}; // { trackNumber: true|false}. If the key doesn't exist, we consider it unchecked.
 defaultInitialState[Keys.PLAYED_NOTEGROUP_ID] = "";
 
+// The state is updated here.
+// In our UI, we will later need to call useSelector to retrieve the current state.
 const reducer = (state = defaultInitialState, action) => {
     const updatedState = { ...state };
     switch (action.type) {

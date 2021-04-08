@@ -1,15 +1,29 @@
 import SharpsAndFlatsManager from "apps/author/piano/shared/SharpsAndFlatsManager";
+import Constants from "apps/shared/Constants";
 import Instrument, { InstrumentType } from "apps/shared/sound/Instrument";
+import StorageUtils from "apps/shared/StorageUtils";
+import store from "store2";
 
 export const CANVAS_WIDTH: number = 2080;
 export const CANVAS_HEIGHT: number = 300;
 
+///////////////////////
+// Set up the localStorage for piano notes.
+const [getStoredPianoTab, setStoredPianoTab] = StorageUtils.storageHandlersForKey(Constants.StoreKeys.PIANO_TAB, "");
+const setStoredPianoTabAndUpdateTextArea = (pianoTab: string) => {
+    setStoredPianoTab(pianoTab);
+    setTextArea(pianoTab);
+};
+//
+///////////////////////
+
 let piano: Instrument = null;
 
-function setTextArea(text: string) {
+// #TODO: We should go through React here! :-) Yay for porting old code.
+const setTextArea = (text: string) => {
     let textArea: HTMLTextAreaElement = document.getElementById("textarea") as HTMLTextAreaElement;
     textArea.value = text;
-}
+};
 
 function selectTextArea() {
     (document.getElementById("textarea") as HTMLTextAreaElement).select();
@@ -117,10 +131,8 @@ export default (function () {
     }
 
     function saveAndShowData() {
-        console.log(noteGroups);
-        let newText = noteGroups.join(" ");
-        localStorage.text = newText;
-        setTextArea(newText);
+        const pianoTab = noteGroups.join(" ");
+        setStoredPianoTabAndUpdateTextArea(pianoTab);
         drawPiano();
     }
 
@@ -270,17 +282,13 @@ export default (function () {
     }
 
     function loadNoteGroups() {
-        if (!localStorage.text) {
-            localStorage.text = "";
-        }
-
-        let text = localStorage.text.trim();
-        if (text == "") {
+        const pianoTab = getStoredPianoTab().trim();
+        setStoredPianoTabAndUpdateTextArea(pianoTab);
+        if (pianoTab == "") {
             noteGroups = [];
         } else {
-            noteGroups = text.split(" ");
+            noteGroups = pianoTab.split(" ");
         }
-        setTextArea(noteGroups.join(" "));
     }
 
     function play(keyCode, sharpModifier) {

@@ -3,7 +3,7 @@ import Constants from "apps/shared/Constants";
 import LUMIKeys from "apps/shared/midi/LUMIKeys";
 import MIDIControllerIO from "apps/shared/midi/MIDIControllerIO";
 import Instrument, { InstrumentType, validateInstrumentType } from "apps/shared/sound/Instrument";
-import store from "store2";
+import StorageUtils from "apps/shared/StorageUtils";
 
 namespace App {
     const midiEventsLogArray = [];
@@ -16,8 +16,10 @@ namespace App {
 
     let soundOutput: Instrument = null;
 
+    const [getStoredInstrumentType, setStoredInstrumentType] = StorageUtils.storageHandlersForKey(Constants.StoreKeys.INSTRUMENT_TYPE, InstrumentType.SynthBasic);
+
     export function start() {
-        const savedInstrument = validateInstrumentType(store.get(Constants.StoreKeys.PIANO_TYPE));
+        const savedInstrument = validateInstrumentType(getStoredInstrumentType());
         setSelectedInstrument(savedInstrument);
 
         const listenerForStartingWebAudio = (e) => {
@@ -71,7 +73,7 @@ namespace App {
 
     export function onSelectInstrumentChange(e) {
         const instrumentType = validateInstrumentType(e.target.value);
-        store.set(Constants.StoreKeys.PIANO_TYPE, instrumentType);
+        setStoredInstrumentType(instrumentType);
         setSelectedInstrument(instrumentType);
         setInstrument(instrumentType);
     }

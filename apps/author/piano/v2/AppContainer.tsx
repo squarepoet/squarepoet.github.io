@@ -85,7 +85,7 @@ const AppContainer = () => {
     // Subscribe to changes in songVersion
     const songVersion = useSelector((state) => state[Keys.SONG_VERSION]);
     useEffect(() => {
-        PianoAuthorV2.saveSongVersionToLocalStorage(songVersion);
+        PianoAuthorV2.saveSongVersionToStorage(songVersion);
     }, [songVersion]);
 
     //////////////////////////////////////////////////////////////////////////////////////////////////

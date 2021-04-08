@@ -1,7 +1,8 @@
+import StorageUtils from "apps/shared/StorageUtils";
 import {
-    ChangeEvent, FocusEvent, forwardRef, KeyboardEvent, useImperativeHandle, useRef
+    ChangeEvent, FocusEvent, forwardRef, KeyboardEvent, useImperativeHandle, useRef, useState
 } from "react";
-import createPersistedState from "use-persisted-state";
+import store from "store2";
 
 // TODO: Learn about controlled vs uncontrolled components.
 // https://reactjs.org/docs/uncontrolled-components.html
@@ -23,9 +24,13 @@ type InputSavedInterface = {
 const InputSaved = forwardRef((props: Props, ref) => {
     const { label, persistedStateKey, illegalCharactersRegExpStr, placeholder } = props;
 
-    // Instead of React's default useState(), we use a different function that saves to localstorage.
-    const useInputState = createPersistedState(persistedStateKey);
-    const [inputElementValue, setInputElementValue] = useInputState("");
+    // Add a localStorage layer to useState so we can store and retrieve values between sessions.
+    const [getStoredInputValue, setStoredInputValue] = StorageUtils.storageHandlersForKey(persistedStateKey, "");
+    const setAndStoreInputValue = (val) => {
+        setInputElementValue(val);
+        setStoredInputValue(val);
+    };
+    const [inputElementValue, setInputElementValue] = useState(getStoredInputValue());
     const inputElementRef = useRef();
 
     let illegalCharacters = null;
@@ -42,6 +47,8 @@ const InputSaved = forwardRef((props: Props, ref) => {
 
     const onKeyUp = (e: KeyboardEvent<HTMLInputElement>) => {
         console.log(`InputSaved: onKeyUp key = ${e.key} | code = ${e.code}`);
+
+        // TODO: RESTORE THIS SOMEHOW... DEFAULT SHOULD ALLOW EVERYTHING
         // setInputElementValue((e.target as HTMLInputElement).value.toUpperCase().replace(illegalCharacters, ""));
 
         // ESC or Enter to commit changes and remove focus from this element.
@@ -57,7 +64,7 @@ const InputSaved = forwardRef((props: Props, ref) => {
     const onChange = (e: ChangeEvent<HTMLInputElement>) => {
         console.log("InputSaved: onChange");
         const val = e.target.value.toUpperCase().replace(illegalCharacters, "");
-        setInputElementValue(val);
+        setAndStoreInputValue(val);
         if (props.onChange) {
             props.onChange(val);
         }

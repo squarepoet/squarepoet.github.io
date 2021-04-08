@@ -2,12 +2,12 @@ import Shortcuts from "apps/author/guitar/shared/Shortcuts";
 import GuitarAuthorV1 from "apps/author/guitar/v1/App";
 import SharpsAndFlats, { SharpsAndFlatsInterface } from "apps/author/piano/shared/SharpsAndFlats";
 import SharpsAndFlatsManager from "apps/author/piano/shared/SharpsAndFlatsManager";
+import Constants from "apps/shared/Constants";
+import StorageUtils from "apps/shared/StorageUtils";
 import ClearBoth from "components/ClearBoth";
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import store from "store2";
 import { useEventListener } from "use-hooks";
-import createPersistedState from "use-persisted-state";
-
-const useGuitarTabState = createPersistedState("guitar_tab");
 
 let app: GuitarAuthorV1 = null;
 
@@ -16,7 +16,14 @@ if (typeof window !== "undefined") {
 }
 
 const Page = () => {
-    const [guitarTab, setGuitarTab] = useGuitarTabState("");
+    // Add a localStorage layer to useState so we can store and retrieve values between sessions.
+    // #TODO: It's not loading into the default text area.
+    const [getStoredTab, setStoredTab] = StorageUtils.storageHandlersForKey(Constants.StoreKeys.GUITAR_TAB, "");
+    const setAndStoreTab = (tab: string) => {
+        setGuitarTab(tab);
+        setStoredTab(tab);
+    };
+    const [guitarTab, setGuitarTab] = useState(getStoredTab());
 
     const guitarTabTextArea = useRef();
     const guitarCanvasRef = useRef();
@@ -39,7 +46,7 @@ const Page = () => {
     useEffect(() => {
         SharpsAndFlatsManager.setRef(sharpsAndFlatsInput);
 
-        app.setGuitarTab = setGuitarTab;
+        app.setGuitarTab = setAndStoreTab;
         app.getGuitarTab = () => guitarTab;
         app.getGuitarTabTextArea = () => guitarTabTextArea.current;
         app.getGuitarCanvas = () => guitarCanvasRef.current;
@@ -83,4 +90,5 @@ const Page = () => {
         </>
     );
 };
+
 export default Page;

@@ -1,23 +1,29 @@
 import Constants from "apps/shared/Constants";
 import Actions from "apps/shared/redux/Actions";
-import { useEffect } from "react";
+import StorageUtils from "apps/shared/StorageUtils";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import createPersistedState from "use-persisted-state";
+import store from "store2";
 
 const Keys = Constants.StoreKeys;
 
 const TrackCheckbox = ({ trackNumber }) => {
-    // Save the checkbox state to localStorage.
-    // The persisted key should be track-checkbox-n
-    const useCheckboxState = createPersistedState(`track-checkbox-${trackNumber}`);
-    const [checked, setChecked] = useCheckboxState(false);
+    // Save the UI checkbox state to localStorage.
+    // The localStorage key is track-checkbox-n where n is the trackNumber.
+    const storeKey = `track-checkbox-${trackNumber}`;
+    const [getStoredCheckboxState, setStoredCheckboxState] = StorageUtils.storageHandlersForKey(storeKey, false);
+    const setAndStoreCheckState = (checked: boolean) => {
+        setChecked(checked);
+        setStoredCheckboxState(checked);
+    };
+    const [checked, setChecked] = useState(getStoredCheckboxState());
 
     const dispatch = useDispatch();
 
     const onChange = (e) => {
         console.log("CHECKBOX UI CHANGED VALUE");
         const checkboxValue = e.target.checked;
-        setChecked(checkboxValue);
+        setAndStoreCheckState(checkboxValue);
         // Use redux to dispatch the checkbox changes....
         // checkbox N changed to true|false
         // The app can also dispatch changes to the checked state, which will be subscribed to here....
@@ -28,7 +34,8 @@ const TrackCheckbox = ({ trackNumber }) => {
     };
 
     useEffect(() => {
-        // PianoAuthorV2.Tracks.setTrackCheckedCallbacks(currTrackNumber, () => checked, setChecked);
+        // #TODO: Figure this out!
+        // PianoAuthorV2.Tracks.setTrackCheckedCallbacks(currTrackNumber, () => checked, setAndStoreCheckState);
     }, []);
 
     const checkboxMapping = useSelector((state) => {

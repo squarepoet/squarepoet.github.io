@@ -77,7 +77,8 @@ class NoteGroup {
         }
     }
 
-    // Used by Song.getTracksAsJSON() in piano.v2.ts
+    // Used by App.getTracksAsJSONString() in apps/author/piano/v2.
+    // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify#tojson_behavior
     toJSON(): string {
         return this.toString();
     }
