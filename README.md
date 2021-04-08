@@ -1,6 +1,6 @@
 # README
 
-This repository hosts authoring tools for creating songs for Tiny Piano and Tiny Guitar.
+This repository contains some experiments with computer music. It includes authoring tools for creating songs for my apps: Tiny Piano & Tiny Guitar.
 
 # Next JS Source Files
 

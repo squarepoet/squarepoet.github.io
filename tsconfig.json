@@ -3,7 +3,7 @@
         "baseUrl": ".",
         "target": "es6",
         "module": "esnext",
-        "lib": ["dom", "dom.iterable", "esnext", "webworker"],
+        "lib": ["dom", "dom.iterable", "es2016", "webworker"],
         "removeComments": true,
         "sourceMap": true,
         "allowJs": true,

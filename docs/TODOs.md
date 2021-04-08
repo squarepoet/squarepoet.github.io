@@ -1,7 +1,9 @@
 # TODOs
 
--   [ ] For guitar author, use a Karplus Strong Pluck Synth. Right now the pluck synth is painful to listen to. How can we make it okay?
--   [ ] use-persisted-state is extremely brittle. Whenever localStorage contains something unexpected, it can completely break the page from rendering. :-( I need to somehow validate the values retrieved from localStorage. Perhaps I should STOP using `use-persisted-state` / `createPersistedState` and just use the store2 API with some extra validation instead?
+-   [ ]
+-   [ ]
+
+-   [ ] use-persisted-state is brittle. Stop using it. Whenever localStorage contains something unexpected, it can completely break the page from rendering. :-( I need to somehow validate the values retrieved from localStorage. Perhaps I should STOP using `use-persisted-state` / `createPersistedState` and just use the store2 API with some extra validation instead?
 -   [ ] See https://beatbucket.io/ to see how we can make our own synthesizers with the various options. Copy synths from AudioKit iPad Synth? (Run it on iOS Simulator).
 -   [ ] Make Piano/Guitar Author V1 & V2 work again. If played by computer keyboard, we play the note and stop it a second later. If played by MIDI controller, we wait until we get a NOTE_OFF.
 -   [ ] onChange for InputSaved. Then get the value and if it's hex, break it up, then update colors real time.
@@ -56,6 +58,17 @@
     -   [x] This does NOT happen on surge or GitHub pages! We need to configure something with the test server!
 -   [ ] Add trailing slash on about/ page and other similar pages.
 -   [ ] Learn about Debugging: https://code.visualstudio.com/docs/nodejs/nodejs-debugging#_breakpoints
+
+# Tone.js
+
+-   [ ] Test latency for Bluetooth MIDI + Tone.js sound generation. How long does it take from button press to sound? Test it on Android and on macOS.
+
+# VexFlow
+
+-   [ ] Customization: One Staff (Treble or Bass) || Treble + Bass Staves.
+-   [ ] 1 to 4 measures (for now)
+-   [ ] A background bar cursor, or a color based cursor. Left and right hands can either be synced, or independent from one another!
+-   [ ] Display up to 16th notes and rests.
 
 # DONE
 
