@@ -1,8 +1,10 @@
 # TODOs
 
+-   [ ] TEST TEST TEST. I removed use-persisted-state, but now there are probably lots of bugs with saving and restoring UI state. :-)
+-   [ ] Test out how <input> tags work in React. I swear there's a bug in React where onChange isn't fired when you select all and delete.
+-   [ ] Piano.V1: The first note you hit should be Synth tones. It will auto switch to Sampler tones once everything is preloaded. We should start Tone/Musical without the stupid preloader dialog box.
 -   [ ]
 -   [ ]
-
 -   [ ] See https://beatbucket.io/ to see how we can make our own synthesizers with the various options. Copy synths from AudioKit iPad Synth? (Run it on iOS Simulator).
 -   [ ] Make Piano/Guitar Author V1 & V2 work again. If played by computer keyboard, we play the note and stop it a second later. If played by MIDI controller, we wait until we get a NOTE_OFF.
 -   [ ] onChange for InputSaved. Then get the value and if it's hex, break it up, then update colors real time.
@@ -15,7 +17,6 @@
     -   [ ] Should I have a NoteGroup class that handles Piano Notes and Guitar Notes? Or should they handle both? (Or at least support translating between the two....)
     -   [ ] Start with..... // XXXX32 => { 6:'X', 5:'X', 4:'X', 3:'X', 2:'3', 1:'2' } splitNoteGroup(noteGroup: string) {
 -   [ ]
--   [x] LEARNED that React's setState functions are ASYNCHRONOUS. YOU CANNOT DEPEND ON THE VARIABLE TO CHANGE IMMEDIATELY.
 -   [ ] Modify the `_document.tsx` to inject Material UI themes. I need to support the dark theme by default. See https://github.com/mui-org/material-ui/blob/master/examples/nextjs/pages/_document.js
 -   [ ] Use the dark theme to make the guitar/v2 radio buttons have a white outline.
 -   [ ] How to subscribe to changes in state in my App.ts? Do I need to forward changes from my component.tsx?
@@ -39,8 +40,6 @@
     -   [ ] Batch dispatches somehow.... I should only trigger the minimal amount of stuff that has changed, so we don't re-render too much!
 -   [ ] Add a keyboard shortcut to ADD_MEASURE_SEPARATOR ||. This separator will be skipped during playback.
 -   [ ] V2: Make interaction between JS/CSS and HTML/DOM more React-like rather than jQuery like!
--   [ ] Test out how <input> tags work in React. I swear there's a bug in React where onChange isn't fired when you select all and delete.
--   [ ] Piano.V1: The first note you hit will be Synth tones. It will auto switch to Sampler tones once everything is preloaded. SWEET!
 -   [ ] Piano.V1: Piano.ts should preload the samples in a programmatic way with less repetition of the baseURL and audio file names.
 -   [ ] Piano.V1: Right now, we need to hit space to preload the sounds. Can we preload by hitting any space?
 -   [ ] Make Tone.js sound more like a piano w/ better pianoteq samples!
@@ -54,7 +53,6 @@
 -   [ ] When I refresh or go to a URL directly, it gets a 404! Something about routing?
     -   [x] This does NOT happen on surge or GitHub pages! We need to configure something with the test server!
 -   [ ] Add trailing slash on about/ page and other similar pages.
--   [ ] Learn about Debugging: https://code.visualstudio.com/docs/nodejs/nodejs-debugging#_breakpoints
 
 # Tone.js
 
@@ -67,8 +65,13 @@
 -   [ ] A background bar cursor, or a color based cursor. Left and right hands can either be synced, or independent from one another!
 -   [ ] Display up to 16th notes and rests.
 
+# Debugging
+
+-   [ ] Learn more about debugging in VS Code: https://code.visualstudio.com/docs/nodejs/nodejs-debugging#_breakpoints
+
 # DONE
 
 -   [x] npm i lodash for piano v1/v2
 -   [x] usePersistedState might cause a React error if something is wrong while loading the state as JSON. I had to call localStorage.clear()
 -   [x] use-persisted-state is brittle. Stop using it. Whenever localStorage contains something unexpected, it can completely break the page from rendering. :-( I need to somehow validate the values retrieved from localStorage. Perhaps I should STOP using `use-persisted-state` / `createPersistedState` and just use the store2 API with some extra validation instead?
+-   [x] LEARNED that React's setState functions are ASYNCHRONOUS. YOU CANNOT DEPEND ON THE VARIABLE TO CHANGE IMMEDIATELY.
