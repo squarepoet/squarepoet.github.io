@@ -4309,10 +4309,9 @@ util@^0.11.0:
   dependencies:
     inherits "2.0.3"
 
-vexflow@^3.0.9:
+"vexflow@ssh://git@github.com:ronyeh/vexflow.git":
   version "3.0.9"
-  resolved "https://registry.yarnpkg.com/vexflow/-/vexflow-3.0.9.tgz#85bc89ae5224670d3837d0b34c521b9e69abc89c"
-  integrity sha512-JzDUC3SZvyRxvALv0UrlgCJSH7WzNSShNjXK0rTWqDJscCcytrTWLT3LYtsDvby8qbszdaD708xOe9D79FLTFA==
+  resolved "ssh://git@github.com:ronyeh/vexflow.git#94ec622161c237cebf1c889706ddaa8696df92a9"
 
 vm-browserify@1.1.2, vm-browserify@^1.0.1:
   version "1.1.2"
