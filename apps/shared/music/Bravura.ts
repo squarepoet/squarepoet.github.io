@@ -553,19 +553,6 @@ const Bravura: SMUFLFont = {
             },
             path: "M100 0C100-28 78-50 50-50C22-50 0-28 0 0C0 28 22 50 50 50C78 50 100 28 100 0Z",
         },
-        textAugmentationDot: {
-            codePoint: 57852,
-            glyphAdvanceWidth: 100,
-            bBoxSW: {
-                x: 0,
-                y: -36,
-            },
-            bBoxNE: {
-                x: 100,
-                y: 64,
-            },
-            path: "M100-14C100-42 78-64 50-64C22-64 0-42 0-14C0 14 22 36 50 36C78 36 100 14 100-14Z",
-        },
         textTie: {
             codePoint: 57853,
             glyphAdvanceWidth: 365,

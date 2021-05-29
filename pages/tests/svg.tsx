@@ -13,6 +13,8 @@ import { SVG } from "@svgdotjs/svg.js";
 // bottom-left (or SW) and top-right (or NE) corners of the rectangle, expressed in staff spaces, relative to the glyph origin.
 
 // In SVG, the top-left corner is the [0,0].
+const styleTransparent = { opacity: 0 };
+
 const SVGTests = () => {
     useEffect(() => {
         // const bbox = { x: 0, y: -4.392 * 250, width: 2.684 * 250, height: (4.392 + 2.632) * 250 };
@@ -38,6 +40,9 @@ const SVGTests = () => {
 
         let glyphNumber = 0;
 
+        const viewBoxW = 3000;
+        const viewBoxH = 3000;
+
         for (const glyphName in Bravura.glyphs) {
             const glyphInfo = Bravura.glyphs[glyphName];
 
@@ -47,29 +52,42 @@ const SVGTests = () => {
             const bboxH = glyphInfo.bBoxNE.y - glyphInfo.bBoxSW.y;
             const bbox = { x: bboxX, y: bboxY, width: bboxW, height: bboxH };
 
-            const viewbox = { x: -1000, y: -1000, width: 2000, height: 2000 };
+            const viewbox = { x: -viewBoxW / 2, y: -viewBoxH / 2, width: viewBoxW, height: viewBoxH };
             const svg = SVG()
                 .addTo("#score")
                 .viewbox(viewbox)
-                .size(viewbox.width / 10, viewbox.height / 10)
+                .size(viewBoxW / 10, viewBoxH / 10)
                 .addClass("sheet-music");
 
-            // origin
-            svg.circle(80).move(-40, -40).stroke({ color: "#33F", opacity: 0.8, width: 20 }).fill({ opacity: 0 });
             // x and y axis
-            const axisStrokeStyle = { color: "#3FF", opacity: 0.4, width: 20 };
-            const axisDashStyle = { "stroke-dasharray": "50" };
+            const axisStrokeStyle = { color: "#3CC", opacity: 0.4, width: 20 };
+            const axisDashStyle = { "stroke-dasharray": 40 };
             svg.line(-2000, 0, 2000, 0).stroke(axisStrokeStyle).attr(axisDashStyle);
             svg.line(0, -2000, 0, 2000).stroke(axisStrokeStyle).attr(axisDashStyle);
-            // the glyph's bounding box
-            svg.rect(bboxW, bboxH).move(bboxX, bboxY).stroke({ color: "#F00", width: 10 }).fill({ opacity: 0 });
             // the glyph!
             svg.path(glyphInfo.path)
                 .fill({ color: "#181818" })
                 .addClass("glyph_" + glyphNumber);
-
             glyphNumber++;
-            svg.text(glyphName).font({ size: 100 }).move(0, 0).fill({ color: "#F00" });
+            // the glyph's bounding box
+            svg.rect(bboxW, bboxH).move(bboxX, bboxY).stroke({ color: "#F00", width: 10 }).fill(styleTransparent).attr({ "stroke-dasharray": 40 });
+            // the glyph's horizontal advance
+            const glyphAdvanceWidth = glyphInfo.glyphAdvanceWidth;
+            svg.line(0, 0, glyphAdvanceWidth, 0).stroke({ color: "#2F2", width: 30, opacity: 0.6 }).move(0, 1200);
+
+            if (glyphInfo.anchors) {
+                if (glyphInfo.anchors.opticalCenter) {
+                    const opticalCenter = glyphInfo.anchors.opticalCenter;
+                    svg.circle(50)
+                        .move(opticalCenter[0] - 25, opticalCenter[1] - 25 + 1300)
+                        .fill(styleTransparent)
+                        .stroke({ color: "#90F", width: 20 });
+                }
+            }
+
+            const text = svg.text(glyphName).font({ size: 180 }).fill({ color: "#F00" });
+            const width = text.bbox().width;
+            text.move(-width * 0.5, 900);
         }
     }, []);
 
@@ -81,7 +99,8 @@ const SVGTests = () => {
                 .sheet-music {
                     border: 1px solid #333;
                     background-color: #d9dad7;
-                    display: block;
+                    display: inline-block;
+                    margin: 5px;
                 }
             `}</style>
         </>
