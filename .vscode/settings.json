@@ -6,5 +6,6 @@
         ".vscode": true
     },
 
-    "window.title": "${rootName} ${separator} ${activeFolderMedium} ${separator} ${activeEditorShort}"
+    "window.title": "${rootName} ${separator} ${activeFolderMedium} ${separator} ${activeEditorShort}",
+    "editor.formatOnSave": true
 }
