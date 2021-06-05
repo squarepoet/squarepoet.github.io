@@ -1,5 +1,10 @@
 # TODOs
 
+-   [ ] On Guitar Author V2, make sure the instrument I chose can be restored across sessions.
+-   [ ] On Guitar Author V2, when I press a computer keyboard key, play the correct guitar string sound! Record it on my tele (long sustain) and then play the right note with Tone.js wet filters? When I play another note on the same string, mute the previous sound. If I play the same note on a different string, let it sustain!
+
+---
+
 -   [ ] TEST TEST TEST. I removed use-persisted-state, but now there are probably lots of bugs with saving and restoring UI state. :-)
 -   [ ] Test out how <input> tags work in React. I swear there's a bug in React where onChange isn't fired when you select all and delete.
 -   [ ] Piano.V1: The first note you hit should be Synth tones. It will auto switch to Sampler tones once everything is preloaded. We should start Tone/Musical without the stupid preloader dialog box.
