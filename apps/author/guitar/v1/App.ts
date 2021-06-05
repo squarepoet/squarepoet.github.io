@@ -37,7 +37,6 @@ export default class GuitarAuthorV1 {
 
     private noteOffsetForString = [0, 7, 2, 10, 5, 0, 7]; // [X] E B G D A E
 
-    private piano: any = null;
     private fretOffset = 0;
     private stringOffset = 0;
 

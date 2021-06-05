@@ -24,6 +24,8 @@ namespace Constants {
         export const GUITAR_TYPE = "guitarType"; // localStorage
         export const GUITAR_TAB = "guitarTab"; // localStorage
         export const INSTRUMENT_TYPE = "instrumentType"; // localStorage
+        export const GUITAR_STRING_OFFSET = "guitarStringOffset"; // localStorage
+        export const GUITAR_FRET_OFFSET = "guitarFretOffset"; // localStorage
     }
 
     export const DEFAULT_DOWNLOAD_DATA = "8J+OtQ=="; // base 64 encoded!
