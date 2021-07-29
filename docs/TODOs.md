@@ -1,9 +1,12 @@
 # TODOs
 
--   [ ] On Guitar Author V2, make sure the instrument I chose can be restored across sessions.
--   [ ] On Guitar Author V2, when I press a computer keyboard key, play the correct guitar string sound! Record it on my tele (long sustain) and then play the right note with Tone.js wet filters? When I play another note on the same string, mute the previous sound. If I play the same note on a different string, let it sustain!
+-   [x] Piano V2: Make the computer keyboard to piano key mapping customizable via an offset.
+-   [ ] Piano V2: Holding down a key should not repeat it!
 
 ---
+
+-   [ ] On Guitar Author V2, make sure the instrument I chose can be restored across sessions.
+-   [ ] On Guitar Author V2, when I press a computer keyboard key, play the correct guitar string sound! Record it on my tele (long sustain) and then play the right note with Tone.js wet filters? When I play another note on the same string, mute the previous sound. If I play the same note on a different string, let it sustain!
 
 -   [ ] TEST TEST TEST. I removed use-persisted-state, but now there are probably lots of bugs with saving and restoring UI state. :-)
 -   [ ] Test out how <input> tags work in React. I swear there's a bug in React where onChange isn't fired when you select all and delete.
@@ -17,7 +20,6 @@
 -   [ ] See #MIDIAWEIIZAI. Use MIDI Keyboard to author!
     -   [ ] IMPORTANT: It should initialize the same things as if we pressed a computer key. It needs to go through the same setup path (and dismiss the preload popup)!
     -   [ ] See #RESETACQWIEIFK.f If we press down the B, C, C# at the same time, we reset the text field to empty!!!!
--   [ ] See #XKWIALDZA. Make the computer keyboard to piano key mapping customizable via an offset.
 -   [ ] When I hit a key, figure out which note we want to play and add it to our text area.
     -   [ ] Should I have a NoteGroup class that handles Piano Notes and Guitar Notes? Or should they handle both? (Or at least support translating between the two....)
     -   [ ] Start with..... // XXXX32 => { 6:'X', 5:'X', 4:'X', 3:'X', 2:'3', 1:'2' } splitNoteGroup(noteGroup: string) {

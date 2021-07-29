@@ -335,12 +335,13 @@ export default (function () {
         startUI: (cRef: React.MutableRefObject<HTMLCanvasElement>) => {
             canvasRef = cRef;
             loadNoteGroups();
-            // loadSharpsAndFlats();
             drawPiano();
         },
 
         startAudio: () => {
-            piano = new Instrument(InstrumentType.SynthBasic);
+            if (!piano) {
+                piano = new Instrument(InstrumentType.SynthBasic);
+            }
         },
 
         onKeydown: (e) => {

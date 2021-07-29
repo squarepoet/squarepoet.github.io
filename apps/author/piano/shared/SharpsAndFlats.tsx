@@ -38,7 +38,7 @@ const SharpsAndFlatsInputs = forwardRef(({ style, localStorageKeyPrefix }: Sharp
             getSharps() {
                 if (sharpsInput.current) {
                     const sharpsValue = sharpsInput.current.getValue();
-                    console.log("SHARPS VALUE " + sharpsValue);
+                    // console.log("SHARPS VALUE " + sharpsValue);
                     return sharpsValue;
                 } else {
                     return "";
@@ -47,7 +47,7 @@ const SharpsAndFlatsInputs = forwardRef(({ style, localStorageKeyPrefix }: Sharp
             getFlats() {
                 if (flatsInput.current) {
                     const flatsValue = flatsInput.current.getValue();
-                    console.log("FLATS VALUE " + flatsValue);
+                    // console.log("FLATS VALUE " + flatsValue);
                     return flatsValue;
                 } else {
                     return "";

@@ -10,7 +10,6 @@ import { useEventListener } from "use-hooks";
 
 const Page = () => {
     const canvasRef = useRef(null);
-    const [showPreloadDialog, setShowPreloadDialog] = useState(true);
 
     if (typeof window !== "undefined") {
         useEventListener("keydown", (e: KeyboardEvent) => {
@@ -24,21 +23,16 @@ const Page = () => {
         });
     }
 
-    function startAudio() {
-        PianoAuthorV1.startAudio();
-        setShowPreloadDialog(false);
-    }
-
     const sharpsAndFlatsInput = useRef<SharpsAndFlatsInterface>();
 
     useEffect(() => {
         SharpsAndFlatsManager.setRef(sharpsAndFlatsInput);
         PianoAuthorV1.startUI(canvasRef);
+        PianoAuthorV1.startAudio();
     }, []);
 
     return (
         <>
-            {showPreloadDialog ? <PreloadDialog initialOpenState={showPreloadDialog} preloadNow={startAudio} /> : null}
             <div>
                 <KeyboardShortcuts />
                 <SharpsAndFlats ref={sharpsAndFlatsInput} localStorageKeyPrefix="piano" style={{ float: "left" }} />

@@ -30,7 +30,6 @@ const UI = PianoAuthorV2.UI;
 
 const AppContainer = () => {
     // const workerRef = useRef<Worker>();
-    const [showPreloadDialog, setShowPreloadDialog] = useState(true);
     const [fileInfo, setFileInfo] = useState("");
     const [songInfo, setSongInfo] = useState("");
     const [highlightedTrackNumber, setHighlightedTrackNumber] = useState(0);
@@ -46,6 +45,7 @@ const AppContainer = () => {
 
         SharpsAndFlatsManager.setRef(sharpsAndFlatsInput);
         PianoAuthorV2.start();
+        PianoAuthorV2.startAudio();
 
         // workerRef.current = new Worker("./clock.worker.js", { type: "module" });
         // workerRef.current.postMessage("start");
@@ -77,11 +77,6 @@ const AppContainer = () => {
         });
     }
 
-    function onDialogDismissedStartAudio() {
-        PianoAuthorV2.startAudio();
-        setShowPreloadDialog(false);
-    }
-
     // Subscribe to changes in songVersion
     const songVersion = useSelector((state) => state[Keys.SONG_VERSION]);
     useEffect(() => {
@@ -110,7 +105,6 @@ const AppContainer = () => {
 
     return (
         <>
-            {showPreloadDialog ? <PreloadDialog initialOpenState={showPreloadDialog} preloadNow={onDialogDismissedStartAudio} /> : null}
             <DownloadSong />
             <VersionToggle />
             <KeyboardShortcuts />

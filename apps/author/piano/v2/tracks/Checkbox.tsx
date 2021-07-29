@@ -39,13 +39,13 @@ const TrackCheckbox = ({ trackNumber }) => {
     }, []);
 
     const checkboxMapping = useSelector((state) => {
-        console.log("useSelector for checkboxMapping");
-        console.log(state);
+        // console.log("useSelector for checkboxMapping");
+        // console.log(state);
         return state[Keys.TRACK_NUMBER_TO_CHECKBOX_VALUE];
     });
     useEffect(() => {
-        console.log("CHECKBOX MAPPING CHANGED");
-        console.log(checkboxMapping);
+        // console.log("CHECKBOX MAPPING CHANGED");
+        // console.log(checkboxMapping);
     }, [checkboxMapping]);
 
     return (

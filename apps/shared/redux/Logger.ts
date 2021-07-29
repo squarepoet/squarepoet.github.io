@@ -1,6 +1,7 @@
 // Curried function.
 const Logger = (store) => (next) => (action) => {
     let result;
+    /*
     console.group("REDUX DISPATCH => " + action.type); // Indent the following logs.
     {
         console.log("action");
@@ -10,6 +11,8 @@ const Logger = (store) => (next) => (action) => {
         console.dir(store.getState());
     }
     console.groupEnd();
+    */
+    result = next(action);
     return result;
 };
 
