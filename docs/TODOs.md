@@ -1,4 +1,13 @@
+# Notes
+
+-   CMD + SHIFT + P > Debug: Start Debugging. Then load http://localhost:3001
+
 # TODOs
+
+-   [ ] **TOP LEVEL GOAL**: Make Guitar V1/V2 and Piano V1/V2 work with keyboard and also nanoKEY2 input! Then done for now!
+-   [ ] Check that Guitar V1 mostly works (with just regular keyboard keys)
+-   [ ] Make Guitar V2 work (with nanoKey2 registered as 2_1 === Middle C).
+-   [ ] Start authoring guitar songs!
 
 -   [x] Piano V2: Make the computer keyboard to piano key mapping customizable via an offset.
 -   [ ] Piano V2: Holding down a key should not repeat it!
